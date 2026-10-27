@@ -15,7 +15,7 @@ export function Footer() {
         <div>
           <h3 className="font-heading text-lg font-bold text-ink">روابط سريعة</h3>
           <ul className="mt-3 flex flex-col gap-2">
-            {navLinks.map((link) => (
+            {[...navLinks, { href: "/track", label: "تتبّع طلبك" }].map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
