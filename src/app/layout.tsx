@@ -2,10 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Reem_Kufi, Tajawal } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { BottomNav } from "@/components/layout/BottomNav";
-import { FloatingWhatsApp } from "@/components/layout/FloatingWhatsApp";
+import { env } from "@/lib/env";
 
 const reemKufi = Reem_Kufi({
   subsets: ["arabic"],
@@ -22,6 +19,10 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
+  applicationName: site.nameAr,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: site.nameAr, statusBarStyle: "default" },
   title: {
     default: `${site.nameAr} | ${site.nameEn}`,
     template: `%s | ${site.nameAr}`,
@@ -56,11 +57,10 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${reemKufi.variable} ${tajawal.variable}`}>
       <body className="flex min-h-dvh flex-col">
-        <Header />
-        <main className="flex-1 pb-20 md:pb-0">{children}</main>
-        <Footer />
-        <BottomNav />
-        <FloatingWhatsApp />
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-white">
+          تخطّي إلى المحتوى
+        </a>
+        {children}
       </body>
     </html>
   );
