@@ -44,7 +44,9 @@ if (!parsed.success) {
 export const env = parsed.data;
 
 export const isSupabaseConfigured = Boolean(
-  env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  env.NEXT_PUBLIC_SUPABASE_URL &&
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
 export const isDemo = !isSupabaseConfigured;
