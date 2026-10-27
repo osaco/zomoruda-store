@@ -8,10 +8,13 @@ import { Logo } from "./Logo";
 import { navLinks } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { defaultWhatsappMessage, whatsappLink } from "@/lib/site";
+import { CartBadge } from "@/features/cart/components/CartBadge";
+import { useCart } from "@/features/cart/store";
 
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const openCart = useCart((s) => s.open);
 
   return (
     <header className="sticky top-0 z-40 border-b border-primary/5 bg-bg/85 backdrop-blur-md">
@@ -49,16 +52,15 @@ export function Header() {
           >
             <Search className="h-5 w-5" strokeWidth={1.75} />
           </Link>
-          <Link
-            href="/cart"
+          <button
+            type="button"
+            onClick={openCart}
             aria-label="سلة المشتريات"
             className="relative rounded-full p-2 text-ink/80 transition hover:bg-primary-light hover:text-primary"
           >
             <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
-            <span className="absolute -top-0.5 end-0.5 hidden h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-              0
-            </span>
-          </Link>
+            <CartBadge className="-top-0.5 end-0" />
+          </button>
           <a
             href={whatsappLink(defaultWhatsappMessage)}
             target="_blank"
