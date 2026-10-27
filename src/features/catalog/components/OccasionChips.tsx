@@ -1,27 +1,30 @@
 import Link from "next/link";
-import { Gift } from "lucide-react";
-import { occasionChips } from "@/features/catalog/constants";
+import type { Occasion } from "@/types/db";
+import { iconFor, occasionIcons } from "../constants";
 
-export function OccasionChips() {
+export function OccasionChips({ occasions, activeSlug }: { occasions: Occasion[]; activeSlug?: string }) {
   return (
-    <section className="container-page pb-12 md:pb-16">
-      <div className="mb-6 text-center">
-        <h2 className="font-heading text-2xl font-bold text-ink md:text-3xl">
-          تسوّقي حسب المناسبة
-        </h2>
-      </div>
+    <section className="container-page py-8">
+      <h2 className="mb-5 text-center font-heading text-2xl font-bold text-ink md:text-3xl">تسوّقي حسب المناسبة</h2>
       <ul className="flex flex-wrap justify-center gap-3">
-        {occasionChips.map((occasion) => (
-          <li key={occasion.label}>
-            <Link
-              href={occasion.href}
-              className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-surface px-5 py-2 text-sm font-medium text-ink transition duration-200 hover:border-accent hover:bg-accent/10"
-            >
-              <Gift className="h-4 w-4 text-accent" strokeWidth={1.75} aria-hidden="true" />
-              {occasion.label}
-            </Link>
-          </li>
-        ))}
+        {occasions.map((occasion) => {
+          const Icon = iconFor(occasionIcons, occasion.icon);
+          const active = occasion.slug === activeSlug;
+          return (
+            <li key={occasion.id}>
+              <Link
+                href={`/occasions/${occasion.slug}`}
+                aria-current={active ? "page" : undefined}
+                className={`inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-medium transition duration-200 ${
+                  active ? "border-accent bg-accent text-white" : "border-accent/40 bg-surface text-ink hover:border-accent hover:bg-accent/10"
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${active ? "text-white" : "text-accent"}`} strokeWidth={1.75} aria-hidden="true" />
+                {occasion.nameAr}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
