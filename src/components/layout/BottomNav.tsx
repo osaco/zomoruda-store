@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import { Home, LayoutGrid, Search, ShoppingBag, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { defaultWhatsappMessage, whatsappLink } from "@/lib/site";
+import { CartBadge } from "@/features/cart/components/CartBadge";
 
 const items = [
   { href: "/", label: "الرئيسية", icon: Home },
   { href: "/categories", label: "الأقسام", icon: LayoutGrid },
   { href: "/search", label: "بحث", icon: Search },
-  { href: "/cart", label: "السلة", icon: ShoppingBag, badge: 0 },
+  { href: "/cart", label: "السلة", icon: ShoppingBag, badge: true },
 ] as const;
 
 export function BottomNav() {
@@ -41,11 +42,7 @@ export function BottomNav() {
                     strokeWidth={1.75}
                     aria-hidden="true"
                   />
-                  {"badge" in item && item.badge ? (
-                    <span className="absolute -top-1.5 -end-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-                      {item.badge}
-                    </span>
-                  ) : null}
+                  {"badge" in item ? <CartBadge className="-top-1.5 -end-2" /> : null}
                 </span>
                 {item.label}
               </Link>
