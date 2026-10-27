@@ -11,3 +11,4 @@ PROMPT.md
 PROGRESS.md
 opencode.json
 .opencode/
+*.tsbuildinfo
