@@ -1,3 +1,5 @@
+import { env } from "@/lib/env";
+
 export const site = {
   nameAr: "زُمُرّدة",
   nameEn: "Zomoruda",
@@ -5,7 +7,7 @@ export const site = {
   descriptionAr:
     "متجر هدايا في غزة: بوكسات، ورد، عطور، مكياج، أكواب، إكسسوارات، حقائب وهدايا الأعراس. اطلبِي بسهولة ووصلك لباب البيت.",
   addressAr: "غزة - الرمال، مفترق البلميرا",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "970567812644",
+  whatsapp: env.NEXT_PUBLIC_WHATSAPP_NUMBER,
   instagram: "zomoruda1",
   hoursAr: "السبت - الخميس: 10 صباحاً - 9 مساءً",
   mapUrl: "https://maps.google.com/?q=Al+Rimal+Gaza",
