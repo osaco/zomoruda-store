@@ -3,6 +3,7 @@ import { Reem_Kufi, Tajawal } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import { env } from "@/lib/env";
+import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
 
 const reemKufi = Reem_Kufi({
   subsets: ["arabic"],
@@ -61,6 +62,7 @@ export default function RootLayout({
           تخطّي إلى المحتوى
         </a>
         {children}
+        <RegisterServiceWorker />
       </body>
     </html>
   );
