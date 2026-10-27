@@ -6,7 +6,7 @@ export const site = {
     "متجر هدايا في غزة: بوكسات، ورد، عطور، مكياج، أكواب، إكسسوارات، حقائب وهدايا الأعراس. اطلبِي بسهولة ووصلك لباب البيت.",
   addressAr: "غزة - الرمال، مفترق البلميرا",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "970567812644",
-  instagram: "zomoruda.store",
+  instagram: "zomoruda1",
   hoursAr: "السبت - الخميس: 10 صباحاً - 9 مساءً",
   mapUrl: "https://maps.google.com/?q=Al+Rimal+Gaza",
 } as const;
