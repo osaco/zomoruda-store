@@ -1,36 +1,48 @@
 import {
+  Baby,
+  Cake,
   Coffee,
   Flower2,
   Gem,
   Gift,
+  GraduationCap,
+  Heart,
   HeartHandshake,
   Palette,
   ShoppingBag,
   SprayCan,
   type LucideIcon,
 } from "lucide-react";
+import type { ProductSort } from "@/lib/data/repositories";
 
-export type CategoryCircle = {
-  label: string;
-  href: string;
-  icon: LucideIcon;
+/** Icon per category slug; unknown slugs fall back to a gift. */
+export const categoryIcons: Record<string, LucideIcon> = {
+  "gift-boxes": Gift,
+  flowers: Flower2,
+  perfumes: SprayCan,
+  cosmetics: Palette,
+  mugs: Coffee,
+  accessories: Gem,
+  bags: ShoppingBag,
+  "wedding-gifts": HeartHandshake,
 };
 
-export const categoryCircles: CategoryCircle[] = [
-  { label: "بوكسات هدايا", href: "/categories/gift-boxes", icon: Gift },
-  { label: "ورد", href: "/categories/flowers", icon: Flower2 },
-  { label: "عطور", href: "/categories/perfumes", icon: SprayCan },
-  { label: "مكياج", href: "/categories/cosmetics", icon: Palette },
-  { label: "أكواب", href: "/categories/mugs", icon: Coffee },
-  { label: "إكسسوارات", href: "/categories/accessories", icon: Gem },
-  { label: "حقائب", href: "/categories/bags", icon: ShoppingBag },
-  { label: "هدايا الأعراس", href: "/categories/wedding-gifts", icon: HeartHandshake },
+export const occasionIcons: Record<string, LucideIcon> = {
+  cake: Cake,
+  "graduation-cap": GraduationCap,
+  heart: Heart,
+  flower: Flower2,
+  baby: Baby,
+};
+
+export const iconFor = (map: Record<string, LucideIcon>, key: string | null | undefined): LucideIcon =>
+  (key && map[key]) || Gift;
+
+export const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
+  { value: "newest", label: "الأحدث" },
+  { value: "best_selling", label: "الأكثر مبيعاً" },
+  { value: "price_asc", label: "السعر: من الأقل" },
+  { value: "price_desc", label: "السعر: من الأعلى" },
 ];
 
-export const occasionChips = [
-  { label: "عيد ميلاد", href: "/occasions/birthday" },
-  { label: "تخرج", href: "/occasions/graduation" },
-  { label: "عرس", href: "/occasions/wedding" },
-  { label: "عيد الأم", href: "/occasions/mothers-day" },
-  { label: "مولود جديد", href: "/occasions/new-baby" },
-];
+export const PER_PAGE = 12;
