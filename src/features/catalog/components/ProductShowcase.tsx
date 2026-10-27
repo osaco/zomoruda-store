@@ -1,39 +1,33 @@
 import Link from "next/link";
-import { ProductPlaceholderCard } from "@/features/catalog/components/ProductPlaceholderCard";
+import type { Product } from "@/types/db";
+import { ProductGrid } from "./ProductGrid";
 
 export function ProductShowcase({
   title,
   subtitle,
   href,
-  count = 4,
+  products,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   href?: string;
-  count?: number;
+  products: Product[];
 }) {
+  if (products.length === 0) return null;
   return (
-    <section className="container-page py-12 md:py-16">
-      <div className="mb-6 flex items-end justify-between gap-4">
+    <section className="container-page py-10 md:py-14">
+      <div className="mb-5 flex items-end justify-between gap-4">
         <div>
           <h2 className="font-heading text-2xl font-bold text-ink md:text-3xl">{title}</h2>
-          <p className="mt-1 text-sm text-muted">{subtitle}</p>
+          {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
         </div>
-        {href ? (
-          <Link
-            href={href}
-            className="hidden text-sm font-bold text-primary hover:underline md:inline"
-          >
+        {href && (
+          <Link href={href} className="shrink-0 text-sm font-bold text-primary hover:underline">
             عرض الكل
           </Link>
-        ) : null}
+        )}
       </div>
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {Array.from({ length: count }).map((_, index) => (
-          <ProductPlaceholderCard key={`${title}-${index}`} title={title} />
-        ))}
-      </div>
+      <ProductGrid products={products} />
     </section>
   );
 }
