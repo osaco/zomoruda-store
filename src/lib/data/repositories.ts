@@ -1,19 +1,26 @@
+/**
+ * Data-access contracts.
+ *
+ * Features talk to these interfaces only (via `getRepos()`), never to Supabase
+ * directly. Two adapters implement them:
+ *   - `demo/`     in-memory seed data, used when Supabase env vars are missing
+ *   - `supabase/` the real Postgres database
+ * Switching between them is purely an environment concern.
+ */
 import type {
   Availability,
+  Banner,
+  Category,
   Coupon,
   Customer,
   DeliveryZone,
   Id,
-  Order,
-  OrderItem,
-  OrderStatus,
-  Banner,
-  Category,
   Occasion,
+  Order,
+  OrderStatus,
   Product,
   Setting,
 } from "@/types/db";
-import type { FulfillmentType, PaymentMethod } from "@/types/enums";
 
 export type Paginated<T> = {
   items: T[];
@@ -37,15 +44,20 @@ export type ProductQuery = {
   isNew?: boolean;
   onSale?: boolean;
   availability?: Availability;
+  minPrice?: number;
+  maxPrice?: number;
   sort?: ProductSort;
   page?: number;
   perPage?: number;
+  includeInactive?: boolean;
 };
 
 export type OrderQuery = {
   status?: OrderStatus;
   search?: string;
   customerPhone?: string;
+  from?: string;
+  to?: string;
   page?: number;
   perPage?: number;
 };
@@ -56,28 +68,15 @@ export type CustomerQuery = {
   perPage?: number;
 };
 
-export type CreateOrderItemInput = {
-  productId: Id;
-  quantity: number;
-  options?: OrderItem["options"];
-  customName?: string | null;
-  cardMessage?: string | null;
-  photoPath?: string | null;
-};
+/** A fully priced order, computed server-side by `buildOrder()`. */
+export type NewOrderRecord = Omit<
+  Order,
+  "id" | "orderNumber" | "createdAt" | "statusHistory" | "status"
+>;
 
-export type CreateOrderInput = {
-  customerName: string;
-  customerPhone: string;
-  zoneId: Id | null;
-  address?: string | null;
-  items: CreateOrderItemInput[];
-  fulfillment: FulfillmentType;
-  deliveryDate?: string | null;
-  timeSlot?: string | null;
-  paymentMethod: PaymentMethod;
-  couponCode?: string | null;
-  notes?: string | null;
-  receiptPath?: string | null;
+export type ProductInput = Omit<Product, "id" | "createdAt" | "images" | "options" | "soldCount"> & {
+  images: { url: string; altAr: string | null }[];
+  options: { nameAr: string; values: { valueAr: string; priceDelta: number }[]; isRequired: boolean }[];
 };
 
 export type UpsertCustomerInput = {
@@ -88,15 +87,19 @@ export type UpsertCustomerInput = {
   notes?: string | null;
 };
 
-export interface CategoryRepository {
-  list(options?: ListOptions): Promise<Category[]>;
-  getById(id: Id): Promise<Category | null>;
+export interface CrudRepository<T extends { id: Id }> {
+  list(options?: ListOptions): Promise<T[]>;
+  getById(id: Id): Promise<T | null>;
+  create(input: Omit<T, "id">): Promise<T>;
+  update(id: Id, input: Partial<Omit<T, "id">>): Promise<T | null>;
+  remove(id: Id): Promise<void>;
+}
+
+export interface CategoryRepository extends CrudRepository<Category> {
   getBySlug(slug: string): Promise<Category | null>;
 }
 
-export interface OccasionRepository {
-  list(options?: ListOptions): Promise<Occasion[]>;
-  getById(id: Id): Promise<Occasion | null>;
+export interface OccasionRepository extends CrudRepository<Occasion> {
   getBySlug(slug: string): Promise<Occasion | null>;
 }
 
@@ -104,20 +107,22 @@ export interface ProductRepository {
   list(query?: ProductQuery): Promise<Paginated<Product>>;
   getById(id: Id): Promise<Product | null>;
   getBySlug(slug: string): Promise<Product | null>;
+  getManyByIds(ids: Id[]): Promise<Product[]>;
   featured(limit?: number): Promise<Product[]>;
   newest(limit?: number): Promise<Product[]>;
   related(productId: Id, limit?: number): Promise<Product[]>;
+  create(input: ProductInput): Promise<Product>;
+  update(id: Id, input: ProductInput): Promise<Product | null>;
+  remove(id: Id): Promise<void>;
+  adjustStock(id: Id, delta: number): Promise<void>;
 }
 
-export interface DeliveryZoneRepository {
-  list(options?: ListOptions): Promise<DeliveryZone[]>;
-  getById(id: Id): Promise<DeliveryZone | null>;
-}
+export type DeliveryZoneRepository = CrudRepository<DeliveryZone>;
+export type BannerRepository = CrudRepository<Banner>;
 
-export interface CouponRepository {
-  list(options?: ListOptions): Promise<Coupon[]>;
-  getById(id: Id): Promise<Coupon | null>;
+export interface CouponRepository extends CrudRepository<Coupon> {
   getByCode(code: string): Promise<Coupon | null>;
+  incrementUsage(id: Id): Promise<void>;
 }
 
 export interface CustomerRepository {
@@ -125,20 +130,17 @@ export interface CustomerRepository {
   getById(id: Id): Promise<Customer | null>;
   getByPhone(phone: string): Promise<Customer | null>;
   upsertByPhone(input: UpsertCustomerInput): Promise<Customer>;
-  recordOrder(customerId: Id, total: number): Promise<Customer | null>;
+  update(id: Id, input: Partial<UpsertCustomerInput>): Promise<Customer | null>;
+  recordOrder(customerId: Id, total: number): Promise<void>;
 }
 
 export interface OrderRepository {
-  create(input: CreateOrderInput): Promise<Order>;
+  create(input: NewOrderRecord): Promise<Order>;
   getById(id: Id): Promise<Order | null>;
   getByNumber(orderNumber: string): Promise<Order | null>;
   list(query?: OrderQuery): Promise<Paginated<Order>>;
-  updateStatus(id: Id, status: OrderStatus, note?: string | null): Promise<Order | null>;
-}
-
-export interface BannerRepository {
-  list(options?: ListOptions): Promise<Banner[]>;
-  getById(id: Id): Promise<Banner | null>;
+  all(query?: Pick<OrderQuery, "from" | "to">): Promise<Order[]>;
+  updateStatus(id: Id, status: OrderStatus, note?: string | null, by?: string | null): Promise<Order | null>;
 }
 
 export interface SettingsRepository {
@@ -148,6 +150,7 @@ export interface SettingsRepository {
 }
 
 export type Repositories = {
+  mode: "demo" | "supabase";
   categories: CategoryRepository;
   occasions: OccasionRepository;
   products: ProductRepository;
@@ -158,3 +161,17 @@ export type Repositories = {
   banners: BannerRepository;
   settings: SettingsRepository;
 };
+
+export function paginate<T>(all: T[], page = 1, perPage = 12): Paginated<T> {
+  const safePerPage = Math.max(1, perPage);
+  const pageCount = Math.max(1, Math.ceil(all.length / safePerPage));
+  const safePage = Math.min(Math.max(1, page), pageCount);
+  const start = (safePage - 1) * safePerPage;
+  return {
+    items: all.slice(start, start + safePerPage),
+    total: all.length,
+    page: safePage,
+    perPage: safePerPage,
+    pageCount,
+  };
+}
