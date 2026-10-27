@@ -79,6 +79,7 @@ export type Product = {
   images: ProductImage[];
   options: ProductOption[];
   occasionIds: Id[];
+  soldCount: number;
   createdAt: string;
 };
 
