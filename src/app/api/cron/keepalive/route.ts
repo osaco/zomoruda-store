@@ -8,7 +8,10 @@ import { getRepos } from "@/lib/data";
  * being paused for inactivity.
  */
 export async function GET(request: Request) {
-  if (serverEnv.CRON_SECRET && request.headers.get("authorization") !== `Bearer ${serverEnv.CRON_SECRET}`) {
+  if (
+    (process.env.NODE_ENV === "production" && !serverEnv.CRON_SECRET) ||
+    (serverEnv.CRON_SECRET && request.headers.get("authorization") !== `Bearer ${serverEnv.CRON_SECRET}`)
+  ) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
   if (!isSupabaseConfigured) return NextResponse.json({ ok: true, mode: "demo" });
