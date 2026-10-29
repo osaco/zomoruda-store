@@ -20,9 +20,9 @@ export async function updateOrderStatus(form: FormData) {
   const before = await repos.orders.getById(parsed.data.id);
   if (!before || before.status === parsed.data.status) return;
   await repos.orders.updateStatus(parsed.data.id, parsed.data.status, parsed.data.note ?? null, session.email);
-  // Return stock when an order is cancelled
-  if (parsed.data.status === "cancelled") {
+  if (before.status !== "cancelled" && parsed.data.status === "cancelled") {
     await Promise.all(before.items.map((i) => repos.products.adjustStock(i.productId, i.quantity)));
+  } else if (before.status === "cancelled" && parsed.data.status !== "cancelled") {
+    await Promise.all(before.items.map((i) => repos.products.adjustStock(i.productId, -i.quantity)));
   }
   revalidatePath("/admin", "layout");
-}
