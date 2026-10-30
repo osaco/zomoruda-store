@@ -226,8 +226,9 @@ export function createDemoRepositories(): Repositories {
         const product = state().products.find((p) => p.id === id);
         if (!product) return;
         product.stockQty = Math.max(0, product.stockQty + delta);
-        if (delta < 0) product.soldCount += -delta;
+        product.soldCount = Math.max(0, product.soldCount - delta);
         if (product.stockQty === 0 && product.availability === "in_stock") product.availability = "out_of_stock";
+        else if (delta > 0 && product.availability === "out_of_stock") product.availability = "in_stock";
       },
     },
     customers: {

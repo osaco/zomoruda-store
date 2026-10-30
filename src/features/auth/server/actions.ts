@@ -54,10 +54,13 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
   const { data: admin } = await supabaseAdmin()
     .from("admin_users")
     .select("role, is_active")
-    .eq("id", data.user.id)
+    .eq("user_id", data.user.id)
     .maybeSingle();
 
-  if (!admin || !admin.is_active) return { error: "غير مصرح لك بالدخول" };
+  if (!admin || !admin.is_active) {
+    await supabase.auth.signOut();
+    return { error: "غير مصرح لك بالدخول" };
+  }
 
   await createSession(data.user.email!, admin.role as "admin" | "staff");
   redirect("/admin");
@@ -65,5 +68,6 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
 
 export async function logout() {
   await destroySession();
-  redirect("/login");
+  if (isSupabaseConfigured) await (await supabaseServer()).auth.signOut();
+  redirect("/admin/login");
 }

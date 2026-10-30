@@ -184,9 +184,14 @@ create or replace function adjust_stock(p_id uuid, p_delta int) returns void
 language sql as $$
   update products
      set stock_qty = greatest(0, stock_qty + p_delta),
-         sold_count = sold_count + greatest(0, -p_delta),
-         availability = case when greatest(0, stock_qty + p_delta) = 0 and availability = 'in_stock'
-                             then 'out_of_stock'::availability else availability end
+         sold_count = greatest(0, sold_count - p_delta),
+         availability = case
+           when greatest(0, stock_qty + p_delta) = 0 and availability = 'in_stock'
+             then 'out_of_stock'::availability
+           when p_delta > 0 and availability = 'out_of_stock'
+             then 'in_stock'::availability
+           else availability
+         end
    where id = p_id;
 $$;
 
@@ -217,17 +222,23 @@ alter table settings enable row level security;
 alter table admin_users enable row level security;
 
 create or replace function is_admin() returns boolean
-language sql stable security definer as $$
-  select exists (select 1 from admin_users where user_id = auth.uid() and is_active);
+language sql stable security definer set search_path = '' as $$
+  select exists (select 1 from public.admin_users where user_id = auth.uid() and is_active);
 $$;
 
 -- Public read of the active catalog
 create policy "public read categories" on categories for select using (is_active or is_admin());
 create policy "public read occasions" on occasions for select using (is_active or is_admin());
 create policy "public read products" on products for select using (is_active or is_admin());
-create policy "public read product_images" on product_images for select using (true);
-create policy "public read product_occasions" on product_occasions for select using (true);
-create policy "public read product_options" on product_options for select using (true);
+create policy "public read product_images" on product_images for select using (
+  exists (select 1 from public.products p where p.id = product_images.product_id and (p.is_active or public.is_admin()))
+);
+create policy "public read product_occasions" on product_occasions for select using (
+  exists (select 1 from public.products p where p.id = product_occasions.product_id and (p.is_active or public.is_admin()))
+);
+create policy "public read product_options" on product_options for select using (
+  exists (select 1 from public.products p where p.id = product_options.product_id and (p.is_active or public.is_admin()))
+);
 create policy "public read zones" on delivery_zones for select using (is_active or is_admin());
 create policy "public read banners" on banners for select using (is_active or is_admin());
 

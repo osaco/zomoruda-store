@@ -26,3 +26,4 @@ export async function updateOrderStatus(form: FormData) {
     await Promise.all(before.items.map((i) => repos.products.adjustStock(i.productId, -i.quantity)));
   }
   revalidatePath("/admin", "layout");
+}

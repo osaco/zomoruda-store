@@ -30,35 +30,30 @@ export function calculateSubtotal(lines: PricedLine[]): number {
   return roundMoney(lines.reduce((sum, line) => sum + calculateLineTotal(line), 0));
 }
 
-export function calculateDiscount(subtotal: number, coupon: Coupon | null): number {
-  if (!coupon || !coupon.is_active) return 0;
-  if (coupon.expires_at && new Date(coupon.expires_at).getTime() < Date.now()) return 0;
-  if (
-    typeof coupon.max_uses === "number" &&
-    coupon.max_uses > 0 &&
-    (coupon.used_count ?? 0) >= coupon.max_uses
-  ) {
-    return 0;
-  }
-  if (coupon.min_order_value && subtotal < coupon.min_order_value) return 0;
+export function calculateDiscount(coupon: Coupon | null, subtotal: number, now = new Date()): number {
+  if (!coupon || !coupon.isActive) return 0;
+  if (coupon.startsAt && new Date(coupon.startsAt) > now) return 0;
+  if (coupon.endsAt && new Date(coupon.endsAt) < now) return 0;
+  if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) return 0;
+  if (coupon.minOrder !== null && subtotal < coupon.minOrder) return 0;
 
-  if (coupon.discount_type === "fixed") {
-    return roundMoney(Math.min(subtotal, coupon.discount_value));
-  }
-  if (coupon.discount_type === "percent") {
-    const raw = (subtotal * coupon.discount_value) / 100;
-    return roundMoney(Math.min(subtotal, raw));
-  }
-  return 0;
+  const raw = coupon.type === "fixed" ? coupon.value : (subtotal * coupon.value) / 100;
+  const capped = coupon.maxDiscount === null ? raw : Math.min(raw, coupon.maxDiscount);
+  return roundMoney(Math.min(subtotal, capped));
 }
 
-export function calculateTotals(
-  lines: PricedLine[],
-  deliveryFee: number,
-  coupon: Coupon | null = null,
-): Totals {
+export function calculateTotals(args: {
+  lines: PricedLine[];
+  deliveryFee: number;
+  coupon?: Coupon | null;
+}): Totals {
+  const { lines, deliveryFee, coupon = null } = args;
   const subtotal = calculateSubtotal(lines);
-  const discount = calculateDiscount(subtotal, coupon);
+  const discount = calculateDiscount(coupon, subtotal);
   const total = roundMoney(Math.max(0, subtotal + deliveryFee - discount));
   return { subtotal, deliveryFee, discount, total };
+}
+
+export function formatOrderNumber(sequence: number): string {
+  return `ZM-${Math.max(0, Math.trunc(sequence)).toString().padStart(4, "0")}`;
 }

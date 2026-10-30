@@ -14,5 +14,5 @@ export function checkCoupon(coupon: Coupon | null, subtotal: number, now = new D
     return { ok: false, reason: "تم استخدام الكود بالكامل" };
   if (coupon.minOrder !== null && subtotal < coupon.minOrder)
     return { ok: false, reason: `الحد الأدنى للطلب ${coupon.minOrder} ₪` };
-  return { ok: true, coupon, discount: calculateDiscount(coupon, subtotal) };
+  return { ok: true, coupon, discount: calculateDiscount(coupon, subtotal, now) };
 }

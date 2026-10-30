@@ -55,6 +55,7 @@ npm run dev                  # http://localhost:3000
    - `AUTH_SECRET` = نص عشوائي 32+ حرف (`openssl rand -base64 32`)
    - `CRON_SECRET` = نص عشوائي (Vercel يرسله تلقائياً للـ cron)
    - متغيرات Supabase الثلاثة
+   - عيّني `ADMIN_DEMO_PASSWORD` و`AUTH_SECRET` لبيئتي Production وPreview معاً؛ معاينة Vercel عامة ولا تستخدم الأسرار الافتراضية.
 3. Deploy. ملف `vercel.json` يضيف cron يومي `/api/cron/keepalive` حتى لا يتوقف مشروع Supabase المجاني لعدم النشاط.
 
 ## البنية
