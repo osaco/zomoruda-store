@@ -6,6 +6,7 @@ import { requireAdmin } from "@/features/auth/session";
 import { logout } from "@/features/auth/server/actions";
 import { AdminNav } from "@/features/admin/components/AdminNav";
 import { ADMIN_ROLE_LABELS_AR } from "@/types/enums";
+import { Logo } from "@/components/layout/Logo";
 
 export const metadata: Metadata = { title: { default: "لوحة التحكم", template: "%s | لوحة التحكم" }, robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -16,7 +17,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-dvh bg-bg md:grid md:grid-cols-[240px_1fr]">
       <aside className="sticky top-0 z-30 border-b border-primary/10 bg-surface p-3 md:h-dvh md:border-b-0 md:border-e md:p-4">
         <div className="mb-3 flex items-center justify-between md:mb-6 md:block">
-          <Link href="/admin" className="font-heading text-xl font-bold text-primary">زُمُرّدة</Link>
+          <Link href="/admin" aria-label="لوحة تحكم زُمُرّدة">
+            <Logo />
+          </Link>
           <p className="text-xs text-muted md:mt-1">{session.email} — {ADMIN_ROLE_LABELS_AR[session.role]}</p>
           <form action={logout} className="md:hidden">
             <button aria-label="خروج" className="rounded-full p-2 text-danger"><LogOut className="h-4 w-4" /></button>

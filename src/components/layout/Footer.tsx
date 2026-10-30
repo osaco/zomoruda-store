@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Clock, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
 import { site, defaultWhatsappMessage, whatsappLink } from "@/lib/site";
 import { navLinks } from "@/lib/nav";
+import { Logo } from "./Logo";
 
 export function Footer() {
   return (
     <footer className="mt-16 hidden border-t border-primary/5 bg-surface md:block">
       <div className="container-page grid grid-cols-3 gap-8 py-12">
         <div>
-          <h2 className="font-heading text-2xl font-bold text-primary">{site.nameAr}</h2>
+          <Logo />
           <p className="mt-3 text-sm leading-7 text-muted">{site.descriptionAr}</p>
         </div>
 

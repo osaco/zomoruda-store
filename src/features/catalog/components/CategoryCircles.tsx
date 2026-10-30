@@ -3,6 +3,8 @@ import type { Category } from "@/types/db";
 import { categoryIcons, iconFor } from "../constants";
 
 export function CategoryCircles({ categories, title = "تسوّقي حسب القسم" }: { categories: Category[]; title?: string }) {
+  if (categories.length === 0) return null;
+
   return (
     <section className="container-page py-10 md:py-14">
       <div className="mb-6 text-center">

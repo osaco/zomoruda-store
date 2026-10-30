@@ -3,6 +3,8 @@ import type { Occasion } from "@/types/db";
 import { iconFor, occasionIcons } from "../constants";
 
 export function OccasionChips({ occasions, activeSlug }: { occasions: Occasion[]; activeSlug?: string }) {
+  if (occasions.length === 0) return null;
+
   return (
     <section className="container-page py-8">
       <h2 className="mb-5 text-center font-heading text-2xl font-bold text-ink md:text-3xl">تسوّقي حسب المناسبة</h2>

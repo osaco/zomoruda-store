@@ -1,21 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Reem_Kufi, Tajawal } from "next/font/google";
+import { Cairo } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import { env } from "@/lib/env";
 import { RegisterServiceWorker } from "@/components/pwa/RegisterServiceWorker";
 
-const reemKufi = Reem_Kufi({
+const cairo = Cairo({
   subsets: ["arabic"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-reem-kufi",
-  display: "swap",
-});
-
-const tajawal = Tajawal({
-  subsets: ["arabic"],
-  weight: ["400", "500", "700"],
-  variable: "--font-tajawal",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-cairo",
   display: "swap",
 });
 
@@ -47,7 +40,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6B2FA0",
+  themeColor: "#39244A",
   width: "device-width",
   initialScale: 1,
 };
@@ -56,7 +49,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${reemKufi.variable} ${tajawal.variable}`}>
+    <html lang="ar" dir="rtl" className={cairo.variable}>
       <body className="flex min-h-dvh flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-white">
           تخطّي إلى المحتوى

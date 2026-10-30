@@ -10,7 +10,10 @@ export default async function OffersPage({ searchParams }: { searchParams: Promi
   const onSaleOnly = sp.sort !== "best_selling";
   return (
     <>
-      <PageHeader title={onSaleOnly ? "العروض والخصومات" : "الأكثر مبيعاً"} description="أسعار مميزة لفترة محدودة" />
+      <PageHeader
+        title={onSaleOnly ? "العروض والخصومات" : "الأكثر مبيعاً"}
+        description={onSaleOnly ? "تعرّفي على المنتجات التي يشملها عرض المتجر." : "المنتجات التي حققت أعلى طلب في المتجر."}
+      />
       <div className="container-page py-6">
         <CatalogView query={{ ...parseCatalogParams(sp), onSale: onSaleOnly || undefined }} basePath="/offers" params={sp} emptyText="لا توجد عروض حالياً، تابعينا على إنستغرام" />
       </div>
