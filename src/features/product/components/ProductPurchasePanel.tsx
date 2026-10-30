@@ -162,6 +162,9 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
           <span className="sr-only md:not-sr-only">{shared ? "تم النسخ" : "مشاركة"}</span>
         </button>
       </div>
+      <p className="text-xs text-muted">
+        ملاحظة: هذا زر استفسار سريع وليس طلباً مُسجّلاً؛ لا يُحفظ الطلب في المتجر. لإتمام الشراء، أضيفي المنتج إلى السلة ثم تابعي خطوات الطلب.
+      </p>
     </div>
-  );
+   );
 }

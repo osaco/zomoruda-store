@@ -3,13 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Loader2, Store, Truck } from "lucide-react";
+import { ArrowLeft, ChevronRight, Loader2, ShoppingBag, Store, Truck } from "lucide-react";
 import type { DeliveryZone } from "@/types/db";
 import { PAYMENT_METHOD_LABELS_AR, PAYMENT_METHOD_VALUES, TIME_SLOTS, type FulfillmentType, type PaymentMethod } from "@/types/enums";
 import { Input } from "@/components/ui/Input";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { cartSubtotal, useCart } from "@/features/cart/store";
+import { CartLineItem } from "@/features/cart/components/CartLineItem";
 import { useHydrated } from "@/features/cart/useHydrated";
 import { PhotoUploadField } from "@/features/product/components/PhotoUploadField";
 import { placeOrder, previewCoupon } from "../server/actions";
@@ -22,6 +23,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
   const lines = useCart((s) => s.lines);
   const clear = useCart((s) => s.clear);
   const [pending, startTransition] = useTransition();
+  const [step, setStep] = useState<1 | 2>(1);
   const [fulfillment, setFulfillment] = useState<FulfillmentType>("delivery");
   const [zoneId, setZoneId] = useState(zones[0]?.id ?? "");
   const [payment, setPayment] = useState<PaymentMethod>("cash_on_delivery");
@@ -33,15 +35,16 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
   if (!hydrated) return <div className="h-96 animate-pulse rounded-card bg-primary-light" />;
   if (lines.length === 0)
     return (
-      <div className="card p-8 text-center">
-        <p className="mb-4 text-muted">السلة فارغة</p>
+      <div className="card p-8 text-center space-y-4">
+        <ShoppingBag className="mx-auto h-12 w-12 text-primary/30" aria-hidden="true" />
+        <p className="text-muted">سلتك فارغة</p>
         <Link href="/categories" className="btn-primary">تسوّقي الآن</Link>
       </div>
     );
 
   const zone = zones.find((z) => z.id === zoneId);
   const subtotal = cartSubtotal(lines);
-  const deliveryFee = fulfillment === "delivery" ? zone?.fee ?? 0 : 0;
+  const deliveryFee = fulfillment === "delivery" ? (zone?.fee ?? 0) : 0;
   const total = Math.max(0, subtotal + deliveryFee - coupon.discount);
 
   const applyCoupon = async () => {
@@ -83,109 +86,335 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
         return;
       }
       clear();
+      // فتح واتساب بعد نجاح الحفظ فقط
       window.open(res.data.whatsappUrl, "_blank", "noopener");
       router.push(res.data.successUrl);
     });
   };
 
   return (
-    <form action={submit} className="grid gap-6 lg:grid-cols-[1fr_360px]" noValidate>
+    <form
+      action={submit}
+      className={cn("grid gap-6", step === 2 ? "lg:grid-cols-[1fr_360px]" : "grid-cols-1")}
+      noValidate
+    >
       <div className="space-y-6">
-        <section className="card space-y-4 p-5">
-          <h2 className="font-heading text-lg font-bold">بياناتك</h2>
-          <Input name="customerName" label="الاسم" autoComplete="name" required error={errors.customerName} />
-          <Input name="customerPhone" label="رقم الجوال" type="tel" inputMode="tel" dir="ltr" placeholder="059xxxxxxx" autoComplete="tel" required error={errors.customerPhone} className="text-end" />
-          <Input name="birthday" label="تاريخ ميلادك (اختياري — لنفاجئك بهدية 🎁)" type="date" />
-        </section>
 
-        <section className="card space-y-4 p-5">
-          <h2 className="font-heading text-lg font-bold">طريقة الاستلام</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {([["delivery", "توصيل", Truck], ["pickup", "استلام من المتجر", Store]] as const).map(([value, label, Icon]) => (
-              <button key={value} type="button" aria-pressed={fulfillment === value} onClick={() => setFulfillment(value)}
-                className={cn("flex items-center justify-center gap-2 rounded-input border p-3 text-sm font-bold", fulfillment === value ? "border-primary bg-primary-light text-primary" : "border-primary/15")}>
-                <Icon className="h-5 w-5" /> {label}
-              </button>
-            ))}
-          </div>
-          {fulfillment === "delivery" && (
-            <>
-              <div className="space-y-1.5">
-                <label htmlFor="zone" className="text-sm font-medium">المنطقة</label>
-                <select id="zone" value={zoneId} onChange={(e) => setZoneId(e.target.value)} className="w-full rounded-input border border-primary/15 bg-surface px-4 py-3 text-sm">
-                  {zones.map((z) => (
-                    <option key={z.id} value={z.id}>{z.nameAr} — {formatPrice(z.fee)} ({z.deliveryTimeAr})</option>
-                  ))}
-                </select>
-                {errors.zoneId && <p className="text-xs text-danger">{errors.zoneId}</p>}
+        {/* ━━━ شريط التنقل بين الخطوتين ━━━ */}
+        <nav aria-label="خطوات الطلب" className="flex items-center gap-2 text-sm">
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className={cn(
+              "flex items-center gap-1.5 font-bold transition",
+              step === 1 ? "text-primary" : "text-muted hover:text-ink",
+            )}
+          >
+            <ShoppingBag className="h-4 w-4" />
+            مراجعة السلة
+          </button>
+          <ChevronRight className="h-4 w-4 rotate-180 text-muted" aria-hidden="true" />
+          <span
+            className={cn(
+              "font-bold transition",
+              step === 2 ? "text-primary" : "text-muted",
+            )}
+          >
+            بيانات الطلب
+          </span>
+        </nav>
+
+        {/* ━━━ الخطوة الأولى: مراجعة السلة ━━━ */}
+        {step === 1 && (
+          <section className="card space-y-4 p-5" aria-labelledby="review-heading">
+            <div>
+              <h2 id="review-heading" className="font-heading text-lg font-bold">مراجعة السلة</h2>
+              <p className="text-sm text-muted">راجعي المنتجات والكميات والخيارات قبل المتابعة.</p>
+            </div>
+            <ul className="space-y-3">
+              {lines.map((line) => (
+                <CartLineItem key={line.key} line={line} />
+              ))}
+            </ul>
+
+            {/* ملخص مبدئي */}
+            <div className="border-t border-primary/10 pt-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>المجموع الفرعي</span>
+                <span className="font-bold">{formatPrice(subtotal)}</span>
               </div>
-              <Input name="address" label="العنوان بالتفصيل" placeholder="الحي، الشارع، أقرب معلم" error={errors.address} />
-            </>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <Input name="deliveryDate" label="التاريخ" type="date" min={today()} error={errors.deliveryDate} />
-            <div className="space-y-1.5">
-              <label htmlFor="timeSlot" className="text-sm font-medium">الوقت</label>
-              <select id="timeSlot" name="timeSlot" className="w-full rounded-input border border-primary/15 bg-surface px-3 py-3 text-sm">
-                <option value="">أي وقت</option>
-                {TIME_SLOTS.map((slot) => <option key={slot} value={slot}>{slot}</option>)}
-              </select>
+              <p className="text-xs text-muted">رسوم التوصيل والخصومات تُحسب في الخطوة التالية.</p>
             </div>
-          </div>
-        </section>
 
-        <section className="card space-y-4 p-5">
-          <h2 className="font-heading text-lg font-bold">الدفع</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {PAYMENT_METHOD_VALUES.map((value) => (
-              <button key={value} type="button" aria-pressed={payment === value} onClick={() => setPayment(value)}
-                className={cn("rounded-input border p-3 text-sm font-bold", payment === value ? "border-primary bg-primary-light text-primary" : "border-primary/15")}>
-                {PAYMENT_METHOD_LABELS_AR[value]}
+            <div className="flex gap-3">
+              <Link href="/cart" className="btn-secondary flex-1">
+                <ShoppingBag className="h-4 w-4" /> تعديل السلة
+              </Link>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="btn-primary flex-1"
+              >
+                إدخال بيانات الطلب <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
               </button>
-            ))}
-          </div>
-          {payment === "bank_transfer" && (
-            <div className="space-y-3 rounded-input bg-accent/10 p-4 text-sm">
-              <p>{bankDetails || "سنرسل لك تفاصيل التحويل على واتساب."}</p>
-              <PhotoUploadField label="صورة إيصال التحويل (يمكن إرسالها لاحقاً على واتساب)" kind="receipt" value={receiptPath} onChange={setReceiptPath} />
             </div>
-          )}
-          <div className="space-y-1.5">
-            <label htmlFor="notes" className="text-sm font-medium">ملاحظات (اختياري)</label>
-            <textarea id="notes" name="notes" rows={2} maxLength={500} className="w-full rounded-input border border-primary/15 px-4 py-3 text-sm" />
-          </div>
-        </section>
+          </section>
+        )}
+
+        {/* ━━━ الخطوة الثانية: بيانات الطلب ━━━ */}
+        {step === 2 && (
+          <>
+            {/* رأس الخطوة الثانية مع زر الرجوع */}
+            <section className="card space-y-4 p-5" aria-labelledby="checkout-heading">
+              <div className="flex items-center justify-between">
+                <h2 id="checkout-heading" className="font-heading text-lg font-bold">بياناتك</h2>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="btn-secondary text-sm !py-2 !px-3"
+                >
+                  <ArrowLeft className="h-4 w-4" /> الرجوع للمراجعة
+                </button>
+              </div>
+              <p className="text-sm text-muted">السعر يُحسب على الخادم في الخطوة الأخيرة، ولا يُؤخذ من المتصفح.</p>
+
+              <Input name="customerName" label="الاسم الكامل" autoComplete="name" required error={errors.customerName} />
+              <Input
+                name="customerPhone"
+                label="رقم الجوال"
+                type="tel"
+                inputMode="tel"
+                dir="ltr"
+                placeholder="059xxxxxxx"
+                autoComplete="tel"
+                required
+                error={errors.customerPhone}
+                className="text-end"
+              />
+              <Input name="birthday" label="تاريخ ميلادك (اختياري — لنفاجئك بهدية 🎁)" type="date" />
+            </section>
+
+            {/* طريقة الاستلام */}
+            <section className="card space-y-4 p-5" aria-labelledby="fulfillment-heading">
+              <h2 id="fulfillment-heading" className="font-heading text-lg font-bold">طريقة الاستلام</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {(
+                  [
+                    ["delivery", "توصيل", Truck],
+                    ["pickup", "استلام من المتجر", Store],
+                  ] as const
+                ).map(([value, label, Icon]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={fulfillment === value}
+                    onClick={() => setFulfillment(value)}
+                    className={cn(
+                      "flex items-center justify-center gap-2 rounded-input border p-3 text-sm font-bold transition",
+                      fulfillment === value
+                        ? "border-primary bg-primary-light text-primary"
+                        : "border-primary/15 hover:border-primary/40",
+                    )}
+                  >
+                    <Icon className="h-5 w-5" /> {label}
+                  </button>
+                ))}
+              </div>
+
+              {fulfillment === "delivery" && (
+                <>
+                  <div className="space-y-1.5">
+                    <label htmlFor="zone" className="text-sm font-medium">
+                      المنطقة
+                    </label>
+                    <select
+                      id="zone"
+                      value={zoneId}
+                      onChange={(e) => setZoneId(e.target.value)}
+                      className="w-full rounded-input border border-primary/15 bg-surface px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                      {zones.map((z) => (
+                        <option key={z.id} value={z.id}>
+                          {z.nameAr} — {formatPrice(z.fee)} ({z.deliveryTimeAr})
+                        </option>
+                      ))}
+                    </select>
+                    {errors.zoneId && <p className="text-xs text-danger">{errors.zoneId}</p>}
+                  </div>
+                  <Input
+                    name="address"
+                    label="العنوان بالتفصيل"
+                    placeholder="الحي، الشارع، أقرب معلم"
+                    error={errors.address}
+                  />
+                </>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input name="deliveryDate" label="التاريخ المطلوب" type="date" min={today()} error={errors.deliveryDate} />
+                <div className="space-y-1.5">
+                  <label htmlFor="timeSlot" className="text-sm font-medium">
+                    الوقت
+                  </label>
+                  <select
+                    id="timeSlot"
+                    name="timeSlot"
+                    className="w-full rounded-input border border-primary/15 bg-surface px-3 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  >
+                    <option value="">أي وقت</option>
+                    {TIME_SLOTS.map((slot) => (
+                      <option key={slot} value={slot}>
+                        {slot}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* طريقة الدفع */}
+            <section className="card space-y-4 p-5" aria-labelledby="payment-heading">
+              <h2 id="payment-heading" className="font-heading text-lg font-bold">طريقة الدفع</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {PAYMENT_METHOD_VALUES.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={payment === value}
+                    onClick={() => setPayment(value)}
+                    className={cn(
+                      "rounded-input border p-3 text-sm font-bold transition",
+                      payment === value
+                        ? "border-primary bg-primary-light text-primary"
+                        : "border-primary/15 hover:border-primary/40",
+                    )}
+                  >
+                    {PAYMENT_METHOD_LABELS_AR[value]}
+                  </button>
+                ))}
+              </div>
+
+              {payment === "bank_transfer" && (
+                <div className="space-y-3 rounded-input bg-accent/10 p-4 text-sm">
+                  <p>{bankDetails || "سنرسل لك تفاصيل التحويل على واتساب."}</p>
+                  <PhotoUploadField
+                    label="صورة إيصال التحويل (يمكن إرسالها لاحقاً على واتساب)"
+                    kind="receipt"
+                    value={receiptPath}
+                    onChange={setReceiptPath}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label htmlFor="notes" className="text-sm font-medium">
+                  ملاحظات (اختياري)
+                </label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows={2}
+                  maxLength={500}
+                  placeholder="أي طلبات خاصة أو ملاحظات للمتجر..."
+                  className="w-full rounded-input border border-primary/15 bg-surface px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            </section>
+          </>
+        )}
       </div>
 
-      <aside className="card h-fit space-y-4 p-5 lg:sticky lg:top-24">
+      {/* ━━━ ملخص الطلب في خطوة البيانات فقط لتجنب تكرار المنتجات ━━━ */}
+      {step === 2 && (
+      <aside className="card h-fit space-y-4 p-5 lg:sticky lg:top-24" aria-label="ملخص الطلب">
         <h2 className="font-heading text-lg font-bold">ملخص الطلب</h2>
+
+        {/* قائمة المنتجات */}
         <ul className="space-y-2 text-sm">
           {lines.map((l) => (
             <li key={l.key} className="flex justify-between gap-2">
-              <span className="line-clamp-1">{l.nameAr} × {l.quantity}</span>
-              <span>{formatPrice((l.unitPrice + l.options.reduce((d, o) => d + o.priceDelta, 0)) * l.quantity)}</span>
+              <span className="line-clamp-2 text-ink">
+                {l.nameAr} × {l.quantity}
+              </span>
+              <span className="shrink-0 font-bold">
+                {formatPrice(
+                  (l.unitPrice + l.options.reduce((d, o) => d + o.priceDelta, 0)) * l.quantity,
+                )}
+              </span>
             </li>
           ))}
         </ul>
-        <div className="flex gap-2">
-          <input value={coupon.code} onChange={(e) => setCoupon({ code: e.target.value.toUpperCase(), discount: 0, message: "" })} placeholder="كود الخصم" aria-label="كود الخصم" dir="ltr"
-            className="min-w-0 flex-1 rounded-full border border-primary/15 px-4 py-2 text-sm" />
-          <button type="button" onClick={applyCoupon} className="btn-secondary !px-4 !py-2">تطبيق</button>
-        </div>
-        {coupon.message && <p className={cn("text-xs", coupon.discount ? "text-success" : "text-danger")}>{coupon.message}</p>}
+
+        {/* كود الخصم — يظهر فقط في الخطوة الثانية */}
+        {step === 2 && (
+          <div className="space-y-1.5">
+            <div className="flex gap-2">
+              <input
+                value={coupon.code}
+                onChange={(e) => setCoupon({ code: e.target.value.toUpperCase(), discount: 0, message: "" })}
+                placeholder="كود الخصم"
+                aria-label="كود الخصم"
+                dir="ltr"
+                className="min-w-0 flex-1 rounded-full border border-primary/15 bg-surface px-4 py-2 text-sm focus:border-primary focus:outline-none"
+              />
+              <button type="button" onClick={applyCoupon} className="btn-secondary !px-4 !py-2">
+                تطبيق
+              </button>
+            </div>
+            {coupon.message && (
+              <p className={cn("text-xs", coupon.discount ? "text-success" : "text-danger")}>
+                {coupon.message}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* الحساب */}
         <dl className="space-y-1.5 border-t border-primary/10 pt-3 text-sm">
-          <div className="flex justify-between"><dt>المجموع</dt><dd>{formatPrice(subtotal)}</dd></div>
-          <div className="flex justify-between"><dt>التوصيل</dt><dd>{formatPrice(deliveryFee)}</dd></div>
-          {coupon.discount > 0 && <div className="flex justify-between text-success"><dt>الخصم</dt><dd>-{formatPrice(coupon.discount)}</dd></div>}
-          <div className="flex justify-between text-base font-bold text-primary"><dt>الإجمالي</dt><dd>{formatPrice(total)}</dd></div>
+          <div className="flex justify-between">
+            <dt>المجموع الفرعي</dt>
+            <dd className="font-bold">{formatPrice(subtotal)}</dd>
+          </div>
+          {step === 2 && (
+            <div className="flex justify-between">
+              <dt>رسوم التوصيل</dt>
+              <dd className="font-bold">{formatPrice(deliveryFee)}</dd>
+            </div>
+          )}
+          {coupon.discount > 0 && (
+            <div className="flex justify-between text-success">
+              <dt>الخصم</dt>
+              <dd>-{formatPrice(coupon.discount)}</dd>
+            </div>
+          )}
+          <div className="flex justify-between text-base font-bold text-primary border-t border-primary/10 pt-2">
+            <dt>الإجمالي النهائي</dt>
+            <dd>{formatPrice(total)}</dd>
+          </div>
         </dl>
-        {formError && <p role="alert" className="rounded-input bg-danger/10 p-3 text-sm text-danger">{formError}</p>}
-        <button type="submit" disabled={pending} className="btn-primary w-full">
-          {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-          تأكيد الطلب عبر واتساب
+
+        {/* خطأ عام */}
+        {formError && (
+          <p role="alert" className="rounded-input bg-danger/10 p-3 text-sm text-danger">
+            {formError}
+          </p>
+        )}
+
+        <button type="submit" disabled={pending} className="btn-primary w-full gap-2">
+          {pending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+              جاري حفظ الطلب...
+            </>
+          ) : (
+            "تأكيد الطلب عبر واتساب"
+          )}
         </button>
-        <p className="text-center text-xs text-muted">سيُحفظ طلبك ثم يفتح واتساب برسالة جاهزة لتأكيده.</p>
+        <p className="text-center text-xs text-muted">
+          سيُحفظ طلبك أولاً، ثم يفتح واتساب برسالة جاهزة. عليك الضغط على إرسال يدوياً.
+        </p>
       </aside>
+      )}
     </form>
   );
 }
