@@ -60,8 +60,10 @@ export function summarizeSales(orders: Order[], days = 30, now = new Date()): Sa
 /** RFC-4180 CSV with BOM so Excel opens Arabic correctly. */
 export function toCsv(rows: (string | number | null)[][]): string {
   const esc = (v: string | number | null) => {
-    const s = v === null ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    let s = v === null ? "" : String(v);
+    // Spreadsheet programs may evaluate untrusted cells as formulas.
+    if (typeof v === "string" && /^[\s\u0000-\u001f]*[=+@-]/u.test(s)) s = `'${s}`;
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   return "\uFEFF" + rows.map((r) => r.map(esc).join(",")).join("\r\n");
 }

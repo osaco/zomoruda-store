@@ -160,10 +160,6 @@ export function createDemoRepositories(): Repositories {
         const normalized = code.trim().toUpperCase();
         return clone(state().coupons.find((c) => c.code.toUpperCase() === normalized) ?? null);
       },
-      async incrementUsage(id) {
-        const coupon = state().coupons.find((c) => c.id === id);
-        if (coupon) coupon.usedCount += 1;
-      },
     },
     products: {
       async list(query = {}) {
@@ -222,14 +218,6 @@ export function createDemoRepositories(): Repositories {
         const s = state();
         s.products = s.products.filter((p) => p.id !== id);
       },
-      async adjustStock(id, delta) {
-        const product = state().products.find((p) => p.id === id);
-        if (!product) return;
-        product.stockQty = Math.max(0, product.stockQty + delta);
-        product.soldCount = Math.max(0, product.soldCount - delta);
-        if (product.stockQty === 0 && product.availability === "in_stock") product.availability = "out_of_stock";
-        else if (delta > 0 && product.availability === "out_of_stock") product.availability = "in_stock";
-      },
     },
     customers: {
       async list(query = {}) {
@@ -274,25 +262,56 @@ export function createDemoRepositories(): Repositories {
         Object.assign(customer, input);
         return clone(customer);
       },
-      async recordOrder(customerId, total) {
-        const customer = state().customers.find((c) => c.id === customerId);
-        if (!customer) return;
-        customer.ordersCount += 1;
-        customer.totalSpent += total;
-      },
     },
     orders: {
-      async create(input) {
+      async placeCheckoutOrder(input, customerInput, couponId) {
         const s = state();
+        const quantities = new Map<string, number>();
+        for (const item of input.items) quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
+
+        for (const [productId, quantity] of quantities) {
+          const product = s.products.find((p) => p.id === productId);
+          if (!product || !product.isActive || product.availability === "out_of_stock") return null;
+          if (product.availability === "in_stock" && product.stockQty < quantity) return null;
+        }
+
+        const coupon = couponId ? s.coupons.find((c) => c.id === couponId) : null;
+        const current = new Date();
+        if (couponId && (
+          !coupon || !coupon.isActive ||
+          (coupon.startsAt !== null && new Date(coupon.startsAt) > current) ||
+          (coupon.endsAt !== null && new Date(coupon.endsAt) < current) ||
+          (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit)
+        )) return null;
+
+        let customer = s.customers.find((c) => c.phone === customerInput.phone);
+        if (customer) {
+          customer.name = customerInput.name || customer.name;
+          if (customerInput.birthday !== undefined) customer.birthday = customerInput.birthday;
+        } else {
+          customer = {
+            id: newId("cus"), name: customerInput.name, phone: customerInput.phone,
+            birthday: customerInput.birthday ?? null, anniversary: customerInput.anniversary ?? null,
+            notes: customerInput.notes ?? null, ordersCount: 0, totalSpent: 0, createdAt: now(),
+          };
+          s.customers.push(customer);
+        }
+
+        for (const [productId, quantity] of quantities) {
+          const product = s.products.find((p) => p.id === productId)!;
+          product.stockQty = Math.max(0, product.stockQty - quantity);
+          product.soldCount += quantity;
+          if (product.stockQty === 0 && product.availability === "in_stock") product.availability = "out_of_stock";
+        }
+        if (coupon) coupon.usedCount += 1;
+        customer.ordersCount += 1;
+        customer.totalSpent += input.total;
+
         s.sequence += 1;
         const id = newId("ord");
         const createdAt = now();
         const order: Order = {
-          ...input,
-          id,
-          orderNumber: formatOrderNumber(s.sequence),
-          status: "new",
-          createdAt,
+          ...input, customerId: customer.id, id, orderNumber: formatOrderNumber(s.sequence), status: "new", createdAt,
           statusHistory: [{ id: newId("hist"), orderId: id, status: "new", note: "تم استلام الطلب", createdBy: null, createdAt }],
         };
         s.orders.unshift(order);
@@ -325,6 +344,31 @@ export function createDemoRepositories(): Repositories {
       async updateStatus(id, status, note = null, by = null) {
         const order = state().orders.find((o) => o.id === id);
         if (!order) return null;
+        if (order.status === status) return clone(order);
+
+        const quantities = new Map<string, number>();
+        for (const item of order.items) quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
+        if (order.status === "cancelled" && status !== "cancelled") {
+          for (const [productId, quantity] of quantities) {
+            const product = state().products.find((p) => p.id === productId);
+            if (!product || !product.isActive || product.availability === "out_of_stock") return null;
+            if (product.availability === "in_stock" && product.stockQty < quantity) return null;
+          }
+          for (const [productId, quantity] of quantities) {
+            const product = state().products.find((p) => p.id === productId)!;
+            product.stockQty = Math.max(0, product.stockQty - quantity);
+            product.soldCount += quantity;
+            if (product.stockQty === 0 && product.availability === "in_stock") product.availability = "out_of_stock";
+          }
+        } else if (order.status !== "cancelled" && status === "cancelled") {
+          for (const [productId, quantity] of quantities) {
+            const product = state().products.find((p) => p.id === productId);
+            if (!product) continue;
+            product.stockQty += quantity;
+            product.soldCount = Math.max(0, product.soldCount - quantity);
+            if (product.availability === "out_of_stock") product.availability = "in_stock";
+          }
+        }
         order.status = status;
         order.statusHistory.push({ id: newId("hist"), orderId: id, status, note, createdBy: by, createdAt: now() });
         return clone(order);

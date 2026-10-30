@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { env, isSupabaseConfigured } from "@/lib/env";
 
 const blank = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 // Preview deployments are public too; never fall back to predictable secrets there.
@@ -10,19 +11,29 @@ export const serverEnv = z
     ADMIN_DEMO_PASSWORD: z.preprocess(
       blank,
       isHostedDeployment
-        ? z.string().min(8, "\u064A\u062C\u0628 \u062A\u0639\u064A\u064A\u0646 ADMIN_DEMO_PASSWORD \u0641\u064A \u0628\u064A\u0626\u0629 \u0627\u0644\u0625\u0646\u062A\u0627\u062C")
+        ? z.string().min(8).optional()
         : z.string().min(6).default("zomoruda2026"),
     ),
     AUTH_SECRET: z.preprocess(
       blank,
       isHostedDeployment
-        ? z.string().min(32, "\u064A\u062C\u0628 \u062A\u0639\u064A\u064A\u0646 AUTH_SECRET \u0628\u0637\u0648\u0644 32 \u062D\u0631\u0641\u0627\u064B \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644 \u0641\u064A \u0628\u064A\u0626\u0629 \u0627\u0644\u0625\u0646\u062A\u0627\u062C")
+        ? z.string().min(32, "\u064A\u062C\u0628 \u062A\u0639\u064A\u064A\u0646 AUTH_SECRET \u0628\u0637\u0648\u0644 32 \u062D\u0631\u0641\u0627\u064B \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644 \u0641\u064A \u0628\u064A\u0626\u0629 \u0627\u0644\u0625\u0646\u062A\u0627\u062C").refine((value) => value !== "dev-only-secret-change-me-please", "\u064A\u062C\u0628 \u0627\u0633\u062A\u062E\u062F\u0627\u0645 \u0633\u0631 \u0639\u0634\u0648\u0627\u0626\u064A")
         : z.string().min(16).default("dev-only-secret-change-me-please"),
     ),
-    CRON_SECRET: z.preprocess(blank, z.string().optional()),
+    CRON_SECRET: z.preprocess(
+      blank,
+      isHostedDeployment ? z.string().min(32, "\u064A\u062C\u0628 \u062A\u0639\u064A\u064A\u0646 CRON_SECRET \u0639\u0634\u0648\u0627\u0626\u064A \u0628\u0637\u0648\u0644 32 \u062D\u0631\u0641\u0627\u064B \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644") : z.string().optional(),
+    ),
   })
   .parse({
     ADMIN_DEMO_PASSWORD: process.env.ADMIN_DEMO_PASSWORD,
     AUTH_SECRET: process.env.AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
   });
+
+if (isHostedDeployment && !isSupabaseConfigured) {
+  throw new Error("\u064A\u062C\u0628 \u0625\u0639\u062F\u0627\u062F \u0631\u0648\u0627\u0628\u0637 \u0648\u0645\u0641\u0627\u062A\u064A\u062D Supabase \u0643\u0627\u0645\u0644\u0629 \u0641\u064A \u0628\u064A\u0626\u062A\u064A Vercel Production \u0648 Preview");
+}
+if (isHostedDeployment && new URL(env.NEXT_PUBLIC_SITE_URL).hostname === "localhost") {
+  throw new Error("\u064A\u062C\u0628 \u0625\u0639\u062F\u0627\u062F NEXT_PUBLIC_SITE_URL \u0628\u0631\u0627\u0628\u0637 \u0627\u0644\u0645\u062A\u062C\u0631 \u0627\u0644\u0645\u0646\u0634\u0648\u0631 \u0641\u064A Vercel");
+}

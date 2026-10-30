@@ -17,13 +17,7 @@ export async function updateOrderStatus(form: FormData) {
   const parsed = schema.safeParse({ id: form.get("id"), status: form.get("status"), note: form.get("note") || undefined });
   if (!parsed.success) return;
   const repos = getRepos();
-  const before = await repos.orders.getById(parsed.data.id);
-  if (!before || before.status === parsed.data.status) return;
-  await repos.orders.updateStatus(parsed.data.id, parsed.data.status, parsed.data.note ?? null, session.email);
-  if (before.status !== "cancelled" && parsed.data.status === "cancelled") {
-    await Promise.all(before.items.map((i) => repos.products.adjustStock(i.productId, i.quantity)));
-  } else if (before.status === "cancelled" && parsed.data.status !== "cancelled") {
-    await Promise.all(before.items.map((i) => repos.products.adjustStock(i.productId, -i.quantity)));
-  }
+  const updated = await repos.orders.updateStatus(parsed.data.id, parsed.data.status, parsed.data.note ?? null, session.email);
+  if (!updated) return;
   revalidatePath("/admin", "layout");
 }

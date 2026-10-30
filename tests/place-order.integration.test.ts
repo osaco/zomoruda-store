@@ -40,6 +40,15 @@ describe("placeOrder (demo adapter)", () => {
     expect((await repos.customers.getByPhone("0597000111"))!.ordersCount).toBe(1);
     expect((await repos.coupons.getByCode("GIFT5"))!.usedCount).toBe(1);
     expect(await findOrderForTracking(res.data.orderNumber, "0599999999")).toBeNull();
+
+    const placed = await repos.orders.getByNumber(res.data.orderNumber);
+    expect(placed).not.toBeNull();
+    const soldAfterOrder = (await repos.products.getById(product.id))!.soldCount;
+    await repos.orders.updateStatus(placed!.id, "cancelled");
+    expect((await repos.products.getById(product.id))!.stockQty).toBe(stockBefore);
+    expect((await repos.products.getById(product.id))!.soldCount).toBe(soldAfterOrder - 2);
+    await repos.orders.updateStatus(placed!.id, "new");
+    expect((await repos.products.getById(product.id))!.stockQty).toBe(stockBefore - 2);
   });
 
   it("rejects invalid phone and empty cart with field errors", async () => {

@@ -6,7 +6,7 @@ import { getRepos } from "@/lib/data";
 import { env } from "@/lib/env";
 import { formatPrice } from "@/lib/format";
 import { whatsappLink } from "@/lib/site";
-import { verify } from "@/lib/signing";
+import { verifyOrderAccessToken } from "@/lib/signing";
 import { orderWhatsappMessage } from "@/features/orders/lib/whatsapp-message";
 import { StatusTimeline } from "@/features/orders/components/StatusTimeline";
 
@@ -19,7 +19,7 @@ type Props = { params: Promise<{ number: string }>; searchParams: Promise<{ t?: 
 export default async function OrderSuccessPage({ params, searchParams }: Props) {
   const { number } = await params;
   const { t } = await searchParams;
-  if (!verify(number, t)) notFound();
+  if (!verifyOrderAccessToken(number, t)) notFound();
   const order = await getRepos().orders.getByNumber(number);
   if (!order) notFound();
 
@@ -42,7 +42,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
         <StatusTimeline order={order} />
       </div>
       <div className="flex justify-center gap-3">
-        <Link href={`/track?order=${order.orderNumber}`} className="btn-secondary">تتبّع الطلب</Link>
+        <Link href="/track" className="btn-secondary">تتبّع الطلب</Link>
         <Link href="/" className="btn-ghost">العودة للمتجر</Link>
       </div>
     </div>

@@ -1,44 +1,47 @@
 import { NextResponse } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
+import { hasImageSignature, isBodyTooLarge } from "@/lib/image-upload";
 
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
-const ALLOWED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
+const MAX_BYTES = 4 * 1024 * 1024;
+const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"];
+const ALLOWED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "avif", "heic", "heif"]);
 
-const WINDOW_MS = 10 * 60 * 1000;
 const MAX_UPLOADS_PER_WINDOW = 15;
-const uploadLog = new Map<string, number[]>();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (uploadLog.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (recent.length >= MAX_UPLOADS_PER_WINDOW) {
-    uploadLog.set(ip, recent);
-    return true;
-  }
-  recent.push(now);
-  uploadLog.set(ip, recent);
-  return false;
-}
 
 /** Customer uploads (transfer receipts, photos to print) -> private "uploads" bucket. */
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (isRateLimited(ip)) {
-    return NextResponse.json(
-      { ok: false, error: "تم تجاوز الحد المسموح لرفع الملفات، يرجى المحاولة لاحقاً" },
-      { status: 429 },
-    );
+  if (isBodyTooLarge(request, MAX_BYTES)) {
+    return NextResponse.json({ ok: false, error: "الحجم الأقصى 4 ميجابايت" }, { status: 413 });
+  }
+  let ip: string;
+  try {
+    ip = await getRequestIp(request.headers);
+    if (await isRateLimited("upload-ip", ip, MAX_UPLOADS_PER_WINDOW, 10 * 60)) {
+      return NextResponse.json(
+        { ok: false, error: "تم تجاوز الحد المسموح لرفع الملفات، يرجى المحاولة لاحقاً" },
+        { status: 429 },
+      );
+    }
+  } catch {
+    return NextResponse.json({ ok: false, error: "تعذر التحقق من طلب الرفع" }, { status: 503 });
   }
 
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
-  const kind = form?.get("kind") === "receipt" ? "receipts" : "photos";
+  const kindValue = form?.get("kind");
+  if (kindValue !== "receipt" && kindValue !== "photo") {
+    return NextResponse.json({ ok: false, error: "نوع الملف غير صالح" }, { status: 400 });
+  }
+  const kind = kindValue === "receipt" ? "receipts" : "photos";
   if (!(file instanceof File)) return NextResponse.json({ ok: false, error: "ملف مرفوع غير صالـح" }, { status: 400 });
   if (!ALLOWED.includes(file.type)) return NextResponse.json({ ok: false, error: "صيغة الملف غير مدعومة" }, { status: 400 });
   if (file.size <= 0 || file.size > MAX_BYTES) {
-    return NextResponse.json({ ok: false, error: "الحجم الأقصى 5 ميجابايت" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "الحجم الأقصى 4 ميجابايت" }, { status: 400 });
+  }
+  if (!(await hasImageSignature(file))) {
+    return NextResponse.json({ ok: false, error: "محتوى الملف لا يطابق صيغة الصورة" }, { status: 400 });
   }
 
   const rawExt = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";

@@ -5,6 +5,7 @@ import { ImagePlus, Loader2 } from "lucide-react";
 import type { Category, Occasion, Product } from "@/types/db";
 import { AVAILABILITY_LABELS_AR, AVAILABILITY_VALUES } from "@/types/enums";
 import { Checkbox, Field, inputCls } from "@/features/admin/components/ui";
+import { MAX_UPLOAD_MB, uploadProductImage } from "@/features/uploads/client";
 import { saveProduct, type ProductFormState } from "../server/actions";
 import { formatOptions } from "../lib/parse";
 
@@ -17,13 +18,14 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
   const upload = async (file: File) => {
     setUploading(true);
     setUploadError("");
-    const body = new FormData();
-    body.set("file", file);
-    const res = await fetch("/api/admin/upload", { method: "POST", body });
-    const json = (await res.json()) as { ok: boolean; url?: string; error?: string };
-    setUploading(false);
-    if (json.ok && json.url) setImages((v) => (v ? `${v}\n${json.url}` : json.url!));
-    else setUploadError(json.error ?? "تعذّر الرفع");
+    try {
+      const url = await uploadProductImage(file);
+      setImages((v) => (v ? `${v}\n${url}` : url));
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "تعذّر الرفع");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -42,8 +44,9 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
         </Field>
         <label className="btn-secondary w-fit cursor-pointer !py-2 text-sm">
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />} رفع صورة
-          <input type="file" accept="image/*" className="sr-only" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif" className="sr-only" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
         </label>
+        <p className="text-xs text-muted">الحد الأقصى لحجم الصورة {MAX_UPLOAD_MB} ميجابايت.</p>
         {uploadError && <p className="text-xs text-danger">{uploadError}</p>}
         <Field label="الخيارات" hint="كل خيار في سطر: الحجم*: وسط=0، كبير=30  (* = إجباري، الرقم = فرق السعر)">
           <textarea name="options" rows={3} defaultValue={product ? formatOptions(product.options) : ""} className={inputCls} />

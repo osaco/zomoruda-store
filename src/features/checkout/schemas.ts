@@ -28,7 +28,7 @@ export const checkoutSchema = z
     couponCode: z.string().trim().max(30).nullish(),
     notes: z.string().trim().max(500).nullish(),
     birthday: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish().or(z.literal("")),
-    items: z.array(cartLineSchema).min(1, "السلة فارغة"),
+    items: z.array(cartLineSchema).min(1, "السلة فارغة").max(50, "السلة تحتوي على منتجات أكثر من المسموح"),
   })
   .superRefine((value, ctx) => {
     if (value.fulfillment === "delivery") {
@@ -40,6 +40,6 @@ export const checkoutSchema = z
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 export const trackSchema = z.object({
-  orderNumber: z.string().trim().min(4, "رقم الطلب مطلوب"),
-  phone: z.string().trim().refine(isValidPsPhone, "رقم الجوال غير صحيح"),
+  orderNumber: z.string().trim().min(4, "رقم الطلب مطلوب").max(30),
+  phone: z.string().trim().max(24).refine(isValidPsPhone, "رقم الجوال غير صحيح"),
 });

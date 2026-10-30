@@ -52,6 +52,14 @@ describe("buildOrder", () => {
     const products = seedProducts.map((p) => (p.id === box.id ? { ...p, availability: "out_of_stock" as const } : p));
     expect(buildOrder({ input: input(), products, zone, coupon: null, customer: null }).ok).toBe(false);
   });
+  it("checks stock across duplicate cart lines for the same product", () => {
+    const products = seedProducts.map((p) => (p.id === box.id ? { ...p, stockQty: 5 } : p));
+    const duplicateLines = input({ items: [
+      { productId: box.id, quantity: 4, options: [{ nameAr: "الحجم", valueAr: "وسط" }] },
+      { productId: box.id, quantity: 4, options: [{ nameAr: "الحجم", valueAr: "كبير" }] },
+    ] });
+    expect(buildOrder({ input: duplicateLines, products, zone, coupon: null, customer: null })).toMatchObject({ ok: false });
+  });
   it("produces a WhatsApp message with totals and tracking link", () => {
     const result = buildOrder({ input: input(), products: seedProducts, zone, coupon: null, customer: null });
     if (!result.ok) throw new Error(result.error);

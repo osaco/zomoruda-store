@@ -32,7 +32,7 @@ export function PhotoUploadField({
         <span>{state === "uploading" ? "جاري الرفع..." : value ? "تم رفع الصورة — اضغطي للتغيير" : "اختاري صورة من الجهاز"}</span>
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif"
           className="sr-only"
           onChange={async (e) => {
             const file = e.target.files?.[0];

@@ -12,11 +12,19 @@ export async function GET(request: Request) {
   let name: string;
 
   if (url.searchParams.get("type") === "customers") {
-    const customers = (await repos.customers.list({ perPage: 100000 })).items;
+    const customers = [];
+    let page = 1;
+    while (true) {
+      const batch = await repos.customers.list({ page, perPage: 500 });
+      customers.push(...batch.items);
+      if (page >= batch.pageCount) break;
+      page += 1;
+    }
     csv = toCsv([["الاسم", "الجوال", "عدد الطلبات", "إجمالي المشتريات", "عيد الميلاد", "ذكرى الزواج", "ملاحظات"], ...customers.map((c) => [c.name, c.phone, c.ordersCount, c.totalSpent, c.birthday, c.anniversary, c.notes])]);
     name = "customers";
   } else {
-    const days = Number(url.searchParams.get("days")) || 30;
+    const requestedDays = Number(url.searchParams.get("days"));
+    const days = Number.isFinite(requestedDays) && requestedDays > 0 ? Math.min(3650, Math.trunc(requestedDays)) : 30;
     const orders = await repos.orders.all({ from: new Date(Date.now() - days * 86_400_000).toISOString() });
     csv = toCsv([
       ["رقم الطلب", "التاريخ", "الزبون", "الجوال", "المنطقة", "الاستلام", "المنتجات", "المجموع", "التوصيل", "الخصم", "الإجمالي", "الدفع", "الحالة"],

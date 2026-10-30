@@ -114,7 +114,6 @@ export interface ProductRepository {
   create(input: ProductInput): Promise<Product>;
   update(id: Id, input: ProductInput): Promise<Product | null>;
   remove(id: Id): Promise<void>;
-  adjustStock(id: Id, delta: number): Promise<void>;
 }
 
 export type DeliveryZoneRepository = CrudRepository<DeliveryZone>;
@@ -122,7 +121,6 @@ export type BannerRepository = CrudRepository<Banner>;
 
 export interface CouponRepository extends CrudRepository<Coupon> {
   getByCode(code: string): Promise<Coupon | null>;
-  incrementUsage(id: Id): Promise<void>;
 }
 
 export interface CustomerRepository {
@@ -131,11 +129,14 @@ export interface CustomerRepository {
   getByPhone(phone: string): Promise<Customer | null>;
   upsertByPhone(input: UpsertCustomerInput): Promise<Customer>;
   update(id: Id, input: Partial<UpsertCustomerInput>): Promise<Customer | null>;
-  recordOrder(customerId: Id, total: number): Promise<void>;
 }
 
 export interface OrderRepository {
-  create(input: NewOrderRecord): Promise<Order>;
+  placeCheckoutOrder(
+    input: NewOrderRecord,
+    customer: UpsertCustomerInput,
+    couponId: Id | null,
+  ): Promise<Order | null>;
   getById(id: Id): Promise<Order | null>;
   getByNumber(orderNumber: string): Promise<Order | null>;
   list(query?: OrderQuery): Promise<Paginated<Order>>;

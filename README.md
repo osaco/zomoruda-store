@@ -15,7 +15,7 @@ cp .env.example .env.local   # يمكن تركه فارغاً للوضع الت�
 npm run dev                  # http://localhost:3000
 ```
 
-**الوضع التجريبي (Demo mode):** إذا لم تُضبط متغيرات Supabase يعمل المتجر ولوحة التحكم كاملين ببيانات تجريبية في الذاكرة (8 أقسام، 5 مناسبات، 3 مناطق، 12 منتج، طلبات وزبائن نموذجية). البيانات تُمسح عند إعادة التشغيل.
+**الوضع التجريبي (Demo mode):** محلياً، إذا لم تُضبط متغيرات Supabase يعمل المتجر ولوحة التحكم ببيانات تجريبية في الذاكرة (8 أقسام، 5 مناسبات، 3 مناطق، 12 منتج، طلبات وزبائن نموذجية). البيانات تُمسح عند إعادة التشغيل. بيئتا Vercel Production وPreview تتطلبان Supabase ولا تستخدمان بيانات العرض.
 
 - لوحة التحكم: `/admin` — كلمة المرور التجريبية: قيمة `ADMIN_DEMO_PASSWORD` (الافتراضي `zomoruda2026`).
 - كوبونات للتجربة: `WELCOME10` (10% فوق 50₪) و `GIFT5` (5₪ فوق 40₪).
@@ -34,7 +34,7 @@ npm run dev                  # http://localhost:3000
 ## ربط Supabase
 
 1. أنشئي مشروعاً على supabase.com.
-2. SQL Editor ← شغّلي `supabase/migrations/0001_init.sql` ثم `supabase/seed.sql`.
+2. SQL Editor ← شغّلي `supabase/migrations/0001_init.sql` ثم `supabase/migrations/0002_production_hardening.sql` ثم `supabase/migrations/0003_rls_and_indexes.sql`. شغّلي `supabase/seed.sql` فقط إذا أردتِ بيانات العرض التجريبية.
 3. Authentication ← Users ← أضيفي مستخدم المدير (بريد + كلمة مرور).
 4. أضيفيه كمدير:
    ```sql
@@ -50,12 +50,12 @@ npm run dev                  # http://localhost:3000
 ## النشر على Vercel
 
 1. Import للمستودع `osaco/zomoruda-store`.
-2. Environment Variables: كل ما في `.env.example`، وأهمها:
+2. Environment Variables في Production وPreview:
    - `NEXT_PUBLIC_SITE_URL` = رابط الموقع النهائي
    - `AUTH_SECRET` = نص عشوائي 32+ حرف (`openssl rand -base64 32`)
-   - `CRON_SECRET` = نص عشوائي (Vercel يرسله تلقائياً للـ cron)
-   - متغيرات Supabase الثلاثة
-   - عيّني `ADMIN_DEMO_PASSWORD` و`AUTH_SECRET` لبيئتي Production وPreview معاً؛ معاينة Vercel عامة ولا تستخدم الأسرار الافتراضية.
+   - `CRON_SECRET` = نص عشوائي بطول 32+ حرفاً
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+   لا تضعي مفاتيح الخدمة في متغيرات تبدأ بـ`NEXT_PUBLIC_`. التطبيق يرفض بيانات العرض في البيئتين.
 3. Deploy. ملف `vercel.json` يضيف cron يومي `/api/cron/keepalive` حتى لا يتوقف مشروع Supabase المجاني لعدم النشاط.
 
 ## البنية

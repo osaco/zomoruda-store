@@ -25,12 +25,22 @@ export function buildOrder(args: {
   const byId = new Map(products.map((p) => [p.id, p]));
   const items: OrderItem[] = [];
 
+  // Check combined quantities: separate cart lines may refer to the same SKU.
+  const requestedByProduct = new Map<string, number>();
   for (const line of input.items) {
-    const product = byId.get(line.productId);
+    requestedByProduct.set(line.productId, (requestedByProduct.get(line.productId) ?? 0) + line.quantity);
+  }
+  for (const [productId, quantity] of requestedByProduct) {
+    const product = byId.get(productId);
     if (!product || !product.isActive) return { ok: false, error: "أحد المنتجات لم يعد متوفراً" };
     if (product.availability === "out_of_stock") return { ok: false, error: `«${product.nameAr}» نفد من المخزون` };
-    if (product.availability === "in_stock" && product.stockQty < line.quantity)
+    if (product.availability === "in_stock" && product.stockQty < quantity)
       return { ok: false, error: `الكمية المتوفرة من «${product.nameAr}» هي ${product.stockQty}` };
+  }
+
+  for (const line of input.items) {
+    const product = byId.get(line.productId);
+    if (!product) return { ok: false, error: "أحد المنتجات لم يعد متوفراً" };
 
     const options = [];
     for (const option of product.options) {

@@ -24,4 +24,7 @@ describe("toCsv", () => {
   it("escapes commas and quotes", () => {
     expect(toCsv([["a,b", 'q"t', null]])).toBe('\uFEFF"a,b","q""t",');
   });
+  it("prevents spreadsheet formulas in exported customer text", () => {
+    expect(toCsv([["=1+1", "@SUM(A1:A2)", "safe text", -2]])).toBe("\uFEFF'=1+1,'@SUM(A1:A2),safe text,-2");
+  });
 });

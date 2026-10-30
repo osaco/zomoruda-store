@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import type { Id, Product } from "@/types/db";
+import type { Id, OrderStatus, Product } from "@/types/db";
 import {
   paginate,
   type CrudRepository,
@@ -128,11 +128,8 @@ export function createSupabaseRepositories(): Repositories {
     coupons: {
       ...coupons,
       async getByCode(code) {
-        const data = check(await db().from("coupons").select("*").ilike("code", code.trim()).maybeSingle());
+        const data = check(await db().from("coupons").select("*").eq("code", code.trim().toUpperCase()).maybeSingle());
         return data ? toCoupon(data as Row) : null;
-      },
-      async incrementUsage(id) {
-        check(await db().rpc("increment_coupon_usage", { p_id: id }));
       },
     },
     products: {
@@ -207,15 +204,12 @@ export function createSupabaseRepositories(): Repositories {
       async remove(id) {
         check(await db().from("products").delete().eq("id", id));
       },
-      async adjustStock(id, delta) {
-        check(await db().rpc("adjust_stock", { p_id: id, p_delta: delta }));
-      },
     },
     customers: {
       async list(query = {}) {
         const page = query.page ?? 1;
         const perPage = query.perPage ?? 20;
-        let q = db().from("customers").select("*", { count: "exact" }).order("total_spent", { ascending: false });
+        let q = db().from("customers").select("*", { count: "exact" }).order("total_spent", { ascending: false }).order("id");
         if (query.search) q = q.or(`name.ilike.%${query.search}%,phone.ilike.%${query.search}%`);
         const from = (page - 1) * perPage;
         const result = await q.range(from, from + perPage - 1);
@@ -242,40 +236,21 @@ export function createSupabaseRepositories(): Repositories {
         const data = check(await db().from("customers").update(input).eq("id", id).select("*").maybeSingle());
         return data ? toCustomer(data as Row) : null;
       },
-      async recordOrder(customerId, total) {
-        check(await db().rpc("record_customer_order", { p_id: customerId, p_total: total }));
-      },
     },
     orders: {
-      async create(input) {
-        const row = check(
-          await db()
-            .from("orders")
-            .insert({
-              customer_id: input.customerId,
-              customer_name: input.customerName,
-              customer_phone: input.customerPhone,
-              zone_id: input.zoneId,
-              zone_name_ar: input.zoneNameAr,
-              address: input.address,
-              items: input.items,
-              subtotal: input.subtotal,
-              delivery_fee: input.deliveryFee,
-              discount: input.discount,
-              total: input.total,
-              coupon_code: input.couponCode,
-              fulfillment: input.fulfillment,
-              delivery_date: input.deliveryDate,
-              time_slot: input.timeSlot,
-              payment_method: input.paymentMethod,
-              receipt_path: input.receiptPath,
-              notes: input.notes,
-            })
-            .select("id")
-            .single(),
-        ) as Row;
-        check(await db().from("order_status_history").insert({ order_id: row.id, status: "new", note: "تم استلام الطلب" }));
-        return (await this.getById(String(row.id)))!;
+      async placeCheckoutOrder(input, customer, couponId) {
+        const result = await db().rpc("place_checkout_order", {
+          p_order: input,
+          p_customer_name: customer.name,
+          p_customer_phone: customer.phone,
+          p_birthday: customer.birthday ?? null,
+          p_coupon_id: couponId,
+        });
+        if (result.error) {
+          if (result.error.message.includes("CHECKOUT_CONFLICT")) return null;
+          throw new Error(`Supabase: ${result.error.message}`);
+        }
+        return result.data ? this.getById(String(result.data)) : null;
       },
       async getById(id) {
         const data = check(await db().from("orders").select(ORDER_SELECT).eq("id", id).maybeSingle());
@@ -288,7 +263,7 @@ export function createSupabaseRepositories(): Repositories {
       async list(query = {}) {
         const page = query.page ?? 1;
         const perPage = query.perPage ?? 20;
-        let q = db().from("orders").select(ORDER_SELECT, { count: "exact" }).order("created_at", { ascending: false });
+        let q = db().from("orders").select(ORDER_SELECT, { count: "exact" }).order("created_at", { ascending: false }).order("id", { ascending: false });
         if (query.status) q = q.eq("status", query.status);
         if (query.customerPhone) q = q.eq("customer_phone", query.customerPhone);
         if (query.search) q = q.or(`order_number.ilike.%${query.search}%,customer_name.ilike.%${query.search}%,customer_phone.ilike.%${query.search}%`);
@@ -299,15 +274,32 @@ export function createSupabaseRepositories(): Repositories {
         return { items: rows.map(toOrder), total, page, perPage, pageCount: Math.max(1, Math.ceil(total / perPage)) };
       },
       async all(query = {}) {
-        let q = db().from("orders").select(ORDER_SELECT).order("created_at", { ascending: false }).limit(5000);
-        if (query.from) q = q.gte("created_at", query.from);
-        if (query.to) q = q.lte("created_at", query.to);
-        return (check(await q) as Row[]).map(toOrder);
+        const pageSize = 500;
+        const rows: Row[] = [];
+        for (let offset = 0; ; offset += pageSize) {
+          let q = db().from("orders").select(ORDER_SELECT)
+            .order("created_at", { ascending: false }).order("id", { ascending: false })
+            .range(offset, offset + pageSize - 1);
+          if (query.from) q = q.gte("created_at", query.from);
+          if (query.to) q = q.lte("created_at", query.to);
+          const batch = check(await q) as Row[];
+          rows.push(...batch);
+          if (batch.length < pageSize) break;
+        }
+        return rows.map(toOrder);
       },
       async updateStatus(id, status, note = null, by = null) {
-        check(await db().from("orders").update({ status }).eq("id", id));
-        check(await db().from("order_status_history").insert({ order_id: id, status, note, created_by: by }));
-        return this.getById(id);
+        const result = await db().rpc("transition_order_status", {
+          p_id: id,
+          p_status: status as OrderStatus,
+          p_note: note,
+          p_by: by,
+        });
+        if (result.error) {
+          if (result.error.message.includes("ORDER_STOCK_CONFLICT")) return null;
+          throw new Error(`Supabase: ${result.error.message}`);
+        }
+        return result.data ? this.getById(String(result.data)) : null;
       },
     },
     settings: {
