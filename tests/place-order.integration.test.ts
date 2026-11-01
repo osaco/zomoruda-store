@@ -44,11 +44,21 @@ describe("placeOrder (demo adapter)", () => {
     const placed = await repos.orders.getByNumber(res.data.orderNumber);
     expect(placed).not.toBeNull();
     const soldAfterOrder = (await repos.products.getById(product.id))!.soldCount;
+
+    // Cancellation: restores stock, decrements CRM stats and coupon
     await repos.orders.updateStatus(placed!.id, "cancelled");
     expect((await repos.products.getById(product.id))!.stockQty).toBe(stockBefore);
     expect((await repos.products.getById(product.id))!.soldCount).toBe(soldAfterOrder - 2);
+    expect((await repos.customers.getByPhone("0597000111"))!.ordersCount).toBe(0);
+    expect((await repos.customers.getByPhone("0597000111"))!.totalSpent).toBe(0);
+    expect((await repos.coupons.getByCode("GIFT5"))!.usedCount).toBe(0);
+
+    // Reactivation: re-deducts stock, restores CRM stats and coupon
     await repos.orders.updateStatus(placed!.id, "new");
     expect((await repos.products.getById(product.id))!.stockQty).toBe(stockBefore - 2);
+    expect((await repos.customers.getByPhone("0597000111"))!.ordersCount).toBe(1);
+    expect((await repos.customers.getByPhone("0597000111"))!.totalSpent).toBe(res.data.total);
+    expect((await repos.coupons.getByCode("GIFT5"))!.usedCount).toBe(1);
   });
 
   it("rejects invalid phone and empty cart with field errors", async () => {

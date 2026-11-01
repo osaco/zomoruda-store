@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildOrder } from "@/features/checkout/lib/build-order";
-import { orderWhatsappMessage } from "@/features/orders/lib/whatsapp-message";
+import {
+  customerStatusWhatsappMessage,
+  orderWhatsappMessage,
+  productWhatsappMessage,
+} from "@/features/orders/lib/whatsapp-message";
 import { seedCoupons, seedProducts, seedZones } from "@/lib/data/demo/seed";
 import type { CheckoutInput } from "@/features/checkout/schemas";
 import type { Order } from "@/types/db";
@@ -60,7 +64,7 @@ describe("buildOrder", () => {
     ] });
     expect(buildOrder({ input: duplicateLines, products, zone, coupon: null, customer: null })).toMatchObject({ ok: false });
   });
-  it("produces a WhatsApp message with totals and tracking link", () => {
+  it("produces a structured luxury WhatsApp invoice with totals and tracking link", () => {
     const result = buildOrder({ input: input(), products: seedProducts, zone, coupon: null, customer: null });
     if (!result.ok) throw new Error(result.error);
     const order: Order = { ...result.order, id: "1", orderNumber: "ZM-1001", status: "new", createdAt: "", statusHistory: [] };
@@ -68,5 +72,31 @@ describe("buildOrder", () => {
     expect(message).toContain("ZM-1001");
     expect(message).toContain("210 ₪");
     expect(message).toContain("/track?order=ZM-1001");
+    expect(message).toContain("━━━━━━━━━━━━━━━━━━━━");
+    expect(message).toContain("سارة");
+  });
+  it("produces an inquiry message from product page without creating ghost orders", () => {
+    const message = productWhatsappMessage(box, 150, "https://zomoruda.vercel.app", [{ nameAr: "الحجم", valueAr: "كبير" }]);
+    expect(message).toContain("أود الاستفسار عن توفر منتج");
+    expect(message).toContain(box.nameAr);
+    expect(message).toContain("150 ₪");
+    expect(message).toContain("https://zomoruda.vercel.app/product/royal-gift-box");
+    expect(message).not.toContain("أرغب بطلب");
+  });
+  it("generates customer status notification messages for admin", () => {
+    const testOrder = { orderNumber: "ZM-2002", customerName: "مريم العلي", fulfillment: "delivery" as const };
+    const confirmed = customerStatusWhatsappMessage(testOrder, "confirmed", "https://zomoruda.vercel.app");
+    expect(confirmed).toContain("مريم");
+    expect(confirmed).toContain("#ZM-2002");
+    expect(confirmed).toContain("تأكيد طلبك");
+    expect(confirmed).toContain("/track?order=ZM-2002");
+
+    const outForDelivery = customerStatusWhatsappMessage(testOrder, "out_for_delivery", "https://zomoruda.vercel.app");
+    expect(outForDelivery).toContain("في الطريق إليك");
+
+    const pickupOrder = { orderNumber: "ZM-3003", customerName: "هديل أحمد", fulfillment: "pickup" as const };
+    const readyPickup = customerStatusWhatsappMessage(pickupOrder, "out_for_delivery", "https://zomoruda.vercel.app");
+    expect(readyPickup).toContain("جاهز للاستلام");
+    expect(readyPickup).toContain("غزة - الرمال");
   });
 });

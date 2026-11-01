@@ -360,6 +360,17 @@ export function createDemoRepositories(): Repositories {
             product.soldCount += quantity;
             if (product.stockQty === 0 && product.availability === "in_stock") product.availability = "out_of_stock";
           }
+          if (order.customerId) {
+            const customer = state().customers.find((c) => c.id === order.customerId);
+            if (customer) {
+              customer.ordersCount += 1;
+              customer.totalSpent += order.total;
+            }
+          }
+          if (order.couponCode) {
+            const coupon = state().coupons.find((c) => c.code === order.couponCode);
+            if (coupon) coupon.usedCount += 1;
+          }
         } else if (order.status !== "cancelled" && status === "cancelled") {
           for (const [productId, quantity] of quantities) {
             const product = state().products.find((p) => p.id === productId);
@@ -367,6 +378,17 @@ export function createDemoRepositories(): Repositories {
             product.stockQty += quantity;
             product.soldCount = Math.max(0, product.soldCount - quantity);
             if (product.availability === "out_of_stock") product.availability = "in_stock";
+          }
+          if (order.customerId) {
+            const customer = state().customers.find((c) => c.id === order.customerId);
+            if (customer) {
+              customer.ordersCount = Math.max(0, customer.ordersCount - 1);
+              customer.totalSpent = Math.max(0, customer.totalSpent - order.total);
+            }
+          }
+          if (order.couponCode) {
+            const coupon = state().coupons.find((c) => c.code === order.couponCode);
+            if (coupon) coupon.usedCount = Math.max(0, coupon.usedCount - 1);
           }
         }
         order.status = status;

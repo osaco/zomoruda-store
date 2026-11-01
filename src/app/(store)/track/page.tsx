@@ -8,12 +8,15 @@ export const metadata: Metadata = {
   alternates: { canonical: "/track" },
 };
 
-export default function TrackPage() {
+type Props = { searchParams: Promise<{ order?: string }> };
+
+export default async function TrackPage({ searchParams }: Props) {
+  const { order } = await searchParams;
   return (
     <>
       <PageHeader title="تتبّع الطلب" description="أدخلي رقم الطلب ورقم الجوال المستخدم في الطلب" />
       <div className="container-page max-w-xl space-y-6 py-6">
-        <TrackOrderForm />
+        <TrackOrderForm initialOrderNumber={order} />
       </div>
     </>
   );

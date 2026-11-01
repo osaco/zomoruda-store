@@ -7,7 +7,7 @@ import { trackOrderAction, type TrackingState } from "../server/tracking-action"
 
 const initialState: TrackingState = {};
 
-export function TrackOrderForm() {
+export function TrackOrderForm({ initialOrderNumber = "" }: { initialOrderNumber?: string }) {
   const [state, action, pending] = useActionState(trackOrderAction, initialState);
   const order = state.order;
 
@@ -16,7 +16,17 @@ export function TrackOrderForm() {
       <form action={action} className="card space-y-3 p-5">
         <label className="block space-y-1 text-sm font-medium">
           <span>رقم الطلب</span>
-          <input name="orderNumber" required minLength={4} maxLength={30} placeholder="ZM-1234" dir="ltr" aria-label="رقم الطلب" className="w-full rounded-input border border-primary/15 px-4 py-3 text-sm uppercase" />
+          <input
+            name="orderNumber"
+            required
+            defaultValue={initialOrderNumber}
+            minLength={4}
+            maxLength={30}
+            placeholder="ZM-1234"
+            dir="ltr"
+            aria-label="رقم الطلب"
+            className="w-full rounded-input border border-primary/15 px-4 py-3 text-sm uppercase"
+          />
         </label>
         <label className="block space-y-1 text-sm font-medium">
           <span>رقم الجوال المستخدم في الطلب</span>

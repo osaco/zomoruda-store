@@ -153,9 +153,9 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
           href={whatsappLink(productWhatsappMessage(product, unitPrice, env.NEXT_PUBLIC_SITE_URL, chosen))}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn flex-1 bg-emerald text-white hover:brightness-105"
+          className="btn flex-1 border border-emerald/30 bg-emerald/10 text-emerald hover:bg-emerald hover:text-white transition"
         >
-          <MessageCircle className="h-5 w-5" /> اطلبي مباشرة عبر واتساب
+          <MessageCircle className="h-5 w-5" /> استفسار عن المنتج عبر واتساب
         </a>
         <button type="button" onClick={share} className="btn-secondary" aria-label="مشاركة المنتج">
           <Share2 className="h-5 w-5" />
@@ -163,7 +163,7 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
         </button>
       </div>
       <p className="text-xs text-muted">
-        ملاحظة: هذا زر استفسار سريع وليس طلباً مُسجّلاً؛ لا يُحفظ الطلب في المتجر. لإتمام الشراء، أضيفي المنتج إلى السلة ثم تابعي خطوات الطلب.
+        ملاحظة: زر الواتساب هنا مخصص للاستفسار السريع عن توفر وتفاصيل المنتج؛ لإتمام الشراء وحفظ طلبك، أضيفي المنتج إلى السلة ثم تابعي خطوات الطلب.
       </p>
     </div>
    );

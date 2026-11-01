@@ -8,6 +8,7 @@ import type { DeliveryZone } from "@/types/db";
 import { PAYMENT_METHOD_LABELS_AR, PAYMENT_METHOD_VALUES, TIME_SLOTS, type FulfillmentType, type PaymentMethod } from "@/types/enums";
 import { Input } from "@/components/ui/Input";
 import { formatPrice } from "@/lib/format";
+import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { cartSubtotal, useCart } from "@/features/cart/store";
 import { CartLineItem } from "@/features/cart/components/CartLineItem";
@@ -264,6 +265,26 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 </>
               )}
 
+              {fulfillment === "pickup" && (
+                <div className="rounded-input border border-primary/20 bg-primary-light/50 p-4 text-sm space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-primary">
+                    <Store className="h-4 w-4" aria-hidden="true" />
+                    <span>معلومات الاستلام من المتجر</span>
+                  </div>
+                  <p className="text-xs text-ink/80">
+                    <strong className="text-ink">العنوان: </strong>
+                    {site.addressAr}
+                  </p>
+                  <p className="text-xs text-ink/80">
+                    <strong className="text-ink">أوقات العمل: </strong>
+                    {site.hoursAr}
+                  </p>
+                  <p className="text-xs font-medium text-success">
+                    ✓ الاستلام مجاني بدون أي رسوم توصيل إضافية.
+                  </p>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <Input name="deliveryDate" label="التاريخ المطلوب" type="date" min={today()} error={errors.deliveryDate} />
                 <div className="space-y-1.5">
@@ -421,7 +442,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
               جاري حفظ الطلب...
             </>
           ) : (
-            "تأكيد الطلب عبر واتساب"
+            `تأكيد الطلب عبر واتساب — ${formatPrice(total)}`
           )}
         </button>
         <p className="text-center text-xs text-muted">

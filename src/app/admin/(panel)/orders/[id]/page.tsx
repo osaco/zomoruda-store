@@ -3,19 +3,31 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { getRepos } from "@/lib/data";
+import { env } from "@/lib/env";
 import { formatDate, formatPrice } from "@/lib/format";
 import { toInternational } from "@/lib/phone";
 import { FULFILLMENT_LABELS_AR, ORDER_STATUS_LABELS_AR, ORDER_STATUS_VALUES, PAYMENT_METHOD_LABELS_AR } from "@/types/enums";
 import { AdminPageTitle, inputCls } from "@/features/admin/components/ui";
 import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
 import { StatusTimeline } from "@/features/orders/components/StatusTimeline";
+import { customerStatusWhatsappMessage } from "@/features/orders/lib/whatsapp-message";
 import { updateOrderStatus } from "@/features/orders/server/admin-actions";
 
 export default async function AdminOrderDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const order = await getRepos().orders.getById(id);
   if (!order) notFound();
-  const waCustomer = `https://wa.me/${toInternational(order.customerPhone)}?text=${encodeURIComponent(`مرحباً ${order.customerName} 💜 بخصوص طلبك ${order.orderNumber} من زُمُرّدة:`)}`;
+
+  const phoneIntl = toInternational(order.customerPhone);
+  const waCustom = `https://wa.me/${phoneIntl}?text=${encodeURIComponent(`مرحباً ${order.customerName} 💜 بخصوص طلبك ${order.orderNumber} من زُمُرّدة:`)}`;
+
+  const statusActions: { status: "confirmed" | "preparing" | "out_for_delivery" | "delivered" | "cancelled"; label: string }[] = [
+    { status: "confirmed", label: "إشعار التأكيد" },
+    { status: "preparing", label: "إشعار التجهيز" },
+    { status: "out_for_delivery", label: order.fulfillment === "pickup" ? "جاهز للاستلام" : "خرج للتوصيل" },
+    { status: "delivered", label: "إشعار التسليم" },
+    { status: "cancelled", label: "إشعار الإلغاء" },
+  ];
 
   return (
     <>
@@ -69,7 +81,42 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
               <input name="note" placeholder="ملاحظة (اختياري)" className={inputCls} />
               <button className="btn-primary w-full !py-2">تحديث الحالة</button>
             </form>
-            <a href={waCustomer} target="_blank" rel="noopener noreferrer" className="btn w-full bg-emerald !py-2 text-white"><MessageCircle className="h-4 w-4" /> مراسلة الزبون</a>
+
+            <div className="space-y-2 border-t border-primary/10 pt-3">
+              <p className="text-xs font-bold text-muted">إشعار الزبون عبر واتساب:</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {statusActions.map((action) => {
+                  const msg = customerStatusWhatsappMessage(order, action.status, env.NEXT_PUBLIC_SITE_URL);
+                  const url = `https://wa.me/${phoneIntl}?text=${encodeURIComponent(msg)}`;
+                  const isCurrent = order.status === action.status;
+                  return (
+                    <a
+                      key={action.status}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center justify-center gap-1 rounded-input border px-2 py-2 font-medium transition ${
+                        isCurrent
+                          ? "border-emerald bg-emerald text-white"
+                          : "border-primary/15 bg-surface text-ink hover:border-emerald hover:text-emerald"
+                      }`}
+                      title={action.label}
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      <span>{action.label}</span>
+                    </a>
+                  );
+                })}
+              </div>
+              <a
+                href={waCustom}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary w-full !py-1.5 text-xs text-muted hover:text-ink justify-center"
+              >
+                محادثة مخصصة مع الزبون
+              </a>
+            </div>
           </section>
           <section className="card p-5"><StatusTimeline order={order} /></section>
         </aside>
