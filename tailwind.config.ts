@@ -20,10 +20,20 @@ const config: Config = {
         success: "#2E9E6A",
         warning: "#E0A100",
         danger: "#D64545",
+        /** Editorial tokens — theme-aware via CSS variables (light + dark). */
+        deep: "#24142F",
+        plum: "#39244A",
+        gold: "#C9A24A",
+        gem: "#1F8A70",
+        canvas: "var(--color-bg)",
+        "on-deep": "#F3EDF7",
+        "deep-soft": "var(--color-muted)",
+        line: "var(--color-line)",
       },
       fontFamily: {
         heading: ["var(--font-cairo)", "system-ui", "sans-serif"],
         body: ["var(--font-cairo)", "system-ui", "sans-serif"],
+        display: ["var(--font-reem-kufi)", "var(--font-cairo)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         card: "20px",
@@ -40,6 +50,26 @@ const config: Config = {
       },
       transitionDuration: {
         DEFAULT: "200ms",
+      },
+      transitionTimingFunction: {
+        "out-soft": "cubic-bezier(.2,.7,.2,1)",
+      },
+      maxWidth: {
+        "screen-2xl": "1536px",
+      },
+      keyframes: {
+        "gem-float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-8px)" },
+        },
+        "ink-in": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "none" },
+        },
+      },
+      animation: {
+        "gem-float": "gem-float 7s ease-in-out infinite",
+        "ink-in": "ink-in .7s cubic-bezier(.2,.7,.2,1) both",
       },
     },
   },

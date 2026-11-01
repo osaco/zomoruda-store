@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check:responsive": "node scripts/responsive-check.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:visual": "node scripts/visual-check.mjs",
+    "check:interaction": "node scripts/interaction-check.mjs",
+    "check:lcp": "node scripts/lcp-throttled.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -9,6 +9,7 @@ import { getCategories, getProductBySlug } from "@/features/catalog/server/queri
 import { ProductGallery } from "@/features/product/components/ProductGallery";
 import { ProductPurchasePanel } from "@/features/product/components/ProductPurchasePanel";
 import { getStoreSettings } from "@/features/settings/server/queries";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -66,7 +67,7 @@ export default async function ProductPage({ params }: Props) {
         <ProductPurchasePanel product={product} ordersPaused={settings.ordersPaused} />
       </div>
       <ProductShowcase title="قد يعجبكِ أيضاً" products={related} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</gu, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
     </>
   );
 }
