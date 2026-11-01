@@ -4,7 +4,12 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCategories } from "@/features/catalog/server/queries";
 
-export const metadata: Metadata = { title: "الأقسام" };
+export const metadata: Metadata = {
+  title: "الأقسام",
+  description: "تصفّحي أقسام متجر زُمُرّدة: بوكسات الهدايا، الورد، العطور، مستحضرات التجميل وأكثر.",
+  alternates: { canonical: "/categories" },
+};
+
 export const revalidate = 60;
 
 export default async function CategoriesPage() {

@@ -4,7 +4,12 @@ import { OccasionChips } from "@/features/catalog/components/OccasionChips";
 import { ProductShowcase } from "@/features/catalog/components/ProductShowcase";
 import { getOccasions, listProducts } from "@/features/catalog/server/queries";
 
-export const metadata: Metadata = { title: "المناسبات" };
+export const metadata: Metadata = {
+  title: "المناسبات",
+  description: "هدايا مختارة لكل مناسبة: أعياد الميلاد، التخرج، الزواج، والمناسبات الخاصة في غزة.",
+  alternates: { canonical: "/occasions" },
+};
+
 export const revalidate = 60;
 
 export default async function OccasionsPage() {

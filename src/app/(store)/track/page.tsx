@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TrackOrderForm } from "@/features/orders/components/TrackOrderForm";
 
-export const metadata: Metadata = { title: "تتبّع الطلب" };
+export const metadata: Metadata = {
+  title: "تتبّع الطلب",
+  description: "تتبّعي حالة طلبك في متجر زُمُرّدة باستخدام رقم الطلب ورقم الجوال المسجل.",
+  alternates: { canonical: "/track" },
+};
 
 export default function TrackPage() {
   return (

@@ -3,7 +3,11 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { CatalogView } from "@/features/catalog";
 import { parseCatalogParams, type CatalogSearchParams } from "@/features/catalog/server/queries";
 
-export const metadata: Metadata = { title: "العروض" };
+export const metadata: Metadata = {
+  title: "العروض والخصومات",
+  description: "أحدث العروض والخصومات على بوكسات الهدايا والمنتجات الأكثر مبيعاً في متجر زُمُرّدة.",
+  alternates: { canonical: "/offers" },
+};
 
 export default async function OffersPage({ searchParams }: { searchParams: Promise<CatalogSearchParams> }) {
   const sp = await searchParams;
