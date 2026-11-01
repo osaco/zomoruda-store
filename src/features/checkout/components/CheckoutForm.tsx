@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, Loader2, ShoppingBag, Store, Truck } from "lucide-react";
+import { ArrowLeft, Loader2, ShoppingBag, Store, Truck } from "lucide-react";
 import type { DeliveryZone } from "@/types/db";
 import { PAYMENT_METHOD_LABELS_AR, PAYMENT_METHOD_VALUES, TIME_SLOTS, type FulfillmentType, type PaymentMethod } from "@/types/enums";
 import { Input } from "@/components/ui/Input";
@@ -100,29 +100,43 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
     >
       <div className="space-y-6">
 
-        {/* ━━━ شريط التنقل بين الخطوتين ━━━ */}
-        <nav aria-label="خطوات الطلب" className="flex items-center gap-2 text-sm">
-          <button
-            type="button"
-            onClick={() => setStep(1)}
+        {/* ━━━ خطوات الطلب (إرشادية بصرية وغير تفاعلية) ━━━ */}
+        <ol className="flex items-center gap-3 text-sm" aria-label="مراحل الطلب">
+          <li
             className={cn(
-              "flex items-center gap-1.5 font-bold transition",
-              step === 1 ? "text-primary" : "text-muted hover:text-ink",
+              "flex items-center gap-1.5",
+              step === 1 ? "font-bold text-primary" : "text-success",
             )}
           >
-            <ShoppingBag className="h-4 w-4" />
-            مراجعة السلة
-          </button>
-          <ChevronRight className="h-4 w-4 rotate-180 text-muted" aria-hidden="true" />
-          <span
+            {step > 1 ? (
+              <span className="font-bold">✓</span>
+            ) : (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                1
+              </span>
+            )}
+            <span>مراجعة السلة</span>
+          </li>
+          <li aria-hidden="true" className="text-muted/40">
+            /
+          </li>
+          <li
             className={cn(
-              "font-bold transition",
-              step === 2 ? "text-primary" : "text-muted",
+              "flex items-center gap-1.5",
+              step === 2 ? "font-bold text-primary" : "text-muted",
             )}
           >
-            بيانات الطلب
-          </span>
-        </nav>
+            <span
+              className={cn(
+                "flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold",
+                step === 2 ? "bg-primary/10 text-primary" : "bg-muted/15 text-muted",
+              )}
+            >
+              2
+            </span>
+            <span>بيانات الطلب</span>
+          </li>
+        </ol>
 
         {/* ━━━ الخطوة الأولى: مراجعة السلة ━━━ */}
         {step === 1 && (
