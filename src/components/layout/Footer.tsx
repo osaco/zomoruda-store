@@ -6,8 +6,8 @@ import { Logo } from "./Logo";
 
 export function Footer() {
   return (
-    <footer className="mt-16 hidden border-t border-primary/5 bg-surface md:block">
-      <div className="container-page grid grid-cols-3 gap-8 py-12">
+    <footer className="mt-16 border-t border-primary/5 bg-surface pb-20 md:pb-0">
+      <div className="container-page grid grid-cols-1 gap-8 py-12 md:grid-cols-3">
         <div>
           <Logo />
           <p className="mt-3 text-sm leading-7 text-muted">{site.descriptionAr}</p>
@@ -16,7 +16,11 @@ export function Footer() {
         <div>
           <h3 className="font-heading text-lg font-bold text-ink">روابط سريعة</h3>
           <ul className="mt-3 flex flex-col gap-2">
-            {[...navLinks, { href: "/track", label: "تتبّع طلبك" }].map((link) => (
+            {[
+              ...navLinks,
+              { href: "/track", label: "تتبّع طلبك" },
+              { href: "/policy", label: "سياسة الخصوصية والتوصيل" },
+            ].map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
