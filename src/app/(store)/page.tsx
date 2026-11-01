@@ -1,3 +1,5 @@
+import { env } from "@/lib/env";
+import { site } from "@/lib/site";
 import { getRepos } from "@/lib/data";
 import { BannerSlider } from "@/features/catalog/components/BannerSlider";
 import { CategoryCircles } from "@/features/catalog/components/CategoryCircles";
@@ -36,6 +38,26 @@ export default async function HomePage() {
       {bestSellers.items.length === 0 && newest.length === 0 && <DisplayOnlyShowcase />}
       <OccasionChips occasions={occasions} />
       <ContactSection />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: site.nameAr,
+            image: `${env.NEXT_PUBLIC_SITE_URL}/og-image.png`,
+            telephone: `+${site.whatsapp}`,
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "غزة",
+              addressRegion: "الرمال",
+              addressCountry: "PS",
+            },
+            openingHours: "Sa-Th 10:00-21:00",
+            url: env.NEXT_PUBLIC_SITE_URL,
+          }).replace(/</g, "\\u003c"),
+        }}
+      />
     </>
   );
 }

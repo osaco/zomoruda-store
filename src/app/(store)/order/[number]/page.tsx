@@ -29,10 +29,21 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
   return (
     <div className="container-page max-w-xl space-y-6 py-10">
       {/* رأس النجاح */}
-      <div className="text-center space-y-3">
+      <div className="space-y-3 text-center">
         <CheckCircle2 className="mx-auto h-16 w-16 text-success" aria-hidden="true" />
         <h1 className="font-heading text-3xl font-bold">شكراً {order.customerName.split(" ")[0]}! 💜</h1>
         <p className="text-muted">تم حفظ طلبك بنجاح. أرسلي رسالة الواتساب أدناه لتأكيده مع المتجر.</p>
+      </div>
+
+      {/* تنبيه باللون الأصفر */}
+      <div className="rounded-input border border-warning/40 bg-warning/10 p-4 text-start text-ink space-y-1">
+        <p className="flex items-center gap-2 font-bold text-amber-900">
+          <span className="text-base" aria-hidden="true">⚠️</span>
+          <span>تنبيه هام لتأكيد طلبك:</span>
+        </p>
+        <p className="text-xs leading-5 text-ink/85">
+          تم تسجيل طلبك بنجاح، ولكن <strong>لن يبدأ التجهيز</strong> إلا بعد إرسال رسالة الواتساب الجاهزة إلى المتجر بالضغط على زر «تأكيد الطلب على واتساب» أدناه.
+        </p>
       </div>
 
       {/* ملخص الطلب */}
@@ -42,7 +53,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           <p className="font-heading text-xl font-bold text-primary" dir="ltr">{order.orderNumber}</p>
         </div>
 
-        <dl className="space-y-1 text-sm border-t border-primary/10 pt-3">
+        <dl className="space-y-1 border-t border-primary/10 pt-3 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">الاستلام</dt>
             <dd className="font-bold">
@@ -53,7 +64,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           {order.address && (
             <div className="flex justify-between">
               <dt className="text-muted">العنوان</dt>
-              <dd className="text-end max-w-[60%]">{order.address}</dd>
+              <dd className="max-w-[60%] text-end">{order.address}</dd>
             </div>
           )}
           {order.deliveryDate && (
@@ -69,7 +80,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
         </dl>
 
         {/* الحساب */}
-        <dl className="space-y-1 text-sm border-t border-primary/10 pt-3">
+        <dl className="space-y-1 border-t border-primary/10 pt-3 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">المجموع الفرعي</dt>
             <dd>{formatPrice(order.subtotal)}</dd>
@@ -86,7 +97,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
               <dd>-{formatPrice(order.discount)}</dd>
             </div>
           )}
-          <div className="flex justify-between text-base font-bold text-primary border-t border-primary/10 pt-2">
+          <div className="flex justify-between border-t border-primary/10 pt-2 text-base font-bold text-primary">
             <dt>الإجمالي النهائي</dt>
             <dd>{formatPrice(order.total)}</dd>
           </div>
@@ -99,7 +110,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           href={waUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn w-full bg-emerald py-4 text-base text-white gap-2 justify-center"
+          className="btn w-full justify-center gap-2 bg-emerald py-4 text-base text-white"
         >
           <MessageCircle className="h-5 w-5" />
           تأكيد الطلب على واتساب
@@ -117,7 +128,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
 
       {/* تتبع الحالة */}
       <div className="card p-5 text-start">
-        <h2 className="font-heading text-base font-bold mb-3">حالة الطلب</h2>
+        <h2 className="mb-3 font-heading text-base font-bold">حالة الطلب</h2>
         <StatusTimeline order={order} />
       </div>
 

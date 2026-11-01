@@ -66,4 +66,27 @@ describe("placeOrder (demo adapter)", () => {
     expect(res.ok).toBe(false);
     await getRepos().settings.set("orders_paused", "false");
   });
+
+  it("rejects 3rd order from the same phone number within the rate limit window", async () => {
+    const product = (await getRepos().products.getBySlug("pearl-bracelet"))!;
+    const payload = {
+      customerName: "سارة",
+      customerPhone: "0597222333",
+      fulfillment: "pickup" as const,
+      paymentMethod: "cash_on_delivery" as const,
+      items: [{ productId: product.id, quantity: 1, options: [] }],
+    };
+
+    const first = await placeOrder(payload);
+    expect(first.ok).toBe(true);
+
+    const second = await placeOrder(payload);
+    expect(second.ok).toBe(true);
+
+    const third = await placeOrder(payload);
+    expect(third.ok).toBe(false);
+    if (!third.ok) {
+      expect(third.error).toContain("تم تجاوز عدد الطلبات المسموح به");
+    }
+  });
 });

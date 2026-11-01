@@ -39,7 +39,7 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
     const ip = await getRequestIp();
     const [ipLimited, phoneLimited] = await Promise.all([
       isRateLimited("checkout-ip", ip, 30, 10 * 60),
-      isRateLimited("checkout-phone", phoneForLimit, 5, 10 * 60),
+      isRateLimited("checkout-phone", phoneForLimit, 2, 10 * 60),
     ]);
     if (ipLimited || phoneLimited) {
       return fail("تم تجاوز عدد الطلبات المسموح به. يرجى الانتظار والمحاولة لاحقاً.");
