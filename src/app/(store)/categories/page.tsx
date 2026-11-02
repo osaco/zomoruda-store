@@ -7,7 +7,7 @@ import { getCategories } from "@/features/catalog/server/queries";
 
 export const metadata: Metadata = {
   title: "الأقسام",
-  description: "تصفّحي أقسام متجر زُمُرّدة: بوكسات الهدايا، الورد، العطور، مستحضرات التجميل وأكثر.",
+  description: "تصفّحي أقسام متجر زمردة: بوكسات الهدايا، الورد، العطور، مستحضرات التجميل وأكثر.",
   alternates: { canonical: "/categories" },
 };
 

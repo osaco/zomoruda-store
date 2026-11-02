@@ -5,7 +5,7 @@ import { parseCatalogParams, type CatalogSearchParams } from "@/features/catalog
 
 export const metadata: Metadata = {
   title: "العروض والخصومات",
-  description: "أحدث العروض والخصومات على بوكسات الهدايا والمنتجات الأكثر مبيعاً في متجر زُمُرّدة.",
+  description: "أحدث عروض زمردة والخصومات على بوكسات الهدايا والمنتجات الأكثر مبيعاً في المتجر.",
   alternates: { canonical: "/offers" },
 };
 

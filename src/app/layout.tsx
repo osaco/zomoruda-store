@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
@@ -11,6 +13,9 @@ const cairo = Cairo({
   variable: "--font-cairo",
   display: "swap",
 });
+
+const ogImagePath = join(process.cwd(), "public", "og-image.png");
+const hasOgImage = existsSync(ogImagePath);
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
@@ -36,7 +41,9 @@ export const metadata: Metadata = {
     description: site.descriptionAr,
     locale: "ar_PS",
     type: "website",
+    ...(hasOgImage ? { images: [{ url: "/og-image.png", width: 1200, height: 630 }] } : {}),
   },
+  ...(hasOgImage ? { twitter: { card: "summary_large_image" as const, images: ["/og-image.png"] } } : {}),
 };
 
 export const viewport: Viewport = {

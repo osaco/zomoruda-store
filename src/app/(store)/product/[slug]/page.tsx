@@ -20,9 +20,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const image = product.images[0]?.url;
   return {
     title: product.nameAr,
-    description: product.descriptionAr.slice(0, 160),
+    description: `${product.nameAr} من متجر زمردة. ${product.descriptionAr}`.slice(0, 160),
     alternates: { canonical: `/product/${product.slug}` },
-    openGraph: { title: product.nameAr, description: product.descriptionAr, images: image ? [{ url: image }] : undefined, locale: "ar_PS" },
+    openGraph: { title: product.nameAr, description: `${product.nameAr} من متجر زمردة. ${product.descriptionAr}`, images: image ? [{ url: image }] : undefined, locale: "ar_PS" },
+    twitter: image ? { card: "summary_large_image", images: [image] } : undefined,
   };
 }
 
