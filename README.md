@@ -17,11 +17,7 @@ npm run dev                  # http://localhost:3000
 
 **الوضع التجريبي (Demo mode):** محلياً، إذا لم تُضبط متغيرات Supabase يعمل المتجر ولوحة التحكم ببيانات تجريبية في الذاكرة (8 أقسام، 5 مناسبات، 3 مناطق، 12 منتج، طلبات وزبائن نموذجية). البيانات تُمسح عند إعادة التشغيل. بيئتا Vercel Production وPreview تتطلبان Supabase ولا تستخدمان بيانات العرض.
 
-<<<<<<< HEAD
-- لوحة التحكم: `/admin` — usuario `admin` y contraseña `admin` (valor de `ADMIN_DEMO_PASSWORD`, predeterminado `admin`).
-=======
-- لوحة التحكم: `/admin` — كلمة المرور التجريبية: قيمة `ADMIN_DEMO_PASSWORD` (الافتراضي `zomoruda2026`).
->>>>>>> b37169baf3bac8532f306104ef0cea207d720a05
+- لوحة التحكم: `/admin` — اسم المستخدم `admin` وكلمة المرور قيمة `ADMIN_DEMO_PASSWORD` (الافتراضي `admin`).
 - كوبونات للتجربة: `WELCOME10` (10% فوق 50₪) و `GIFT5` (5₪ فوق 40₪).
 
 ## الأوامر

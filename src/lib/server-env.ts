@@ -12,11 +12,7 @@ export const serverEnv = z
       blank,
       isHostedDeployment
         ? z.string().min(8).optional()
-<<<<<<< HEAD
         : z.string().min(4).default("admin"),
-=======
-        : z.string().min(6).default("zomoruda2026"),
->>>>>>> b37169baf3bac8532f306104ef0cea207d720a05
     ),
     AUTH_SECRET: z.preprocess(
       blank,
