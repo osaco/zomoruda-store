@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { orderArchiveCutoff } from "@/features/orders/lib/order-retention";
 import type { Id, OrderStatus, Product } from "@/types/db";
 import {
   paginate,
@@ -266,6 +267,12 @@ export function createSupabaseRepositories(): Repositories {
         let q = db().from("orders").select(ORDER_SELECT, { count: "exact" }).order("created_at", { ascending: false }).order("id", { ascending: false });
         if (query.status) q = q.eq("status", query.status);
         if (query.customerPhone) q = q.eq("customer_phone", query.customerPhone);
+        const cutoff = orderArchiveCutoff();
+        if (query.archive) {
+          q = q.lt("created_at", cutoff).in("status", ["delivered", "cancelled"]);
+        } else {
+          q = q.or(`created_at.gte.${cutoff},status.not.in.(delivered,cancelled)`);
+        }
         if (query.search) q = q.or(`order_number.ilike.%${query.search}%,customer_name.ilike.%${query.search}%,customer_phone.ilike.%${query.search}%`);
         const from = (page - 1) * perPage;
         const result = await q.range(from, from + perPage - 1);
@@ -280,6 +287,7 @@ export function createSupabaseRepositories(): Repositories {
           let q = db().from("orders").select(ORDER_SELECT)
             .order("created_at", { ascending: false }).order("id", { ascending: false })
             .range(offset, offset + pageSize - 1);
+          if (query.status) q = q.eq("status", query.status);
           if (query.from) q = q.gte("created_at", query.from);
           if (query.to) q = q.lte("created_at", query.to);
           const batch = check(await q) as Row[];

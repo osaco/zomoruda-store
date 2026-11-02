@@ -15,6 +15,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
   if (!isSupabaseConfigured) return NextResponse.json({ ok: true, mode: "demo" });
-  const zones = await getRepos().zones.list();
-  return NextResponse.json({ ok: true, mode: "supabase", zones: zones.length, at: new Date().toISOString() });
+  const repos = getRepos();
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const staleNewOrders = await repos.orders.all({ status: "new", to: cutoff });
+  let cancelled = 0;
+  for (const order of staleNewOrders) {
+    const updated = await repos.orders.updateStatus(order.id, "cancelled", "إلغاء تلقائي بعد مرور 24 ساعة دون تأكيد الطلب", "system:order-expiration");
+    if (updated?.status === "cancelled") cancelled += 1;
+  }
+  const zones = await repos.zones.list();
+  return NextResponse.json({ ok: true, mode: "supabase", zones: zones.length, expiredOrders: cancelled, at: new Date().toISOString() });
 }

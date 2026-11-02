@@ -58,6 +58,8 @@ export type OrderQuery = {
   customerPhone?: string;
   from?: string;
   to?: string;
+  /** Show completed/cancelled orders older than the retention window. */
+  archive?: boolean;
   page?: number;
   perPage?: number;
 };
@@ -140,7 +142,7 @@ export interface OrderRepository {
   getById(id: Id): Promise<Order | null>;
   getByNumber(orderNumber: string): Promise<Order | null>;
   list(query?: OrderQuery): Promise<Paginated<Order>>;
-  all(query?: Pick<OrderQuery, "from" | "to">): Promise<Order[]>;
+  all(query?: Pick<OrderQuery, "from" | "to" | "status">): Promise<Order[]>;
   updateStatus(id: Id, status: OrderStatus, note?: string | null, by?: string | null): Promise<Order | null>;
 }
 

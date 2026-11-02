@@ -5,6 +5,7 @@
  */
 import type { Customer, Id, Order, Product } from "@/types/db";
 import { formatOrderNumber } from "@/lib/pricing";
+import { isArchivedOrder } from "@/features/orders/lib/order-retention";
 import {
   paginate,
   type CrudRepository,
@@ -330,6 +331,7 @@ export function createDemoRepositories(): Repositories {
           (o) =>
             (!query.status || o.status === query.status) &&
             (!query.customerPhone || o.customerPhone === query.customerPhone) &&
+            (query.archive ? isArchivedOrder(o) : !isArchivedOrder(o)) &&
             (!term || o.orderNumber.includes(term) || o.customerName.toUpperCase().includes(term) || o.customerPhone.includes(term)),
         );
         return clone(paginate(list, query.page, query.perPage ?? 20));
@@ -337,7 +339,8 @@ export function createDemoRepositories(): Repositories {
       async all(query = {}) {
         return clone(
           state().orders.filter(
-            (o) => (!query.from || o.createdAt >= query.from) && (!query.to || o.createdAt <= query.to),
+            (o) => (!query.from || o.createdAt >= query.from) && (!query.to || o.createdAt <= query.to) &&
+                (!query.status || o.status === query.status),
           ),
         );
       },

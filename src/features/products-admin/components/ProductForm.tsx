@@ -55,7 +55,7 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
         <p className="text-xs text-muted">حتى {MAX_PRODUCT_SOURCE_MB} ميجابايت للصورة الأصلية؛ الرئيسية حتى 1600px والمعرض حتى 1000px. الحجم المستهدف تقريبي ويتغيّر حسب تفاصيل الصورة.</p>
         {uploadNotice && <p role="status" className="text-xs text-success">{uploadNotice}</p>}
         {uploadError && <p className="text-xs text-danger">{uploadError}</p>}
-        <Field label="الخيارات" hint="كل خيار في سطر: الحجم*: وسط=0، كبير=30  (* = إجباري، الرقم = فرق السعر)">
+        <Field label="الخيارات" hint="للعطور: الحجم*: 5 مل=0، 10 مل=فرق السعر، 30 مل=فرق السعر، القارورة كاملة=فرق السعر. اجعل السعر الأساسي سعر 5 مل، ثم أدخل فرق كل حجم عن سعره. مثال عام: الحجم*: وسط=0، كبير=30 (* = إجباري)">
           <textarea name="options" rows={3} defaultValue={product ? formatOptions(product.options) : ""} className={inputCls} />
         </Field>
       </div>
