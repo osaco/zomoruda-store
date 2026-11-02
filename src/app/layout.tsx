@@ -66,7 +66,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} ${reemKufi.variable}`}>
+    <html
+      lang="ar"
+      dir="rtl"
+      // Tells Next.js the global `scroll-behavior: smooth` is intentional, so
+      // it can still jump instantly on route transitions instead of gliding.
+      data-scroll-behavior="smooth"
+      className={`${cairo.variable} ${reemKufi.variable}`}
+    >
       <body className="flex min-h-dvh flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-white">
           تخطّي إلى المحتوى
