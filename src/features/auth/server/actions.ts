@@ -12,7 +12,11 @@ import { createSession, destroySession } from "../session";
 const loginSchema = z.object({
   email: z.preprocess(
     (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+<<<<<<< HEAD
     z.string().trim().min(1).max(254).optional(),
+=======
+    z.string().trim().email().max(254).optional(),
+>>>>>>> b37169baf3bac8532f306104ef0cea207d720a05
   ),
   password: z.string().min(1).max(256),
 });
@@ -38,9 +42,14 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
   }
 
   if (!isSupabaseConfigured) {
+<<<<<<< HEAD
     if (!email) return { error: "اسم المستخدم مطلوب" };
     if (password !== serverEnv.ADMIN_DEMO_PASSWORD) return { error: "كلمة المرور غير صحيحة التجريبية" };
     await createSession(email, "admin");
+=======
+    if (password !== serverEnv.ADMIN_DEMO_PASSWORD) return { error: "كلمة المرور غير صحيحة التجريبية" };
+    await createSession(email || "demo@zomoruda", "admin");
+>>>>>>> b37169baf3bac8532f306104ef0cea207d720a05
     redirect("/admin");
   }
 

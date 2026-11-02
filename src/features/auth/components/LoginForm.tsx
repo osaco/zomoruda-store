@@ -10,8 +10,13 @@ export function LoginForm({ demo }: { demo: boolean }) {
   return (
     <form action={action} className="card w-full max-w-sm space-y-4 p-6">
       <h1 className="text-center font-heading text-2xl font-bold text-primary">لوحة تحكم زُمُرّدة</h1>
+<<<<<<< HEAD
       <Input name="email" type="text" label="اسم المستخدم / البريد الإلكتروني" dir="ltr" autoComplete="username" required />
       {demo && <p className="rounded-input bg-accent/10 p-3 text-xs text-ink">وضع تجريبي: usuario `admin` y contraseña `admin` (configurable con ADMIN_DEMO_PASSWORD).</p>}
+=======
+      {demo && <p className="rounded-input bg-accent/10 p-3 text-xs text-ink">وضع تجريبي: الدخول بكلمة المرور المحددة في ADMIN_DEMO_PASSWORD.</p>}
+      {!demo && <Input name="email" type="email" label="البريد الإلكتروني" dir="ltr" autoComplete="email" required />}
+>>>>>>> b37169baf3bac8532f306104ef0cea207d720a05
       <Input name="password" type="password" label="كلمة المرور" dir="ltr" autoComplete="current-password" required />
       {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       <button disabled={pending} className="btn-primary w-full">
