@@ -8,6 +8,7 @@ import { AdminPageTitle, inputCls, Table, Td } from "@/features/admin/components
 import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
 import { unconfirmedOrderAgeLabel } from "@/features/orders/lib/order-retention";
 import { toInternational } from "@/lib/phone";
+import { MessageCircle } from "lucide-react";
 
 export const metadata = { title: "الطلبات" };
 
@@ -15,7 +16,11 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const status = ORDER_STATUS_VALUES.includes(sp.status as OrderStatus) ? (sp.status as OrderStatus) : undefined;
   const archive = sp.archive === "1";
-  const result = await getRepos().orders.list({ status, search: sp.q, archive, page: Number(sp.page) || 1, perPage: 20 });
+  const repos = getRepos();
+  const [result, pendingCount] = await Promise.all([
+    repos.orders.list({ status, search: sp.q, archive, page: Number(sp.page) || 1, perPage: 20 }),
+    archive ? Promise.resolve({ total: 0 }) : repos.orders.list({ status: "new", perPage: 1 }).then(({ total }) => ({ total })),
+  ]);
 
   return (
     <>
@@ -23,7 +28,10 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
       <div className="mb-4 flex flex-wrap gap-2">
         <Link href="/admin/orders" className={cn("rounded-full px-4 py-1.5 text-sm", !archive ? "bg-primary text-white" : "bg-surface shadow-soft")}>الطلبات الحالية</Link>
         <Link href="/admin/orders?archive=1" className={cn("rounded-full px-4 py-1.5 text-sm", archive ? "bg-primary text-white" : "bg-surface shadow-soft")}>الأرشيف (بعد شهرين)</Link>
-        {!archive && [undefined, ...ORDER_STATUS_VALUES].map((s) => (
+        {!archive && <Link href="/admin/orders?status=new" className={cn("flex items-center gap-2 rounded-full px-4 py-1.5 text-sm", status === "new" ? "bg-warning/15 text-ink" : "bg-surface shadow-soft")}>
+          بانتظار التأكيد <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1 text-xs font-bold text-ink">{pendingCount.total}</span>
+        </Link>}
+        {!archive && [undefined, ...ORDER_STATUS_VALUES.filter((s) => s !== "new")].map((s) => (
           <Link key={s ?? "all"} href={s ? `/admin/orders?status=${s}` : "/admin/orders"}
             className={cn("rounded-full px-4 py-1.5 text-sm", s === status ? "bg-primary text-white" : "bg-surface shadow-soft")}>
             {s ? ORDER_STATUS_LABELS_AR[s] : "كل الحالات"}
@@ -38,7 +46,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
         <button className="btn-secondary !py-2">بحث</button>
       </form>
       {!archive && <p className="mb-4 text-xs text-muted">الطلبات الجديدة التي لا تُؤكَّد خلال 24 ساعة تُلغى تلقائياً مرة يومياً، مع إعادة المخزون والكوبون وبيانات CRM.</p>}
-      <Table head={["الرقم", "الزبون", "الجوال", "المنطقة", "الإجمالي", "الدفع", "الحالة", "التاريخ"]} empty={result.items.length === 0}>
+      <Table head={["الرقم", "الزبون", "الجوال", "المنطقة", "الإجمالي", "الدفع", "الحالة", "التاريخ", "التواصل"]} empty={result.items.length === 0}>
         {result.items.map((o) => (
           <tr key={o.id} className="hover:bg-primary-light/30">
             <Td><Link href={`/admin/orders/${o.id}`} className="font-bold text-primary" dir="ltr">{o.orderNumber}</Link></Td>
@@ -52,6 +60,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
               return ageLabel ? <p className="mt-1 text-xs font-semibold text-warning">{ageLabel}</p> : null;
             })()}</Td>
             <Td className="text-muted">{formatDate(o.createdAt, true)}</Td>
+            <Td><a href={`https://wa.me/${toInternational(o.customerPhone)}?text=${encodeURIComponent(`مرحباً ${o.customerName}، بخصوص طلبك رقم ${o.orderNumber} بقيمة ${formatPrice(o.total)}. هل تؤكدين الطلب؟`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-xs font-bold text-emerald hover:bg-emerald/10"><MessageCircle className="h-4 w-4" aria-hidden="true" /> مراسلة الزبون</a></Td>
           </tr>
         ))}
       </Table>

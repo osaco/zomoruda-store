@@ -18,5 +18,5 @@ export function unconfirmedOrderAgeLabel(createdAt: string, now = new Date()): s
   const ageHours = (now.getTime() - new Date(createdAt).getTime()) / 3_600_000;
   if (!Number.isFinite(ageHours) || ageHours < UNCONFIRMED_ORDER_WARNING_AFTER_HOURS) return null;
   const roundedHours = Math.floor(ageHours);
-  return roundedHours < 24 ? `جديد منذ ${roundedHours} ساعة` : `جديد منذ ${Math.floor(roundedHours / 24)} يوم`;
+  return roundedHours < 24 ? `منذ ${roundedHours} ساعة` : `منذ ${Math.floor(roundedHours / 24)} يوم`;
 }
