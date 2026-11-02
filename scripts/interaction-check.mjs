@@ -13,7 +13,7 @@ const browser = await chromium.launch();
 /* ---------------------------------------------------------------- gem tilt */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
 
   const before = await page.getAttribute("[data-testid='gem-mark']", "style");
   await page.mouse.move(100, 100);
@@ -53,7 +53,7 @@ const browser = await chromium.launch();
 /* -------------------------------------------------------------- gem static */
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
   await page.mouse.move(10, 10).catch(() => {});
   await page.waitForTimeout(100);
   const style = await page.getAttribute("[data-testid='gem-mark']", "style");
@@ -64,7 +64,7 @@ const browser = await chromium.launch();
 /* --------------------------------------------------------- ribbon drawing */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
   const initial = await page.evaluate(() => {
     const path = document.querySelector("[aria-hidden='true'] svg path");
     return path ? { dash: path.style.strokeDasharray, off: path.style.strokeDashoffset } : null;
@@ -87,7 +87,7 @@ const browser = await chromium.launch();
 /* ------------------------------------------------------- mobile menu a11y */
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
 
   const trigger = page.locator("button[aria-controls='mobile-menu']");
   await trigger.click();
@@ -137,7 +137,7 @@ const browser = await chromium.launch();
 /* ---------------------------------------------------- hover fills a row */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
   const row = page.locator("[data-testid='occasion-row']").first();
   await row.scrollIntoViewIfNeeded();
   const beforeScale = await row.evaluate((el) =>
@@ -156,7 +156,7 @@ const browser = await chromium.launch();
 /* --------------------------------------------------- RTL arrow direction */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
   const dir = await page.evaluate(() => {
     const row = document.querySelector("[data-testid='occasion-row']");
     const spans = row.querySelectorAll("span");
@@ -170,7 +170,7 @@ const browser = await chromium.launch();
 /* ----------------------------------------------- cart count is real */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
   await page.evaluate(() => {
     localStorage.setItem(
       "zomoruda-cart",
@@ -188,7 +188,7 @@ const browser = await chromium.launch();
       }),
     );
   });
-  await page.reload({ waitUntil: "networkidle" });
+  await page.reload({ waitUntil: "load" });
   const label = await page.getAttribute("[data-testid='cart-button']", "aria-label");
   check("cart count comes from the store", /٣|3/.test(label ?? ""), `label=${label}`);
   await page.close();

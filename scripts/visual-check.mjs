@@ -38,7 +38,7 @@ const page = await browser.newPage();
 
 for (const vp of VIEWPORTS) {
   await page.setViewportSize({ width: vp.width, height: vp.height });
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "load" });
   // Let reveal observers settle.
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(400);
@@ -65,7 +65,13 @@ for (const vp of VIEWPORTS) {
       gemVisible: !!gem && rect(gem).width > 0,
       gemWidth: gem ? rect(gem).width : 0,
       pieceCount: pieces.length,
-      pieceOffsets: pieces.map((p) => Math.round(rect(p).top - rect(pieces[0]).top)),
+      // The stagger is a margin on each grid column, so read it directly
+      // rather than inferring it from rendered tops (which drift with the
+      // lazy image's intrinsic box).
+      pieceOffsets: pieces.map((p) => {
+        const col = p.closest("[data-reveal]") ?? p;
+        return Math.round(parseFloat(getComputedStyle(col).marginTop) || 0);
+      }),
       pieceWidths: pieces.map((p) => Math.round(rect(p).width)),
       pieceAspect: pieces
         .map((p) => {
@@ -129,10 +135,11 @@ for (const vp of VIEWPORTS) {
 
   if (vp.width >= 1024) {
     const [a, b, c] = m.pieceOffsets;
-    check(`[${vp.name}] staggered offsets 0/72/24`, a === 0 && Math.abs(b - 72) <= 2 && Math.abs(c - 24) <= 2, `offsets=${JSON.stringify(m.pieceOffsets)}`);
-    check(`[${vp.name}] 12-col split (3 unequal)`, new Set(m.pieceWidths).size >= 1, `widths=${JSON.stringify(m.pieceWidths)}`);
+    check(`[${vp.name}] staggered offsets 0/72/24`, a === 0 && b === 72 && c === 24, `offsets=${JSON.stringify(m.pieceOffsets)}`);
+    check(`[${vp.name}] 12-col split (3 columns)`, m.pieceWidths.length === 3, `widths=${JSON.stringify(m.pieceWidths)}`);
   } else {
-    check(`[${vp.name}] single column stacking`, m.pieceOffsets.every((o, i) => i === 0 || o > 0), `offsets=${JSON.stringify(m.pieceOffsets)}`);
+    // Below lg the columns must not keep the desktop stagger.
+    check(`[${vp.name}] no stagger on mobile`, m.pieceOffsets.every((o) => o === 0), `offsets=${JSON.stringify(m.pieceOffsets)}`);
   }
 
   // Occasions: 5 data rows, >=44px touch targets.
@@ -158,7 +165,7 @@ for (const vp of VIEWPORTS) {
 
 // Keyboard/a11y checks on a mobile viewport.
 await page.setViewportSize({ width: 390, height: 844 });
-await page.goto(baseUrl, { waitUntil: "networkidle" });
+await page.goto(baseUrl, { waitUntil: "load" });
 
 const a11y = await page.evaluate(() => {
   const hero = document.querySelector("[data-testid='hero']");
@@ -196,7 +203,7 @@ check("all icon buttons labelled", a11y.unlabelledIconButtons === 0, `unlabelled
 // prefers-reduced-motion: content must be visible, not stuck at opacity 0.
 const rmPage = await browser.newPage({ reducedMotion: "reduce" });
 await rmPage.setViewportSize({ width: 390, height: 844 });
-await rmPage.goto(baseUrl, { waitUntil: "networkidle" });
+await rmPage.goto(baseUrl, { waitUntil: "load" });
 await rmPage.waitForTimeout(300);
 const rm = await rmPage.evaluate(() => {
   const revs = [...document.querySelectorAll("[data-reveal]")];
