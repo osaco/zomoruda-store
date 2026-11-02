@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, ImagePlus, Loader2 } from "lucide-react";
 import { uploadImage } from "@/features/uploads/client";
+import { MAX_CUSTOM_UPLOAD_SOURCE_MB } from "@/features/uploads/client";
 
 export function PhotoUploadField({
   label,
@@ -49,6 +50,7 @@ export function PhotoUploadField({
         />
       </label>
       {state === "error" && <p className="text-xs text-danger">{error}</p>}
+      <p className="text-xs text-muted">حتى {MAX_CUSTOM_UPLOAD_SOURCE_MB}MB للصورة الأصلية؛ تُضغط تلقائياً قبل الرفع (إيصال 1600px، صورة طباعة 2400px).</p>
     </div>
   );
 }

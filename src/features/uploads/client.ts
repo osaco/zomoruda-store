@@ -1,28 +1,56 @@
 "use client";
 
+import { scaleImageDimensions } from "./image-sizing";
+
 export const MAX_UPLOAD_MB = 4;
+export const MAX_CUSTOM_UPLOAD_SOURCE_MB = 15;
 export const MAX_PRODUCT_SOURCE_MB = 15;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"]);
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+const MAX_CUSTOM_UPLOAD_SOURCE_BYTES = MAX_CUSTOM_UPLOAD_SOURCE_MB * 1024 * 1024;
 const MAX_PRODUCT_SOURCE_BYTES = MAX_PRODUCT_SOURCE_MB * 1024 * 1024;
 
 const IMAGE_PRESETS = {
-  productMain: { maxDimension: 1600, minDimension: 1200, quality: 0.8, targetBytes: 150 * 1024 },
-  productGallery: { maxDimension: 1000, minDimension: 800, quality: 0.78, targetBytes: 120 * 1024 },
-  category: { maxDimension: 600, minDimension: 400, quality: 0.75, targetBytes: 40 * 1024 },
-  banner: { maxDimension: 1920, minDimension: 1600, quality: 0.78, targetBytes: 250 * 1024 },
+  productMain: { maxDimension: 1600, minDimension: 1200, startQuality: 0.8, targetBytes: 150 * 1024 },
+  productGallery: { maxDimension: 1000, minDimension: 800, startQuality: 0.78, targetBytes: 120 * 1024 },
+  category: { maxDimension: 600, minDimension: 400, startQuality: 0.75, targetBytes: 40 * 1024 },
+  banner: { maxDimension: 1920, minDimension: 1600, startQuality: 0.78, targetBytes: 250 * 1024 },
 } as const;
 
-function validateImage(file: File) {
+function validateImageType(file: File) {
   if (!ALLOWED_TYPES.has(file.type)) throw new Error("صيغة الصورة غير مدعومة");
-  if (file.size <= 0 || file.size > MAX_UPLOAD_BYTES) throw new Error(`الحد الأقصى ${MAX_UPLOAD_MB} ميجابايت`);
+  if (file.size <= 0) throw new Error("ملف الصورة فارغ");
 }
 
 /** Uploads an image (receipt or print photo) and returns its storage path. */
 export async function uploadImage(file: File, kind: "receipt" | "photo"): Promise<string> {
-  validateImage(file);
+  validateImageType(file);
+  if (file.size > MAX_CUSTOM_UPLOAD_SOURCE_BYTES) {
+    throw new Error(`الحد الأقصى للصورة الأصلية ${MAX_CUSTOM_UPLOAD_SOURCE_MB} ميجابايت`);
+  }
+  let uploadFile: Blob = file;
+  let filename = file.name;
+  const isHeic = file.type === "image/heic" || file.type === "image/heif";
+  if (file.size > 1024 * 1024 || isHeic) {
+    const preset = kind === "receipt"
+      ? { maxDimension: 1600, targetBytes: 600 * 1024, startQuality: 0.82 }
+      : { maxDimension: 2400, targetBytes: 1536 * 1024, startQuality: 0.84 };
+    try {
+      uploadFile = await optimizeImage(file, preset);
+      const ext = uploadFile.type === "image/webp" ? "webp" : "jpg";
+      filename = `${file.name.replace(/\.[^.]+$/u, "") || "image"}.${ext}`;
+    } catch (error) {
+      if (!(error instanceof ImageDecodeError)) throw error;
+      if (file.size > MAX_UPLOAD_BYTES) {
+        throw new Error("تعذّر قراءة الصورة. جرّبي حفظها بصيغة JPG ثم ارفعيها مرة أخرى");
+      }
+    }
+  }
+  if (uploadFile.size > MAX_UPLOAD_BYTES) {
+    throw new Error("تعذّر ضغط الصورة إلى الحجم المطلوب. جرّبي صورة أصغر أو أقل دقة.");
+  }
   const body = new FormData();
-  body.set("file", file);
+  body.set("file", uploadFile, filename);
   body.set("kind", kind);
   const res = await fetch("/api/upload", { method: "POST", body });
   const json = (await res.json()) as { ok: boolean; path?: string; error?: string };
@@ -40,14 +68,15 @@ export async function uploadAdminImage(file: File, kind: "category" | "banner"):
 }
 
 async function uploadOptimizedImage(file: File, preset: keyof typeof IMAGE_PRESETS): Promise<string> {
-  if (!ALLOWED_TYPES.has(file.type)) throw new Error("صيغة الصورة غير مدعومة");
+  validateImageType(file);
   if (file.size <= 0 || file.size > MAX_PRODUCT_SOURCE_BYTES) {
     throw new Error(`الحد الأقصى للصورة الأصلية ${MAX_PRODUCT_SOURCE_MB} ميجابايت`);
   }
 
   const optimized = await optimizeImage(file, IMAGE_PRESETS[preset]);
   const body = new FormData();
-  body.set("file", optimized, `${file.name.replace(/\.[^.]+$/u, "image") || "image"}.webp`);
+  const ext = optimized.type === "image/webp" ? "webp" : "jpg";
+  body.set("file", optimized, `${file.name.replace(/\.[^.]+$/u, "") || "image"}.${ext}`);
   const res = await fetch("/api/admin/upload", { method: "POST", body });
   const json = (await res.json()) as { ok: boolean; url?: string; error?: string };
   if (!json.ok || !json.url) throw new Error(json.error ?? "تعذّر رفع الصورة");
@@ -56,7 +85,7 @@ async function uploadOptimizedImage(file: File, preset: keyof typeof IMAGE_PRESE
 
 async function optimizeImage(
   file: File,
-  preset: { maxDimension: number; minDimension: number; quality: number; targetBytes: number },
+  preset: { maxDimension: number; targetBytes: number; startQuality: number; minDimension?: number },
 ): Promise<Blob> {
   let bitmap: ImageBitmap | undefined;
   let objectUrl: string | undefined;
@@ -74,7 +103,7 @@ async function optimizeImage(
     const image = new Image();
     image.src = objectUrl;
     await image.decode().catch(() => {
-      throw new Error("تعذّر قراءة الصورة. جرّبي حفظها بصيغة JPG أو PNG ثم ارفعيها مرة أخرى.");
+      throw new ImageDecodeError();
     });
     source = image;
     sourceWidth = image.naturalWidth;
@@ -84,21 +113,21 @@ async function optimizeImage(
   try {
     const sourceMaxDimension = Math.max(sourceWidth, sourceHeight);
     let dimension = Math.min(sourceMaxDimension, preset.maxDimension);
-    const minimumDimension = Math.min(sourceMaxDimension, preset.minDimension);
+    const minimumDimension = Math.min(sourceMaxDimension, preset.minDimension ?? 1);
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     if (!context) throw new Error("المتصفح لا يدعم تحسين الصور");
 
     const render = async (maxDimension: number, quality: number) => {
-      const scale = Math.min(1, maxDimension / sourceMaxDimension);
-      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
-      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+      const dimensions = scaleImageDimensions(sourceWidth, sourceHeight, maxDimension);
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.drawImage(source, 0, 0, canvas.width, canvas.height);
-      return encodeWebp(canvas, quality);
+      return encodeImage(canvas, quality);
     };
 
-    const qualities = [preset.quality, preset.quality - 0.05, preset.quality - 0.1];
+    const qualities = [preset.startQuality, preset.startQuality - 0.05, preset.startQuality - 0.1];
     let optimized: Blob | undefined;
     while (dimension >= minimumDimension) {
       for (const quality of qualities) {
@@ -117,13 +146,23 @@ async function optimizeImage(
   }
 }
 
-function encodeWebp(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
+class ImageDecodeError extends Error {
+  constructor() {
+    super("Image decoding failed");
+    this.name = "ImageDecodeError";
+  }
+}
+
+function encodeImage(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => {
-        if (!blob) return reject(new Error("تعذّر ضغط الصورة"));
-        if (blob.type !== "image/webp") return reject(new Error("المتصفح لا يدعم صيغة WebP. جرّبي متصفحاً أحدث."));
-        resolve(blob);
+      (webpBlob) => {
+        if (webpBlob?.type === "image/webp") return resolve(webpBlob);
+        canvas.toBlob(
+          (jpegBlob) => jpegBlob?.type === "image/jpeg" ? resolve(jpegBlob) : reject(new Error("تعذّر ضغط الصورة")),
+          "image/jpeg",
+          quality,
+        );
       },
       "image/webp",
       quality,
