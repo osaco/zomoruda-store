@@ -49,34 +49,35 @@ export async function getSession(): Promise<AdminSession | null> {
   }
 }
 
-/** Guard for admin pages and actions. Staff can't reach admin-only areas. Deactivated users are redirected to login. */
-export async function requireAdmin(role: AdminRole = "staff"): Promise<AdminSession> {
+/** Returns a currently authorized admin session without redirects or cookie mutation. */
+export async function getActiveSession(): Promise<AdminSession | null> {
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) return null;
 
-  if (deactivatedUsers.has(session.email.trim().toLowerCase())) {
-    await destroySession();
-    redirect("/admin/login");
-  }
+  if (deactivatedUsers.has(session.email.trim().toLowerCase())) return null;
 
   if (isSupabaseConfigured && env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
-      const { data: admin } = await supabaseAdmin()
+      const { data: admin, error } = await supabaseAdmin()
         .from("admin_users")
         .select("role, is_active")
         .eq("email", session.email)
         .maybeSingle();
 
-      if (!admin || !admin.is_active) {
-        await destroySession();
-        redirect("/admin/login");
-      }
+      if (error || !admin || !admin.is_active || (admin.role !== "admin" && admin.role !== "staff")) return null;
+      return { ...session, role: admin.role };
     } catch {
-      await destroySession();
-      redirect("/admin/login");
+      return null;
     }
   }
 
+  return session;
+}
+
+/** Guard for admin pages and actions. Staff can't reach admin-only areas. */
+export async function requireAdmin(role: AdminRole = "staff"): Promise<AdminSession> {
+  const session = await getActiveSession();
+  if (!session) redirect("/admin/login");
   if (role === "admin" && session.role !== "admin") redirect("/admin?denied=1");
   return session;
 }

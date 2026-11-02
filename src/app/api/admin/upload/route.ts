@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { getSession } from "@/features/auth/session";
+import { getActiveSession } from "@/features/auth/session";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
 import { hasImageSignature, isBodyTooLarge } from "@/lib/image-upload";
 
@@ -11,7 +11,7 @@ const MAX_BYTES = 4 * 1024 * 1024;
 
 /** Product image upload (admin only) -> public "products" bucket, returns a public URL. */
 export async function POST(request: Request) {
-  if (!(await getSession())) return NextResponse.json({ ok: false, error: "غير مصرح" }, { status: 401 });
+  if (!(await getActiveSession())) return NextResponse.json({ ok: false, error: "غير مصرح" }, { status: 401 });
   if (isBodyTooLarge(request, MAX_BYTES)) {
     return NextResponse.json({ ok: false, error: "الحجم الأقصى 4 ميجابايت" }, { status: 413 });
   }

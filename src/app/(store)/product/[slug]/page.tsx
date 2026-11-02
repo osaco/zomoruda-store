@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: Props) {
         <ProductPurchasePanel product={product} ordersPaused={settings.ordersPaused} />
       </div>
       <ProductShowcase title="قد يعجبكِ أيضاً" products={related} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</gu, "\\u003c") }} />
     </>
   );
 }

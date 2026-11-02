@@ -87,8 +87,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
         return;
       }
       clear();
-      // فتح واتساب بعد نجاح الحفظ فقط
-      window.open(res.data.whatsappUrl, "_blank", "noopener");
+        // صفحة النجاح تعرض رابط واتساب مباشراً، ولا نعتمد على نافذة منبثقة قد يحجبها المتصفح.
       router.push(res.data.successUrl);
     });
   };

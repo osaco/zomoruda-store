@@ -1,10 +1,10 @@
 import { getRepos } from "@/lib/data";
-import { getSession } from "@/features/auth/session";
+import { getActiveSession } from "@/features/auth/session";
 import { toCsv } from "@/features/reports/lib/analytics";
 import { FULFILLMENT_LABELS_AR, ORDER_STATUS_LABELS_AR, PAYMENT_METHOD_LABELS_AR } from "@/types/enums";
 
 export async function GET(request: Request) {
-  const session = await getSession();
+  const session = await getActiveSession();
   if (!session || session.role !== "admin") return new Response("غير مصرح", { status: 401 });
   const url = new URL(request.url);
   const repos = getRepos();
