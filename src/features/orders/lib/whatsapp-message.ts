@@ -5,8 +5,8 @@ import { site } from "@/lib/site";
 
 const DIVIDER = "━━━━━━━━━━━━━━━━━━━━";
 
-/** The structured message the customer sends to the store on WhatsApp. */
-export function orderWhatsappMessage(order: Order, siteUrl: string): string {
+/** Full server-side order receipt kept for use in admin tools if needed. */
+export function orderWhatsappFullMessage(order: Order, siteUrl: string): string {
   const lines: string[] = [];
   lines.push(`🛍️ *طلب جديد من متجر زُمُرّدة*`);
   lines.push(DIVIDER);
@@ -58,6 +58,25 @@ export function orderWhatsappMessage(order: Order, siteUrl: string): string {
   lines.push(`${siteUrl}/track?order=${order.orderNumber}`);
 
   return lines.join("\n");
+}
+
+/** Short WhatsApp handoff: the order is already stored, so the number identifies it. */
+export function orderWhatsappMessage(order: Order, siteUrl: string): string {
+  const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
+  const fulfillment = order.fulfillment === "pickup"
+    ? `استلام من المتجر (${site.addressAr})`
+    : `توصيل${order.zoneNameAr ? ` — ${order.zoneNameAr}` : ""}`;
+  const trackLink = `${siteUrl}/track?order=${encodeURIComponent(order.orderNumber)}`;
+  return [
+    `تأكيد طلب زُمُرّدة`,
+    `رقم الطلب: #${order.orderNumber}`,
+    `الاسم: ${order.customerName}`,
+    `عدد القطع: ${itemCount}`,
+    `الإجمالي: ${formatPrice(order.total)}`,
+    `الدفع: ${PAYMENT_METHOD_LABELS_AR[order.paymentMethod]}`,
+    fulfillment,
+    `تتبّع الطلب: ${trackLink}`,
+  ].join("\n");
 }
 
 /** Quick inquiry message from the product page (Zero Ghost Orders: inquiry only, not an order). */

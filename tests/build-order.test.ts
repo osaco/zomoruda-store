@@ -72,7 +72,7 @@ describe("buildOrder", () => {
     expect(message).toContain("ZM-1001");
     expect(message).toContain("210 ₪");
     expect(message).toContain("/track?order=ZM-1001");
-    expect(message).toContain("━━━━━━━━━━━━━━━━━━━━");
+    expect(message).toContain("عدد القطع: 3");
     expect(message).toContain("سارة");
   });
   it("produces an inquiry message from product page without creating ghost orders", () => {
