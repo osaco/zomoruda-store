@@ -26,7 +26,7 @@ export default async function CategoriesPage() {
           {categories.map((c) => (
             <Link key={c.id} href={`/categories/${c.slug}`} className="card group overflow-hidden">
               <div className="relative aspect-[4/3] bg-primary-light">
-                {c.imageUrl && <Image src={c.imageUrl} alt={c.nameAr} fill sizes="(max-width:768px) 50vw, 25vw" className="object-cover transition group-hover:scale-105" />}
+                {c.imageUrl && <Image src={c.imageUrl} alt={c.nameAr} fill sizes="(max-width:768px) 50vw, 25vw" className="object-contain p-3 transition group-hover:scale-[1.02]" />}
               </div>
               <div className="p-3">
                 <h2 className="font-heading font-bold text-ink">{c.nameAr}</h2>

@@ -21,9 +21,12 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
     setUploadError("");
     setUploadNotice("");
     try {
-      const url = await uploadProductImage(file);
+      const isMainImage = images.trim().length === 0;
+      const url = await uploadProductImage(file, isMainImage ? "main" : "gallery");
       setImages((v) => (v ? `${v}\n${url}` : url));
-      setUploadNotice("تم تحسين الصورة تلقائياً بصيغة WebP لتقليل حجمها مع الحفاظ على وضوح مناسب.");
+      setUploadNotice(isMainImage
+        ? "الصورة الرئيسية حُوّلت إلى WebP (حتى 1600px) واستُهدف حجم 80–150KB."
+        : "صورة المعرض حُوّلت إلى WebP (حتى 1000px) واستُهدف حجم 60–120KB.");
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "تعذّر الرفع");
     } finally {
@@ -49,7 +52,7 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />} رفع صورة
           <input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif" className="sr-only" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
         </label>
-        <p className="text-xs text-muted">حتى {MAX_PRODUCT_SOURCE_MB} ميجابايت للصورة الأصلية؛ تُضغط وتُحوّل تلقائياً إلى WebP قبل الرفع.</p>
+        <p className="text-xs text-muted">حتى {MAX_PRODUCT_SOURCE_MB} ميجابايت للصورة الأصلية؛ الرئيسية حتى 1600px والمعرض حتى 1000px. الحجم المستهدف تقريبي ويتغيّر حسب تفاصيل الصورة.</p>
         {uploadNotice && <p role="status" className="text-xs text-success">{uploadNotice}</p>}
         {uploadError && <p className="text-xs text-danger">{uploadError}</p>}
         <Field label="الخيارات" hint="كل خيار في سطر: الحجم*: وسط=0، كبير=30  (* = إجباري، الرقم = فرق السعر)">

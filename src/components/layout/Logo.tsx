@@ -10,7 +10,7 @@ export function Logo({ className }: LogoProps) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <Image
-        src="/logo.png"
+        src="/logo.webp"
         alt=""
         width={44}
         height={44}

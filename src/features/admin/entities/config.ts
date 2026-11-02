@@ -34,7 +34,7 @@ export const ENTITIES = {
       { name: "nameAr", label: "الاسم", type: "text", required: true, inTable: true },
       { name: "slug", label: "الرابط (slug)", type: "text", hint: "فارغ = تلقائي", inTable: true },
       { name: "descriptionAr", label: "الوصف", type: "textarea" },
-      { name: "imageUrl", label: "رابط الصورة", type: "url" },
+      { name: "imageUrl", label: "رابط صورة القسم", type: "url", hint: "الصورة المرفوعة تُحوّل تلقائياً إلى WebP حتى 600px" },
       { name: "sortOrder", label: "الترتيب", type: "number", inTable: true },
       { name: "isActive", label: "ظاهر", type: "checkbox", inTable: true },
     ],
@@ -60,7 +60,7 @@ export const ENTITIES = {
     fields: [
       { name: "titleAr", label: "العنوان", type: "text", required: true, inTable: true },
       { name: "subtitleAr", label: "النص الفرعي", type: "text" },
-      { name: "imageUrl", label: "رابط الصورة (1200×500)", type: "url", required: true },
+      { name: "imageUrl", label: "صورة بانر عريض", type: "url", required: true, hint: "يفضّل أن تكون بنسبة 12:5؛ الصورة المرفوعة تُحوّل تلقائياً إلى WebP حتى 1920px" },
       { name: "linkUrl", label: "الرابط عند الضغط", type: "text", hint: "مثال: /categories/flowers", inTable: true },
       { name: "startsAt", label: "يبدأ", type: "datetime" },
       { name: "endsAt", label: "ينتهي", type: "datetime" },
