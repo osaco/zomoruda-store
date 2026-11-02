@@ -17,7 +17,9 @@ const description =
   "متجر زُمُرّدة للهدايا في غزة، الرمال — مفترق البلميرا. بوكسات وورد وعطور وإكسسوارات مرتّبة، نوصلها في موعدها.";
 
 export const metadata: Metadata = {
-  title,
+  // `absolute` bypasses the root template, which would otherwise append the
+  // store name a second time ("… | زُمُرّدة").
+  title: { absolute: title },
   description,
   alternates: { canonical: "/" },
   openGraph: {

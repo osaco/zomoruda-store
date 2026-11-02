@@ -1,6 +1,11 @@
 /**
  * Behavioural verification: the things a static DOM check cannot prove.
- * Run against a dev server: node scripts/interaction-check.mjs [baseUrl]
+ * Run against a dev or production server: node scripts/interaction-check.mjs [baseUrl]
+ *
+ * On a dev server Turbopack compiles routes on first request, so `load` can
+ * fire before React has hydrated and attached its effects. `open()` waits for
+ * the client bundle to actually take over, which keeps these checks honest on
+ * both dev and production rather than racing the compiler.
  */
 import { chromium } from "playwright";
 
@@ -10,10 +15,23 @@ const check = (label, ok, detail = "") => results.push({ label, ok, detail });
 
 const browser = await chromium.launch();
 
+/** Navigates and waits until client effects are live (or times out safely). */
+async function open(page, url = baseUrl) {
+  await page.goto(url, { waitUntil: "load" });
+  // `data-reveal-ready` is set by Reveal's effect, so it is a reliable signal
+  // that hydration finished. Fall back to a timeout for pages without it.
+  await page
+    .waitForFunction(() => document.documentElement.hasAttribute("data-reveal-ready"), null, {
+      timeout: 20000,
+    })
+    .catch(() => page.waitForTimeout(1500));
+  return page;
+}
+
 /* ---------------------------------------------------------------- gem tilt */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "load" });
+  await open(page);
 
   const before = await page.getAttribute("[data-testid='gem-mark']", "style");
   await page.mouse.move(100, 100);
@@ -53,7 +71,7 @@ const browser = await chromium.launch();
 /* -------------------------------------------------------------- gem static */
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-  await page.goto(baseUrl, { waitUntil: "load" });
+  await open(page);
   await page.mouse.move(10, 10).catch(() => {});
   await page.waitForTimeout(100);
   const style = await page.getAttribute("[data-testid='gem-mark']", "style");
@@ -64,7 +82,7 @@ const browser = await chromium.launch();
 /* --------------------------------------------------------- ribbon drawing */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "load" });
+  await open(page);
   const initial = await page.evaluate(() => {
     const path = document.querySelector("[aria-hidden='true'] svg path");
     return path ? { dash: path.style.strokeDasharray, off: path.style.strokeDashoffset } : null;
@@ -87,7 +105,7 @@ const browser = await chromium.launch();
 /* ------------------------------------------------------- mobile menu a11y */
 {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await page.goto(baseUrl, { waitUntil: "load" });
+  await open(page);
 
   const trigger = page.locator("button[aria-controls='mobile-menu']");
   await trigger.click();
@@ -137,7 +155,7 @@ const browser = await chromium.launch();
 /* ---------------------------------------------------- hover fills a row */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "load" });
+  await open(page);
   const row = page.locator("[data-testid='occasion-row']").first();
   await row.scrollIntoViewIfNeeded();
   const beforeScale = await row.evaluate((el) =>
@@ -156,7 +174,7 @@ const browser = await chromium.launch();
 /* --------------------------------------------------- RTL arrow direction */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "load" });
+  await open(page);
   const dir = await page.evaluate(() => {
     const row = document.querySelector("[data-testid='occasion-row']");
     const spans = row.querySelectorAll("span");
@@ -170,7 +188,7 @@ const browser = await chromium.launch();
 /* ----------------------------------------------- cart count is real */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(baseUrl, { waitUntil: "load" });
+  await open(page);
   await page.evaluate(() => {
     localStorage.setItem(
       "zomoruda-cart",
@@ -189,6 +207,15 @@ const browser = await chromium.launch();
     );
   });
   await page.reload({ waitUntil: "load" });
+  // The persisted cart rehydrates on the client, so wait for the count to
+  // appear rather than reading the label mid-hydration.
+  await page
+    .waitForFunction(
+      () => /[٣3]/.test(document.querySelector("[data-testid='cart-button']")?.getAttribute("aria-label") ?? ""),
+      null,
+      { timeout: 15000 },
+    )
+    .catch(() => {});
   const label = await page.getAttribute("[data-testid='cart-button']", "aria-label");
   check("cart count comes from the store", /٣|3/.test(label ?? ""), `label=${label}`);
   await page.close();
