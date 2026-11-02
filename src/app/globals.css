@@ -16,19 +16,62 @@
   --color-warning: #e0a100;
   --color-danger: #d64545;
 
+  /* Editorial palette */
+  --deep: #24142f;
+  --plum: #39244a;
+  --gold: #c9a24a;
+  --emerald: #1f8a70;
+
+  /* Semantic, theme-aware tokens used by the editorial sections. */
+  --color-line: rgba(41, 30, 49, 0.16);
+
+  /* Always-dark surfaces: hero and footer never follow the theme. */
+  --on-deep: #f3edf7;
+  --on-deep-muted: rgba(243, 237, 247, 0.72);
+  --on-deep-line: rgba(201, 162, 74, 0.22);
+
   --radius-card: 20px;
   --radius-input: 14px;
   --radius-image: 16px;
   --shadow-soft: 0 10px 30px rgba(57, 36, 74, 0.12);
+
+  color-scheme: light;
+}
+
+/*
+ * Dark tokens are opt-in: either the OS asks for dark, or the document sets
+ * data-theme="dark" explicitly (mirrors the approved mockup).
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-ink: #f3edf7;
+    --color-muted: #a89cb2;
+    --color-bg: #150c1c;
+    --color-surface: #1d1226;
+    --color-line: rgba(243, 237, 247, 0.16);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-ink: #f3edf7;
+  --color-muted: #a89cb2;
+  --color-bg: #150c1c;
+  --color-surface: #1d1226;
+  --color-line: rgba(243, 237, 247, 0.16);
+  color-scheme: dark;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Keep anchored sections clear of the fixed header. */
+    scroll-padding-top: 5rem;
   }
 
   body {
     @apply bg-bg font-body text-ink antialiased;
+    overflow-x: hidden;
   }
 
   @media (max-width: 639px) {
@@ -82,6 +125,23 @@
   .container-page {
     @apply mx-auto w-full max-w-6xl px-4;
   }
+
+  /* Editorial shell: wide, generous gutters, capped at 1536px. */
+  .wrap {
+    @apply mx-auto w-full max-w-screen-2xl;
+    padding-inline: clamp(20px, 4vw, 56px);
+  }
+
+  /* Small caps-ish section label row with a hairline rule. */
+  .sec-h {
+    @apply flex flex-wrap items-baseline justify-between gap-2 border-b pb-3.5 text-sm text-muted;
+    border-color: var(--color-line);
+  }
+
+  /* Gold focus ring used across the editorial surfaces. */
+  .focus-gold {
+    @apply outline-none ring-offset-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -92,5 +152,43 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Reveal-on-scroll.
+ *
+ * The hidden state is applied ONLY when JS has confirmed it can run
+ * (`[data-reveal-ready]` on <html>) and motion is allowed. Without JS, or with
+ * prefers-reduced-motion, the base state is fully visible — content can never
+ * be trapped behind a failed observer.
+ */
+[data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+[data-reveal-ready] [data-reveal]:not([data-reveal-done]) {
+  opacity: 0;
+  transform: translateY(28px);
+}
+
+[data-reveal-ready] [data-reveal] {
+  transition:
+    opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-reveal-ready] [data-reveal-done] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal-ready] [data-reveal]:not([data-reveal-done]) {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
