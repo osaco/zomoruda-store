@@ -14,7 +14,7 @@ export function Logo({ className }: LogoProps) {
         alt=""
         width={44}
         height={44}
-        priority
+        sizes="48px"
         className="h-10 w-10 rounded-full object-contain md:h-12 md:w-12"
       />
       <span className="flex flex-col leading-tight">

@@ -20,7 +20,7 @@ export function ProductCard({ product, priority = false }: { product: Product; p
             src={image.url}
             alt={image.altAr ?? product.nameAr}
             fill
-            sizes="(max-width: 768px) 50vw, 25vw"
+            sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
             priority={priority}
             className="object-contain p-3 transition duration-300 group-hover:scale-[1.02]"
           />

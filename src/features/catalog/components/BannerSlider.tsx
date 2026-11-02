@@ -11,12 +11,13 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    if (banners.length < 2) return;
+    if (banners.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => {
       const el = track.current;
       if (!el) return;
       const next = (index + 1) % banners.length;
-      el.scrollTo({ left: -next * el.clientWidth, behavior: "smooth" });
+      const slide = el.children.item(next);
+      if (slide instanceof HTMLElement) slide.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
     }, 5000);
     return () => clearInterval(id);
   }, [index, banners.length]);
@@ -29,14 +30,22 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
         ref={track}
         onScroll={(e) => {
           const el = e.currentTarget;
-          setIndex(Math.round(Math.abs(el.scrollLeft) / el.clientWidth));
+          const center = el.getBoundingClientRect().left + el.clientWidth / 2;
+          let nearest = 0;
+          let distance = Number.POSITIVE_INFINITY;
+          Array.from(el.children).forEach((child, slideIndex) => {
+            const rect = child.getBoundingClientRect();
+            const nextDistance = Math.abs(rect.left + rect.width / 2 - center);
+            if (nextDistance < distance) { nearest = slideIndex; distance = nextDistance; }
+          });
+          setIndex(nearest);
         }}
         className="flex snap-x snap-mandatory overflow-x-auto rounded-card [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {banners.map((banner, i) => {
           const content = (
             <div className="relative aspect-[12/5] w-full min-w-full snap-center overflow-hidden bg-primary">
-              <Image src={banner.imageUrl} alt={banner.titleAr} fill priority={i === 0} sizes="(max-width: 1152px) 100vw, 1152px" className="object-cover" />
+              <Image src={banner.imageUrl} alt={banner.titleAr} fill priority={i === 0} sizes="100vw" className="object-cover" />
               <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/60 to-transparent p-5 text-white md:p-10">
                 <h2 className="font-heading text-xl font-bold md:text-4xl">{banner.titleAr}</h2>
                 {banner.subtitleAr && <p className="mt-1 text-sm text-white/90 md:text-lg">{banner.subtitleAr}</p>}

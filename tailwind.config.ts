@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  future: { hoverOnlyWhenSupported: true },
   content: ["./src/**/*.{ts,tsx,mdx}"],
   theme: {
     extend: {

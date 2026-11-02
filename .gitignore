@@ -1,6 +1,7 @@
 node_modules
 .next
 .env*
+.artifacts/
 !.env.example
 .vercel
 .opencode/node_modules

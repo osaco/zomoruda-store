@@ -25,6 +25,7 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
   const [cardMessage, setCardMessage] = useState("");
   const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
+  const [customFieldFocused, setCustomFieldFocused] = useState(false);
 
   const chosen = useMemo(
     () =>
@@ -38,6 +39,22 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
   const off = discountPercent(product.price, product.compareAtPrice);
   const soldOut = product.availability === "out_of_stock";
   const disabled = soldOut || ordersPaused;
+  const addToCart = () => add({
+    productId: product.id,
+    slug: product.slug,
+    nameAr: product.nameAr,
+    imageUrl: product.images[0]?.url ?? null,
+    unitPrice: product.price,
+    quantity,
+    options: chosen,
+    customName: customName.trim() || null,
+    cardMessage: cardMessage.trim() || null,
+    photoPath,
+  });
+
+  const blurCustomField = () => requestAnimationFrame(() => {
+    setCustomFieldFocused(document.activeElement instanceof HTMLElement && document.activeElement.matches("input,select,textarea"));
+  });
 
   const share = async () => {
     const url = `${env.NEXT_PUBLIC_SITE_URL}/product/${product.slug}`;
@@ -49,7 +66,9 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-24 lg:pb-0" onFocusCapture={(event) => {
+      if (event.target instanceof HTMLElement && event.target.matches("input,select,textarea")) setCustomFieldFocused(true);
+    }} onBlurCapture={blurCustomField}>
       <div>
         <div className="mb-2 flex flex-wrap gap-1.5">
           {product.isNew && <Badge variant="new">جديد</Badge>}
@@ -80,7 +99,7 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
                   aria-pressed={active}
                   onClick={() => setSelected((s) => ({ ...s, [option.nameAr]: value.valueAr }))}
                   className={cn(
-                    "rounded-full border px-4 py-2 text-sm transition",
+                    "tap rounded-full border px-4 py-2 text-sm transition",
                     active ? "border-primary bg-primary text-white" : "border-primary/20 bg-surface hover:border-primary",
                   )}
                 >
@@ -109,7 +128,7 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
                 value={cardMessage}
                 onChange={(e) => setCardMessage(e.target.value)}
                 placeholder="اكتبي رسالتك..."
-                className="w-full rounded-input border border-primary/15 px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="field"
               />
               <p className="text-end text-xs text-muted">{cardMessage.length}/{CARD_MESSAGE_MAX}</p>
             </div>
@@ -120,27 +139,14 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
 
       <div className="flex items-center gap-3">
         <div className="flex items-center rounded-full border border-primary/15">
-          <button type="button" aria-label="زيادة" onClick={() => setQuantity((q) => Math.min(50, q + 1))} className="p-3 text-primary"><Plus className="h-4 w-4" /></button>
+          <button type="button" aria-label="زيادة" onClick={() => setQuantity((q) => Math.min(50, q + 1))} className="tap p-3 text-primary"><Plus className="h-4 w-4" /></button>
           <span className="min-w-8 text-center font-bold">{quantity}</span>
-          <button type="button" aria-label="إنقاص" onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="p-3 text-primary"><Minus className="h-4 w-4" /></button>
+          <button type="button" aria-label="إنقاص" onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="tap p-3 text-primary"><Minus className="h-4 w-4" /></button>
         </div>
         <button
           type="button"
           disabled={disabled}
-          onClick={() =>
-            add({
-              productId: product.id,
-              slug: product.slug,
-              nameAr: product.nameAr,
-              imageUrl: product.images[0]?.url ?? null,
-              unitPrice: product.price,
-              quantity,
-              options: chosen,
-              customName: customName.trim() || null,
-              cardMessage: cardMessage.trim() || null,
-              photoPath,
-            })
-          }
+          onClick={addToCart}
           className="btn-primary flex-1"
         >
           <ShoppingBag className="h-5 w-5" />
@@ -165,6 +171,15 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
       <p className="text-xs text-muted">
         ملاحظة: زر الواتساب هنا مخصص للاستفسار السريع عن توفر وتفاصيل المنتج؛ لإتمام الشراء وحفظ طلبك، أضيفي المنتج إلى السلة ثم تابعي خطوات الطلب.
       </p>
+      {!customFieldFocused && <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 border-t border-primary/10 bg-surface/95 px-4 py-3 shadow-soft backdrop-blur lg:hidden">
+        <div className="min-w-0">
+          <p className="text-xs text-muted">السعر</p>
+          <p className="font-bold text-primary">{formatPrice(unitPrice * quantity)}</p>
+        </div>
+        <button type="button" disabled={disabled} onClick={addToCart} className="btn-primary min-h-11 flex-1 !py-2">
+          <ShoppingBag className="h-4 w-4" aria-hidden="true" /> {soldOut ? "نفد من المخزون" : ordersPaused ? "الطلبات متوقفة" : "أضيفي للسلة"}
+        </button>
+      </div>}
     </div>
    );
 }

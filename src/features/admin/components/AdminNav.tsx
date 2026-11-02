@@ -10,7 +10,7 @@ export function AdminNav({ role }: { role: AdminRole }) {
   const pathname = usePathname();
   const items = ADMIN_NAV.filter((i) => role === "admin" || i.role === "staff");
   return (
-    <nav aria-label="قائمة لوحة التحكم" className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
+    <nav aria-label="قائمة لوحة التحكم" className="flex snap-x snap-mandatory gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
       {items.map((item) => {
         const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
         const Icon = item.icon;
@@ -19,7 +19,7 @@ export function AdminNav({ role }: { role: AdminRole }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium md:rounded-input",
+              "tap shrink-0 snap-start items-center gap-2 rounded-full px-4 py-2 text-sm font-medium lg:rounded-input",
               active ? "bg-primary text-white" : "text-ink/80 hover:bg-primary-light",
             )}
           >

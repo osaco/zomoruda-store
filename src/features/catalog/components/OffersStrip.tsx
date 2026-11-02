@@ -19,7 +19,7 @@ export function OffersStrip() {
         >
           <MessageCircle className="h-4 w-4" aria-hidden="true" />
           تواصلي معنا
-          <ArrowLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" strokeWidth={1.75} aria-hidden="true" />
         </a>
       </div>
     </section>

@@ -26,7 +26,7 @@ export function CartView() {
   const subtotal = cartSubtotal(lines);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 pb-28 lg:grid-cols-[1fr_320px] lg:pb-0">
       {/* قائمة المنتجات */}
       <ul className="card divide-y divide-primary/5 px-5" aria-label="منتجات السلة">
         {lines.map((line) => (
@@ -67,6 +67,13 @@ export function CartView() {
           متابعة التسوق
         </Link>
       </aside>
+      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 border-t border-primary/10 bg-surface/95 px-4 py-3 shadow-soft backdrop-blur lg:hidden">
+        <div className="min-w-0">
+          <p className="text-xs text-muted">الإجمالي</p>
+          <p className="font-bold text-primary">{formatPrice(subtotal)}</p>
+        </div>
+        <Link href="/checkout" className="btn-primary min-h-11 flex-1 !py-2">إتمام الطلب</Link>
+      </div>
     </div>
   );
 }

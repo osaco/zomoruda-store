@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 
 export function Footer() {
   return (
-    <footer className="mt-16 border-t border-primary/5 bg-surface pb-20 md:pb-0">
+    <footer className="mt-16 border-t border-primary/5 bg-surface pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <div className="container-page grid grid-cols-1 gap-8 py-12 md:grid-cols-3">
         <div>
           <Logo />
@@ -24,7 +24,7 @@ export function Footer() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-sm text-muted transition hover:text-primary"
+                  className="tap w-fit text-sm text-muted transition hover:text-primary"
                 >
                   {link.label}
                 </Link>
@@ -42,7 +42,7 @@ export function Footer() {
                 href={whatsappLink(defaultWhatsappMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition hover:text-primary"
+                className="tap transition hover:text-primary"
                 dir="ltr"
               >
                 +{site.whatsapp}
@@ -54,7 +54,7 @@ export function Footer() {
                 href={whatsappLink(defaultWhatsappMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition hover:text-primary"
+                className="tap transition hover:text-primary"
               >
                 الطلب عبر واتساب
               </a>
@@ -65,7 +65,7 @@ export function Footer() {
                 href={`https://instagram.com/${site.instagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition hover:text-primary"
+                className="tap transition hover:text-primary"
                 dir="ltr"
               >
                 @{site.instagram}
@@ -77,7 +77,7 @@ export function Footer() {
                 href={site.mapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition hover:text-primary"
+                className="tap transition hover:text-primary"
               >
                 {site.addressAr}
               </a>

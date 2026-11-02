@@ -26,7 +26,7 @@ export function ContactSection() {
                 href={whatsappLink()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-ink transition hover:text-primary"
+                className="tap inline-flex min-h-11 items-center font-medium text-ink transition hover:text-primary"
                 dir="ltr"
               >
                 +{site.whatsapp}
@@ -38,7 +38,7 @@ export function ContactSection() {
                 href={`https://instagram.com/${site.instagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-ink transition hover:text-primary"
+                className="tap inline-flex min-h-11 items-center font-medium text-ink transition hover:text-primary"
                 dir="ltr"
               >
                 @{site.instagram}
@@ -50,7 +50,7 @@ export function ContactSection() {
                 href={site.mapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-ink transition hover:text-primary"
+                className="tap inline-flex min-h-11 items-center font-medium text-ink transition hover:text-primary"
               >
                 {site.addressAr}
               </a>

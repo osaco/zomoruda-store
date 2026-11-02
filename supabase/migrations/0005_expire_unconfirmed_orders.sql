@@ -67,10 +67,3 @@ $$;
 
 revoke all on function public.expire_unconfirmed_orders() from public, anon, authenticated;
 grant execute on function public.expire_unconfirmed_orders() to service_role;
-
-create extension if not exists pg_cron with schema pg_catalog;
-select cron.schedule(
-  'zomoruda-expire-unconfirmed-orders',
-  '0 * * * *',
-  $job$select public.expire_unconfirmed_orders();$job$
-);

@@ -56,7 +56,7 @@ export function DisplayOnlyShowcase() {
         >
           <Instagram className="h-4 w-4" aria-hidden="true" />
           صور المتجر
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
         </a>
       </div>
 
@@ -71,7 +71,7 @@ export function DisplayOnlyShowcase() {
                 sizes="(max-width: 640px) 46vw, (max-width: 1024px) 23vw, 260px"
                 className="object-cover transition duration-300 group-hover:scale-[1.03]"
               />
-              <span className="absolute start-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-primary shadow-sm backdrop-blur">
+              <span className="absolute start-2 top-2 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-primary shadow-sm backdrop-blur">
                 للعرض فقط
               </span>
             </div>

@@ -20,7 +20,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="التنقل السفلي"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/10 bg-surface/95 backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-primary/10 bg-surface/95 backdrop-blur-md lg:hidden"
     >
       <ul className="mx-auto flex max-w-md items-stretch justify-between px-2 pb-[env(safe-area-inset-bottom)]">
         {items.map((item) => {
@@ -32,7 +32,7 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition duration-200",
+                  "tap relative flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition duration-200",
                   active ? "text-primary" : "text-muted hover:text-primary",
                 )}
               >
@@ -54,7 +54,7 @@ export function BottomNav() {
             href={whatsappLink(defaultWhatsappMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-emerald transition duration-200 hover:text-emerald/80"
+            className="tap flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium text-emerald transition duration-200 hover:text-emerald/80"
           >
             <MessageCircle className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
             واتساب

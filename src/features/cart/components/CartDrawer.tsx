@@ -29,9 +29,9 @@ export function CartDrawer() {
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="سلة المشتريات">
       <button type="button" aria-label="إغلاق" onClick={close} className="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
       <aside className="absolute inset-y-0 start-0 flex w-full max-w-sm flex-col bg-surface shadow-2xl">
-        <header className="flex items-center justify-between border-b border-primary/10 px-5 py-4">
+        <header className="flex items-center justify-between border-b border-primary/10 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))]">
           <h2 className="font-heading text-lg font-bold">سلة المشتريات</h2>
-          <button type="button" onClick={close} aria-label="إغلاق السلة" className="rounded-full p-2 hover:bg-primary-light">
+          <button type="button" onClick={close} aria-label="إغلاق السلة" className="tap rounded-full p-2 hover:bg-primary-light">
             <X className="h-5 w-5" />
           </button>
         </header>
@@ -48,7 +48,7 @@ export function CartDrawer() {
                 <CartLineItem key={line.key} line={line} compact />
               ))}
             </ul>
-            <footer className="space-y-3 border-t border-primary/10 p-5">
+            <footer className="space-y-3 border-t border-primary/10 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
               <div className="flex justify-between text-sm font-bold">
                 <span>المجموع</span>
                 <span className="text-primary">{formatPrice(cartSubtotal(lines))}</span>

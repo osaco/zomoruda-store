@@ -15,7 +15,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         tone={settings.ordersPaused ? "warning" : "default"}
       />
       <Header />
-      <main id="main" className="flex-1 pb-20 md:pb-0">{children}</main>
+      <main id="main" className="flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
       <Footer />
       <BottomNav />
       <FloatingWhatsApp />

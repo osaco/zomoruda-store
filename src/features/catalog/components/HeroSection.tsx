@@ -28,7 +28,7 @@ export function HeroSection() {
             <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row md:justify-start">
               <Link href="/categories" className="btn bg-white text-primary shadow-soft hover:bg-primary-light">
                 تسوّقي الأقسام
-                <ArrowLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                <ArrowLeft className="h-4 w-4 rtl:rotate-180" strokeWidth={1.75} aria-hidden="true" />
               </Link>
               <a
                 href={whatsappLink("مرحباً زُمُرّدة 👋 أرغب بالاستفسار عن الهدايا المتوفرة.")}
@@ -51,7 +51,7 @@ export function HeroSection() {
                 alt="شعار زُمُرّدة"
                 width={280}
                 height={280}
-                priority
+                sizes="224px"
                 className="h-44 w-44 rounded-full object-contain sm:h-52 sm:w-52 md:h-56 md:w-56"
               />
             </div>
