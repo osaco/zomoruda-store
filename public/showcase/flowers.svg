@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="900" viewBox="0 0 800 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="60" y1="0" x2="730" y2="900" gradientUnits="userSpaceOnUse"><stop stop-color="#21152C"/><stop offset="1" stop-color="#49305A"/></linearGradient>
+    <linearGradient id="vase" x1="300" y1="585" x2="510" y2="835" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#D9C9DB"/></linearGradient>
+    <filter id="shadow" x="175" y="710" width="450" height="155" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="15"/></filter>
+  </defs>
+  <path fill="url(#bg)" d="M0 0h800v900H0z"/><circle cx="628" cy="185" r="128" fill="#C886EE" fill-opacity=".11"/><circle cx="112" cy="670" r="72" fill="#C9A24A" fill-opacity=".12"/>
+  <ellipse cx="400" cy="793" rx="198" ry="34" fill="#110B18" fill-opacity=".55" filter="url(#shadow)"/>
+  <path d="M398 652c-12-152-145-255-165-392M401 650c10-150 140-254 164-390M400 653c3-196 5-312 1-455M394 648c-67-120-184-158-225-211M409 645c70-129 172-167 216-215" stroke="#367B5E" stroke-width="15" stroke-linecap="round"/>
+  <path d="M273 491c-77-98-135-74-120-35 16 42 79 54 120 35ZM539 488c77-99 135-75 119-36-16 42-78 55-119 36ZM347 401c-88-72-137-38-110-3 29 37 83 34 110 3ZM457 394c79-85 132-58 111-19-23 41-77 46-111 19Z" fill="#73A77D" stroke="#367B5E" stroke-width="6"/>
+  <g fill="#F3DCA2" stroke="#C9A24A" stroke-width="6"><circle cx="231" cy="244" r="42"/><circle cx="563" cy="255" r="42"/><circle cx="400" cy="187" r="45"/><circle cx="168" cy="402" r="34"/><circle cx="635" cy="404" r="34"/></g>
+  <g fill="#B86B9A" stroke="#8E4F7E" stroke-width="5"><circle cx="231" cy="244" r="20"/><circle cx="563" cy="255" r="20"/><circle cx="400" cy="187" r="21"/><circle cx="168" cy="402" r="16"/><circle cx="635" cy="404" r="16"/></g>
+  <path d="M318 611h164l-22 194c-3 30-27 52-57 52h-6c-30 0-54-22-57-52l-22-194Z" fill="url(#vase)" stroke="#C9B5CB" stroke-width="8"/><path d="M318 611h164" stroke="#C9A24A" stroke-width="10" stroke-linecap="round"/>
+</svg>

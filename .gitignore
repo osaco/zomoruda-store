@@ -1,0 +1,15 @@
+node_modules
+.next
+.env*
+!.env.example
+.vercel
+.opencode/node_modules
+
+# private AI/OpenCode files (kept local, not in repo)
+AGENTS.md
+PROMPT.md
+PROGRESS.md
+opencode.json
+.opencode/
+*.tsbuildinfo
+.playwright-mcp/
