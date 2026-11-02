@@ -34,7 +34,7 @@ npm run dev                  # http://localhost:3000
 ## ربط Supabase
 
 1. أنشئي مشروعاً على supabase.com.
-2. SQL Editor ← شغّلي `supabase/migrations/0001_init.sql` ثم `supabase/migrations/0002_production_hardening.sql` ثم `supabase/migrations/0003_rls_and_indexes.sql`. شغّلي `supabase/seed.sql` فقط إذا أردتِ بيانات العرض التجريبية.
+2. SQL Editor ← شغّلي بالترتيب `supabase/migrations/0001_init.sql` ثم `supabase/migrations/0002_production_hardening.sql` ثم `supabase/migrations/0003_rls_and_indexes.sql` ثم `supabase/migrations/0004_crm_order_sync.sql`. شغّلي `supabase/seed.sql` فقط إذا أردتِ بيانات العرض التجريبية.
 3. Authentication ← Users ← أضيفي مستخدم المدير (بريد + كلمة مرور).
 4. أضيفيه كمدير:
    ```sql
