@@ -39,7 +39,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
             <ul className="divide-y divide-primary/5">
               {order.items.map((item, i) => (
                 <li key={i} className="flex gap-3 py-3">
-                  {item.imageUrl && <Image src={item.imageUrl} alt="" width={56} height={56} className="rounded-image" />}
+                  {item.imageUrl && <Image src={item.imageUrl} alt="" width={56} height={56} className="rounded-image bg-primary-light object-contain p-1" />}
                   <div className="flex-1 text-sm">
                     <p className="font-bold">{item.nameAr} × {item.quantity}</p>
                     {item.options.map((o) => <p key={o.nameAr} className="text-xs text-muted">{o.nameAr}: {o.valueAr}</p>)}

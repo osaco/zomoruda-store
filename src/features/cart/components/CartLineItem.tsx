@@ -19,7 +19,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
           alt={line.nameAr}
           width={compact ? 64 : 88}
           height={compact ? 64 : 88}
-          className="rounded-image bg-primary-light object-cover"
+          className="rounded-image bg-primary-light object-contain p-1"
         />
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-1">

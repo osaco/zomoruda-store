@@ -22,11 +22,11 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
         <div
           ref={track}
           onScroll={(e) => setActive(Math.round(Math.abs(e.currentTarget.scrollLeft) / e.currentTarget.clientWidth))}
-          className="flex snap-x snap-mandatory overflow-x-auto rounded-card bg-primary-light [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto rounded-card bg-primary-light p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((image, i) => (
             <button key={image.id} type="button" onClick={() => setZoom(true)} className="relative aspect-square min-w-full snap-center" aria-label="تكبير الصورة">
-              <Image src={image.url} alt={image.altAr ?? name} fill priority={i === 0} sizes="(max-width:768px) 100vw, 50vw" className="object-cover" />
+              <Image src={image.url} alt={image.altAr ?? name} fill priority={i === 0} sizes="(max-width:768px) 100vw, 50vw" className="object-contain" />
             </button>
           ))}
         </div>
@@ -40,9 +40,9 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
               type="button"
               onClick={() => goTo(i)}
               aria-label={`الصورة ${i + 1}`}
-              className={cn("relative h-16 w-16 overflow-hidden rounded-image border-2", i === active ? "border-primary" : "border-transparent")}
+              className={cn("relative h-16 w-16 overflow-hidden rounded-image border-2 bg-primary-light p-1", i === active ? "border-primary" : "border-transparent")}
             >
-              <Image src={image.url} alt="" fill sizes="64px" className="object-cover" />
+              <Image src={image.url} alt="" fill sizes="64px" className="object-contain" />
             </button>
           ))}
         </div>

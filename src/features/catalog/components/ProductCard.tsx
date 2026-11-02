@@ -22,7 +22,7 @@ export function ProductCard({ product, priority = false }: { product: Product; p
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
             priority={priority}
-            className="object-cover transition duration-300 group-hover:scale-105"
+            className="object-contain p-3 transition duration-300 group-hover:scale-[1.02]"
           />
         )}
         <div className="absolute start-2 top-2 flex flex-col gap-1">
