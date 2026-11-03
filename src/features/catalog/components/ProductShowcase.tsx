@@ -22,7 +22,7 @@ export function ProductShowcase({
           {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
         </div>
         {href && (
-          <Link href={href} className="shrink-0 text-sm font-bold text-primary hover:underline">
+          <Link href={href} className="tap shrink-0 text-sm font-bold text-primary hover:underline">
             عرض الكل
           </Link>
         )}

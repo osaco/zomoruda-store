@@ -4,7 +4,7 @@ import { ContactSection } from "@/features/catalog/components/ContactSection";
 
 export const metadata: Metadata = {
   title: "تواصل معنا",
-  description: "تواصل مع متجر زُمُرّدة للهدايا في غزة: رقم الواتساب، الموقع، وأوقات العمل.",
+  description: "تواصل مع متجر زمردة للهدايا في غزة: رقم الواتساب، الموقع، وأوقات العمل.",
   alternates: { canonical: "/contact" },
 };
 

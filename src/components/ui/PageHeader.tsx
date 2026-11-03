@@ -8,11 +8,11 @@ export function PageHeader({ title, description, crumbs = [] }: { title: string;
     <header className="bg-sparkle">
       <div className="container-page py-8 md:py-10">
         <nav aria-label="مسار التصفح" className="mb-3 flex flex-wrap items-center gap-1 text-xs text-muted">
-          <Link href="/" className="hover:text-primary">الرئيسية</Link>
+          <Link href="/" className="tap hover:text-primary">الرئيسية</Link>
           {crumbs.map((c) => (
             <span key={c.href} className="flex items-center gap-1">
-              <ChevronLeft className="h-3 w-3" aria-hidden="true" />
-              <Link href={c.href} className="hover:text-primary">{c.label}</Link>
+              <ChevronLeft className="h-3 w-3 rtl:rotate-180" aria-hidden="true" />
+              <Link href={c.href} className="tap hover:text-primary">{c.label}</Link>
             </span>
           ))}
         </nav>

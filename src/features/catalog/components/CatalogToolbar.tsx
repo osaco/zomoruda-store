@@ -27,14 +27,14 @@ export function CatalogToolbar({ total }: { total: number }) {
         id="sort"
         value={params.get("sort") ?? "newest"}
         onChange={(e) => update({ sort: e.target.value })}
-        className="rounded-full border border-primary/15 bg-surface px-4 py-2 text-sm"
+        className="field w-auto rounded-full py-2"
       >
         {SORT_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
       <details className="relative">
-        <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-primary/15 bg-surface px-4 py-2 text-sm">
+        <summary className="tap flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-primary/15 bg-surface px-4 py-2 text-sm">
           <SlidersHorizontal className="h-4 w-4" aria-hidden="true" /> فلترة
         </summary>
         <form
@@ -50,8 +50,8 @@ export function CatalogToolbar({ total }: { total: number }) {
           }}
         >
           <div className="flex gap-2">
-            <input name="min" type="number" min={0} placeholder="من ₪" defaultValue={params.get("min") ?? ""} className="w-full rounded-input border border-primary/15 px-3 py-2 text-sm" aria-label="أقل سعر" />
-            <input name="max" type="number" min={0} placeholder="إلى ₪" defaultValue={params.get("max") ?? ""} className="w-full rounded-input border border-primary/15 px-3 py-2 text-sm" aria-label="أعلى سعر" />
+            <input name="min" type="number" min={0} inputMode="decimal" placeholder="من ₪" defaultValue={params.get("min") ?? ""} className="field min-w-0 px-3 py-2" aria-label="أقل سعر" />
+            <input name="max" type="number" min={0} inputMode="decimal" placeholder="إلى ₪" defaultValue={params.get("max") ?? ""} className="field min-w-0 px-3 py-2" aria-label="أعلى سعر" />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="avail" defaultChecked={params.get("avail") === "in_stock"} className="accent-primary" />

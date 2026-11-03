@@ -128,18 +128,18 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
       <div className="wrap flex min-h-[68px] items-center justify-between gap-4 py-3">
         <Link
           href="/"
-          className="focus-gold rounded-sm font-display text-2xl font-bold leading-none"
+          className="focus-gold inline-flex min-h-11 items-center rounded-sm font-display text-2xl font-bold leading-none"
         >
           زُمُرّدة
         </Link>
 
-        <nav aria-label="التنقل الرئيسي" className="hidden items-center gap-8 md:flex">
+        <nav aria-label="التنقل الرئيسي" data-testid="desktop-store-nav" className="hidden items-center gap-8 lg:flex">
           {(overlay ? heroLinks : navLinks).map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                "focus-gold rounded-sm text-[15px] transition-opacity duration-200",
+                "focus-gold inline-flex min-h-11 items-center rounded-sm text-[15px] transition-opacity duration-200",
                 onHero ? "opacity-75 hover:opacity-100" : "hover:text-primary",
               )}
             >
@@ -174,13 +174,14 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
 
           <button
             ref={triggerRef}
+            data-testid="mobile-menu-trigger"
             type="button"
             onClick={() => (open ? close() : setOpen(true))}
             aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
             aria-expanded={open}
             aria-controls="mobile-menu"
             className={cn(
-              "focus-gold inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full md:hidden",
+              "focus-gold inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full lg:hidden",
               onHero ? "text-on-deep hover:bg-on-deep/10" : "text-ink hover:bg-primary-light",
             )}
           >
@@ -200,7 +201,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
           role="dialog"
           aria-modal="true"
           aria-label="قائمة التنقل"
-          className="border-t border-primary/10 bg-bg px-5 pb-6 pt-2 md:hidden"
+          className="border-t border-primary/10 bg-bg px-5 pb-6 pt-2 lg:hidden"
         >
           <nav aria-label="التنقل في القائمة">
             <ul className="flex flex-col">

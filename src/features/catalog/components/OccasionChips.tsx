@@ -17,7 +17,7 @@ export function OccasionChips({ occasions, activeSlug }: { occasions: Occasion[]
               <Link
                 href={`/occasions/${occasion.slug}`}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-medium transition duration-200 ${
+                className={`tap inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-medium transition duration-200 ${
                   active ? "border-accent bg-accent text-white" : "border-accent/40 bg-surface text-ink hover:border-accent hover:bg-accent/10"
                 }`}
               >

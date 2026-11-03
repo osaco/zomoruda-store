@@ -9,7 +9,7 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<CatalogS
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const occasion = await getOccasionBySlug((await params).slug);
-  return occasion ? { title: `هدايا ${occasion.nameAr}` } : {};
+  return occasion ? { title: `هدايا ${occasion.nameAr}`, description: `اختاري هدايا ${occasion.nameAr} من متجر زمردة.` } : {};
 }
 
 export default async function OccasionPage({ params, searchParams }: Props) {

@@ -10,7 +10,7 @@ export function CartBadge({ className = "" }: { className?: string }) {
   return (
     <span
       aria-label={`${count} منتجات في السلة`}
-      className={`absolute flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white ${className}`}
+      className={`absolute flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold text-white ${className}`}
     >
       {count}
     </span>

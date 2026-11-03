@@ -30,12 +30,13 @@ export function SearchBox() {
       <Search className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" aria-hidden="true" />
       <input
         type="search"
-        autoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        enterKeyHint="search"
+        autoComplete="off"
         placeholder="ابحثي عن هدية، عطر، ورد..."
         aria-label="بحث في المنتجات"
-        className="w-full rounded-full border border-primary/15 bg-surface py-3.5 pe-12 ps-12 text-sm shadow-soft focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+        className="field rounded-full py-3.5 pe-12 ps-12 shadow-soft"
       />
       {pending && <Loader2 className="absolute end-4 top-1/2 h-5 w-5 -translate-y-1/2 animate-spin text-primary" aria-label="جاري البحث" />}
     </div>

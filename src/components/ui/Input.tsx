@@ -40,7 +40,7 @@ export function Input({
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cn(
-          "w-full rounded-input border bg-surface px-4 py-3 text-sm text-ink shadow-sm transition",
+          "field shadow-sm transition",
           "placeholder:text-muted/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30",
           error ? "border-danger" : "border-primary/15",
           className,

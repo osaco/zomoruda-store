@@ -25,7 +25,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
       <Table head={["", "المنتج", "القسم", "السعر", "المخزون", "التوفر", "الحالة", "المبيعات"]} empty={result.items.length === 0}>
         {result.items.map((p) => (
           <tr key={p.id} className="hover:bg-primary-light/30">
-            <Td>{p.images[0] && <Image src={p.images[0].url} alt="" width={40} height={40} className="rounded-lg bg-primary-light object-contain p-1" />}</Td>
+            <Td>{p.images[0] && <Image src={p.images[0].url} alt="" width={40} height={40} sizes="40px" className="rounded-lg bg-primary-light object-contain p-1" />}</Td>
             <Td><Link href={`/admin/products/${p.id}`} className="font-bold text-primary">{p.nameAr}</Link></Td>
             <Td>{categoryName.get(p.categoryId)}</Td>
             <Td>{formatPrice(p.price)}</Td>

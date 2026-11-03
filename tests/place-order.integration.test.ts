@@ -96,7 +96,7 @@ describe("placeOrder (demo adapter)", () => {
     const third = await placeOrder(payload);
     expect(third.ok).toBe(false);
     if (!third.ok) {
-      expect(third.error).toContain("تم تجاوز عدد الطلبات المسموح به");
+      expect(third.error).toContain("لديك طلبان بانتظار التأكيد");
     }
   });
 });

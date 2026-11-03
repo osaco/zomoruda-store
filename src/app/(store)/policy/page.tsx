@@ -4,7 +4,7 @@ import { RefreshCcw, ShieldCheck, Truck } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "سياسة الخصوصية والتوصيل",
-  description: "سياسة الخصوصية، معلومات التوصيل، وسياسة الاستبدال والاسترجاع في متجر زُمُرّدة.",
+  description: "سياسة الخصوصية، معلومات التوصيل، وسياسة الاستبدال والاسترجاع في متجر زمردة.",
   alternates: { canonical: "/policy" },
 };
 

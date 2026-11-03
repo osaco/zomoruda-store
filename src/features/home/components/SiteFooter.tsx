@@ -20,23 +20,23 @@ export function SiteFooter({ addressAr }: { addressAr: string }) {
             href={whatsappLink(defaultWhatsappMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="focus-gold rounded-sm underline-offset-4 transition-colors hover:text-gold hover:underline"
+            className="focus-gold inline-flex min-h-11 items-center rounded-sm underline-offset-4 transition-colors hover:text-gold hover:underline"
           >
             {homeCopy.footer.whatsapp}
           </a>
         </div>
 
         <nav aria-label="روابط الفوتر" className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-deep/70">
-          <Link href="/categories" className="focus-gold rounded-sm hover:text-gold">
+          <Link href="/categories" className="focus-gold inline-flex min-h-11 items-center rounded-sm hover:text-gold">
             الأقسام
           </Link>
-          <Link href="/occasions" className="focus-gold rounded-sm hover:text-gold">
+          <Link href="/occasions" className="focus-gold inline-flex min-h-11 items-center rounded-sm hover:text-gold">
             المناسبات
           </Link>
-          <Link href="/track" className="focus-gold rounded-sm hover:text-gold">
+          <Link href="/track" className="focus-gold inline-flex min-h-11 items-center rounded-sm hover:text-gold">
             تتبّع طلبك
           </Link>
-          <Link href="/policy" className="focus-gold rounded-sm hover:text-gold">
+          <Link href="/policy" className="focus-gold inline-flex min-h-11 items-center rounded-sm hover:text-gold">
             سياسة الخصوصية والتوصيل
           </Link>
         </nav>

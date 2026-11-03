@@ -14,19 +14,19 @@ export const dynamic = "force-dynamic";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAdmin();
   return (
-    <div className="min-h-dvh bg-bg md:grid md:grid-cols-[240px_1fr]">
-      <aside className="sticky top-0 z-30 border-b border-primary/10 bg-surface p-3 md:h-dvh md:border-b-0 md:border-e md:p-4">
-        <div className="mb-3 flex items-center justify-between md:mb-6 md:block">
+    <div className="min-h-dvh bg-bg lg:grid lg:grid-cols-[240px_1fr]">
+      <aside className="sticky top-0 z-30 border-b border-primary/10 bg-surface p-3 pt-[calc(0.75rem+env(safe-area-inset-top))] lg:h-dvh lg:overflow-y-auto lg:border-b-0 lg:border-e lg:p-4">
+        <div className="mb-3 flex items-center justify-between lg:mb-6 lg:block">
           <Link href="/admin" aria-label="لوحة تحكم زُمُرّدة">
             <Logo />
           </Link>
-          <p className="text-xs text-muted md:mt-1">{session.email} — {ADMIN_ROLE_LABELS_AR[session.role]}</p>
-          <form action={logout} className="md:hidden">
-            <button aria-label="خروج" className="rounded-full p-2 text-danger"><LogOut className="h-4 w-4" /></button>
+          <p className="max-w-[45vw] truncate text-xs text-muted lg:mt-1 lg:max-w-none">{session.email} — {ADMIN_ROLE_LABELS_AR[session.role]}</p>
+          <form action={logout} className="lg:hidden">
+            <button aria-label="خروج" className="tap rounded-full p-2 text-danger"><LogOut className="h-4 w-4" /></button>
           </form>
         </div>
         <AdminNav role={session.role} />
-        <div className="mt-4 hidden gap-2 md:flex md:flex-col">
+        <div className="mt-4 hidden gap-2 lg:flex lg:flex-col">
           <Link href="/" className="btn-ghost justify-start !px-4 text-sm"><Store className="h-4 w-4" /> عرض المتجر</Link>
           <form action={logout}>
             <button className="btn-ghost w-full justify-start !px-4 text-sm text-danger"><LogOut className="h-4 w-4" /> خروج</button>
@@ -39,7 +39,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             وضع تجريبي — البيانات في الذاكرة وتُمسح عند إعادة التشغيل. اربطي Supabase لحفظ دائم.
           </p>
         )}
-        <main className="p-4 md:p-8">{children}</main>
+        <main className="min-w-0 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

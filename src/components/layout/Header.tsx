@@ -18,12 +18,12 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-primary/5 bg-bg/85 backdrop-blur-md">
-      <div className="container-page flex h-16 items-center justify-between gap-3 md:h-20">
+      <div className="container-page flex h-16 items-center justify-between gap-2 pt-[env(safe-area-inset-top)] sm:gap-3 lg:h-20">
         <Link href="/" aria-label="الصفحة الرئيسية" className="shrink-0">
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav data-testid="desktop-store-nav" className="hidden items-center gap-0.5 xl:gap-1 lg:flex">
           {navLinks.map((link) => {
             const active =
               link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
@@ -32,7 +32,7 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium transition duration-200",
+                  "tap rounded-full px-2 py-2 text-sm font-medium transition duration-200 xl:px-3",
                   active
                     ? "bg-primary-light text-primary"
                     : "text-ink/80 hover:bg-primary-light hover:text-primary",
@@ -44,11 +44,11 @@ export function Header() {
           })}
         </nav>
 
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center gap-1 lg:gap-2">
           <Link
             href="/search"
             aria-label="بحث"
-            className="rounded-full p-2 text-ink/80 transition hover:bg-primary-light hover:text-primary"
+            className="tap rounded-full p-2 text-ink/80 transition hover:bg-primary-light hover:text-primary"
           >
             <Search className="h-5 w-5" strokeWidth={1.75} />
           </Link>
@@ -56,7 +56,7 @@ export function Header() {
             type="button"
             onClick={openCart}
             aria-label="سلة المشتريات"
-            className="relative rounded-full p-2 text-ink/80 transition hover:bg-primary-light hover:text-primary"
+            className="tap relative rounded-full p-2 text-ink/80 transition hover:bg-primary-light hover:text-primary"
           >
             <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
             <CartBadge className="-top-0.5 end-0" />
@@ -65,7 +65,7 @@ export function Header() {
             href={whatsappLink(defaultWhatsappMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-primary hidden !px-4 !py-2 text-xs md:inline-flex"
+            className="btn-primary hidden min-h-11 !px-3 !py-2 text-xs lg:inline-flex xl:!px-4"
           >
             <Phone className="h-4 w-4" strokeWidth={1.75} />
             واتساب
@@ -73,9 +73,10 @@ export function Header() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
+            data-testid="mobile-menu-trigger"
             aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
             aria-expanded={open}
-            className="rounded-full p-2 text-ink/80 transition hover:bg-primary-light hover:text-primary md:hidden"
+            className="tap rounded-full p-2 text-ink/80 transition hover:bg-primary-light hover:text-primary lg:hidden"
           >
             {open ? (
               <X className="h-5 w-5" strokeWidth={1.75} />
@@ -87,14 +88,14 @@ export function Header() {
       </div>
 
       {open && (
-        <nav className="border-t border-primary/5 bg-bg px-4 py-3 md:hidden">
+        <nav className="border-t border-primary/5 bg-bg px-4 py-3 lg:hidden">
           <ul className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="block rounded-input px-4 py-3 text-sm font-medium text-ink/80 transition hover:bg-primary-light hover:text-primary"
+                  className="tap w-full justify-start rounded-input px-4 py-3 text-sm font-medium text-ink/80 transition hover:bg-primary-light hover:text-primary"
                 >
                   {link.label}
                 </Link>

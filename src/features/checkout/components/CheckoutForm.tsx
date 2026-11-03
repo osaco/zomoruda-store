@@ -32,6 +32,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
   const [coupon, setCoupon] = useState({ code: "", discount: 0, message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
+  const [fieldFocused, setFieldFocused] = useState(false);
 
   if (!hydrated) return <div className="h-96 animate-pulse rounded-card bg-primary-light" />;
   if (lines.length === 0)
@@ -87,8 +88,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
         return;
       }
       clear();
-      // فتح واتساب بعد نجاح الحفظ فقط
-      window.open(res.data.whatsappUrl, "_blank", "noopener");
+        // صفحة النجاح تعرض رابط واتساب مباشراً، ولا نعتمد على نافذة منبثقة قد يحجبها المتصفح.
       router.push(res.data.successUrl);
     });
   };
@@ -96,7 +96,11 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
   return (
     <form
       action={submit}
-      className={cn("grid gap-6", step === 2 ? "lg:grid-cols-[1fr_360px]" : "grid-cols-1")}
+        onFocusCapture={(event) => {
+          if (event.target instanceof HTMLElement && event.target.matches("input,select,textarea")) setFieldFocused(true);
+        }}
+        onBlurCapture={() => requestAnimationFrame(() => setFieldFocused(document.activeElement instanceof HTMLElement && document.activeElement.matches("input,select,textarea")))}
+        className={cn("grid gap-6", step === 2 ? "pb-28 lg:grid-cols-[1fr_360px] lg:pb-0" : "grid-cols-1")}
       noValidate
     >
       <div className="space-y-6">
@@ -170,7 +174,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 onClick={() => setStep(2)}
                 className="btn-primary flex-1"
               >
-                إدخال بيانات الطلب <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
+                إدخال بيانات الطلب <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
               </button>
             </div>
           </section>
@@ -188,7 +192,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                   onClick={() => setStep(1)}
                   className="btn-secondary text-sm !py-2 !px-3"
                 >
-                  <ArrowLeft className="h-4 w-4" /> الرجوع للمراجعة
+                  <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> الرجوع للمراجعة
                 </button>
               </div>
               <p className="text-sm text-muted">السعر يُحسب على الخادم في الخطوة الأخيرة، ولا يُؤخذ من المتصفح.</p>
@@ -200,6 +204,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 type="tel"
                 inputMode="tel"
                 dir="ltr"
+                enterKeyHint="next"
                 placeholder="059xxxxxxx"
                 autoComplete="tel"
                 required
@@ -246,7 +251,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                       id="zone"
                       value={zoneId}
                       onChange={(e) => setZoneId(e.target.value)}
-                      className="w-full rounded-input border border-primary/15 bg-surface px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                      className="field"
                     >
                       {zones.map((z) => (
                         <option key={z.id} value={z.id}>
@@ -260,6 +265,8 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                     name="address"
                     label="العنوان بالتفصيل"
                     placeholder="الحي، الشارع، أقرب معلم"
+                    autoComplete="street-address"
+                    enterKeyHint="next"
                     error={errors.address}
                   />
                 </>
@@ -294,7 +301,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                   <select
                     id="timeSlot"
                     name="timeSlot"
-                    className="w-full rounded-input border border-primary/15 bg-surface px-3 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="field px-3"
                   >
                     <option value="">أي وقت</option>
                     {TIME_SLOTS.map((slot) => (
@@ -351,7 +358,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                   rows={2}
                   maxLength={500}
                   placeholder="أي طلبات خاصة أو ملاحظات للمتجر..."
-                  className="w-full rounded-input border border-primary/15 bg-surface px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="field"
                 />
               </div>
             </section>
@@ -390,7 +397,11 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 placeholder="كود الخصم"
                 aria-label="كود الخصم"
                 dir="ltr"
-                className="min-w-0 flex-1 rounded-full border border-primary/15 bg-surface px-4 py-2 text-sm focus:border-primary focus:outline-none"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="done"
+                className="field min-w-0 flex-1 rounded-full py-2"
               />
               <button type="button" onClick={applyCoupon} className="btn-secondary !px-4 !py-2">
                 تطبيق
@@ -435,7 +446,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
           </p>
         )}
 
-        <button type="submit" disabled={pending} className="btn-primary w-full gap-2">
+        <button type="submit" disabled={pending} className="btn-primary hidden w-full gap-2 lg:flex">
           {pending ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
@@ -450,6 +461,15 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
         </p>
       </aside>
       )}
+      {step === 2 && !fieldFocused && <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 border-t border-primary/10 bg-surface/95 px-4 py-3 shadow-soft backdrop-blur lg:hidden">
+        <div className="min-w-0 shrink-0">
+          <p className="text-xs text-muted">الإجمالي</p>
+          <p className="font-bold text-primary">{formatPrice(total)}</p>
+        </div>
+        <button type="submit" disabled={pending} className="btn-primary min-h-11 flex-1 !px-3 !py-2 text-xs">
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : `تأكيد الطلب — ${formatPrice(total)}`}
+        </button>
+      </div>}
     </form>
   );
 }

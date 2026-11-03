@@ -15,6 +15,7 @@ import { checkoutSchema } from "../schemas";
 import { calculateSubtotal } from "@/lib/pricing";
 import { signOrderAccessToken } from "@/lib/signing";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
+import { canPlaceUnconfirmedOrder } from "../lib/unconfirmed-order-limit";
 
 export type PlacedOrder = { orderNumber: string; total: number; whatsappUrl: string; successUrl: string };
 
@@ -35,6 +36,11 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
 
   const phoneForLimit = normalizePsPhone(input.customerPhone);
   if (!phoneForLimit) return fail("رقم الجوال غير صحيح");
+  const repos = getRepos();
+  const pendingOrders = await repos.orders.list({ customerPhone: phoneForLimit, status: "new", perPage: 3 });
+  if (!canPlaceUnconfirmedOrder(pendingOrders.total)) {
+    return fail("لديك طلبان بانتظار التأكيد. تواصلي معنا على واتساب أو انتظري تحديث الطلبات السابقة قبل إنشاء طلب جديد.");
+  }
   try {
     const ip = await getRequestIp();
     const [ipLimited, phoneLimited] = await Promise.all([
@@ -51,7 +57,6 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
   const settings = await getStoreSettings();
   if (settings.ordersPaused) return fail(settings.ordersPausedMessage);
 
-  const repos = getRepos();
   const [products, zone, coupon] = await Promise.all([
     repos.products.getManyByIds([...new Set(input.items.map((i) => i.productId))]),
     input.fulfillment === "delivery" && input.zoneId ? repos.zones.getById(input.zoneId) : Promise.resolve(null),

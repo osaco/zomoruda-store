@@ -39,7 +39,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
             <ul className="divide-y divide-primary/5">
               {order.items.map((item, i) => (
                 <li key={i} className="flex gap-3 py-3">
-                  {item.imageUrl && <Image src={item.imageUrl} alt="" width={56} height={56} className="rounded-image bg-primary-light object-contain p-1" />}
+                  {item.imageUrl && <Image src={item.imageUrl} alt="" width={56} height={56} sizes="56px" className="rounded-image bg-primary-light object-contain p-1" />}
                   <div className="flex-1 text-sm">
                     <p className="font-bold">{item.nameAr} × {item.quantity}</p>
                     {item.options.map((o) => <p key={o.nameAr} className="text-xs text-muted">{o.nameAr}: {o.valueAr}</p>)}
@@ -68,6 +68,14 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
             {order.receiptPath && <p className="sm:col-span-2"><span className="text-muted">الإيصال: </span><a href={`/admin/files?path=${encodeURIComponent(order.receiptPath)}`} target="_blank" className="text-primary underline">عرض الإيصال</a></p>}
             {order.notes && <p className="sm:col-span-2"><span className="text-muted">ملاحظات: </span>{order.notes}</p>}
             <p className="text-muted sm:col-span-2">أُنشئ: {formatDate(order.createdAt, true)}</p>
+            <a
+              href={`https://wa.me/${phoneIntl}?text=${encodeURIComponent(`مرحباً ${order.customerName}، بخصوص طلبك رقم ${order.orderNumber} بقيمة ${formatPrice(order.total)}. هل تؤكدين الطلب؟`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary min-h-11 sm:col-span-2"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden="true" /> مراسلة الزبون لتأكيد الطلب
+            </a>
           </section>
         </div>
         <aside className="space-y-6">

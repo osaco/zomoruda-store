@@ -27,7 +27,7 @@ export function Pagination({
           href={href(p)}
           aria-current={p === page ? "page" : undefined}
           className={cn(
-            "flex h-10 min-w-10 items-center justify-center rounded-full text-sm font-bold",
+            "tap flex h-11 min-w-11 items-center justify-center rounded-full text-sm font-bold",
             p === page ? "bg-primary text-white" : "bg-surface text-ink shadow-soft hover:bg-primary-light",
           )}
         >

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "check:responsive": "node scripts/responsive-check.mjs",
     "test": "vitest run",
     "check:visual": "node scripts/visual-check.mjs",
     "check:interaction": "node scripts/interaction-check.mjs",

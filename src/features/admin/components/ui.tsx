@@ -52,11 +52,11 @@ export function Field({ label, children, hint }: { label: string; children: Reac
   );
 }
 
-export const inputCls = "w-full rounded-input border border-primary/15 bg-surface px-3 py-2.5 text-base sm:text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30";
+export const inputCls = "field px-3 py-2.5";
 
 export function Checkbox({ name, label, defaultChecked }: { name: string; label: string; defaultChecked?: boolean }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
+    <label className="tap flex items-center gap-2 text-sm">
       <input type="checkbox" name={name} defaultChecked={defaultChecked} className="h-4 w-4 accent-primary" /> {label}
     </label>
   );

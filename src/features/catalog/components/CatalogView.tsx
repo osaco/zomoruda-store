@@ -23,7 +23,7 @@ export async function CatalogView({
       <Suspense>
         <CatalogToolbar total={result.total} />
       </Suspense>
-      <ProductGrid products={result.items} emptyText={emptyText} />
+      <ProductGrid products={result.items} emptyText={emptyText} prioritizeFirst />
       <Pagination page={result.page} pageCount={result.pageCount} basePath={basePath} params={params} />
     </>
   );

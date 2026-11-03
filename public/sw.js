@@ -16,7 +16,16 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith("/admin") || url.pathname.startsWith("/api")) return;
+  if (
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/api") ||
+    url.pathname === "/checkout" ||
+    url.pathname.startsWith("/checkout/") ||
+    url.pathname === "/track" ||
+    url.pathname.startsWith("/track/") ||
+    url.pathname.startsWith("/order/")
+  ) return;
 
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)));

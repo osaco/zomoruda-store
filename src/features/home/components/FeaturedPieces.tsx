@@ -26,7 +26,7 @@ export function FeaturedPieces({ products }: { products: Product[] }) {
           </h2>
           <Link
             href="/search"
-            className="focus-gold rounded-sm transition-colors hover:text-plum"
+            className="focus-gold inline-flex min-h-11 items-center rounded-sm transition-colors hover:text-plum"
           >
             {homeCopy.pieces.all} ←
           </Link>

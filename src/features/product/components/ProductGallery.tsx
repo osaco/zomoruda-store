@@ -13,7 +13,24 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
 
   const goTo = (i: number) => {
     const el = track.current;
-    if (el) el.scrollTo({ left: -i * el.clientWidth, behavior: "smooth" });
+    const slide = el?.children.item(i);
+    if (slide instanceof HTMLElement) {
+      slide.scrollIntoView({ block: "nearest", inline: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+  };
+  const updateActive = (el: HTMLDivElement) => {
+    const center = el.getBoundingClientRect().left + el.clientWidth / 2;
+    let nearest = 0;
+    let distance = Number.POSITIVE_INFINITY;
+    Array.from(el.children).forEach((child, index) => {
+      const rect = child.getBoundingClientRect();
+      const nextDistance = Math.abs(rect.left + rect.width / 2 - center);
+      if (nextDistance < distance) {
+        nearest = index;
+        distance = nextDistance;
+      }
+    });
+    setActive(nearest);
   };
 
   return (
@@ -21,12 +38,12 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
       <div className="relative">
         <div
           ref={track}
-          onScroll={(e) => setActive(Math.round(Math.abs(e.currentTarget.scrollLeft) / e.currentTarget.clientWidth))}
+          onScroll={(e) => updateActive(e.currentTarget)}
           className="flex snap-x snap-mandatory overflow-x-auto rounded-card bg-primary-light p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((image, i) => (
             <button key={image.id} type="button" onClick={() => setZoom(true)} className="relative aspect-square min-w-full snap-center" aria-label="تكبير الصورة">
-              <Image src={image.url} alt={image.altAr ?? name} fill priority={i === 0} sizes="(max-width:768px) 100vw, 50vw" className="object-contain" />
+              <Image src={image.url} alt={image.altAr ?? name} fill priority={i === 0} sizes="(min-width:1024px) 50vw, 100vw" className="object-contain" />
             </button>
           ))}
         </div>
@@ -40,7 +57,7 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
               type="button"
               onClick={() => goTo(i)}
               aria-label={`الصورة ${i + 1}`}
-              className={cn("relative h-16 w-16 overflow-hidden rounded-image border-2 bg-primary-light p-1", i === active ? "border-primary" : "border-transparent")}
+              className={cn("tap relative h-16 w-16 overflow-hidden rounded-image border-2 bg-primary-light p-1", i === active ? "border-primary" : "border-transparent")}
             >
               <Image src={image.url} alt="" fill sizes="64px" className="object-contain" />
             </button>

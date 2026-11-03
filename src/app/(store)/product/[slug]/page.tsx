@@ -21,9 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const image = product.images[0]?.url;
   return {
     title: product.nameAr,
-    description: product.descriptionAr.slice(0, 160),
+    description: `${product.nameAr} من متجر زمردة. ${product.descriptionAr}`.slice(0, 160),
     alternates: { canonical: `/product/${product.slug}` },
-    openGraph: { title: product.nameAr, description: product.descriptionAr, images: image ? [{ url: image }] : undefined, locale: "ar_PS" },
+    openGraph: { title: product.nameAr, description: `${product.nameAr} من متجر زمردة. ${product.descriptionAr}`, images: image ? [{ url: image }] : undefined, locale: "ar_PS" },
+    twitter: image ? { card: "summary_large_image", images: [image] } : undefined,
   };
 }
 
@@ -61,7 +62,7 @@ export default async function ProductPage({ params }: Props) {
         title=""
         crumbs={category ? [{ href: `/categories/${category.slug}`, label: category.nameAr }] : []}
       />
-      <div className="container-page -mt-6 grid gap-8 pb-6 md:grid-cols-2">
+      <div className="container-page -mt-6 grid gap-8 pb-6 lg:grid-cols-2">
         <ProductGallery images={product.images} name={product.nameAr} />
         <ProductPurchasePanel product={product} ordersPaused={settings.ordersPaused} />
       </div>

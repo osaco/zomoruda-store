@@ -24,13 +24,15 @@ export function TrackOrderForm({ initialOrderNumber = "" }: { initialOrderNumber
             maxLength={30}
             placeholder="ZM-1234"
             dir="ltr"
+            autoComplete="off"
+            enterKeyHint="next"
             aria-label="رقم الطلب"
-            className="w-full rounded-input border border-primary/15 px-4 py-3 text-sm uppercase"
+            className="field uppercase"
           />
         </label>
         <label className="block space-y-1 text-sm font-medium">
           <span>رقم الجوال المستخدم في الطلب</span>
-          <input name="phone" required type="tel" maxLength={24} placeholder="059xxxxxxx" dir="ltr" aria-label="رقم الجوال" className="w-full rounded-input border border-primary/15 px-4 py-3 text-sm" />
+          <input name="phone" required type="tel" inputMode="tel" autoComplete="tel" enterKeyHint="search" maxLength={24} placeholder="059xxxxxxx" dir="ltr" aria-label="رقم الجوال" className="field" />
         </label>
         <button className="btn-primary w-full" disabled={pending}>
           {pending ? "جارٍ البحث…" : "تتبّع"}

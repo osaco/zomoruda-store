@@ -6,7 +6,7 @@ import { getOccasions, listProducts } from "@/features/catalog/server/queries";
 
 export const metadata: Metadata = {
   title: "المناسبات",
-  description: "هدايا مختارة لكل مناسبة: أعياد الميلاد، التخرج، الزواج، والمناسبات الخاصة في غزة.",
+  description: "هدايا زمردة المختارة لكل مناسبة: أعياد الميلاد، التخرج، الزواج، والمناسبات الخاصة في غزة.",
   alternates: { canonical: "/occasions" },
 };
 

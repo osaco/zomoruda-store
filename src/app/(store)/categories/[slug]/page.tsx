@@ -8,7 +8,7 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<CatalogS
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = await getCategoryBySlug((await params).slug);
-  return category ? { title: category.nameAr, description: category.descriptionAr ?? undefined } : {};
+  return category ? { title: category.nameAr, description: `منتجات قسم ${category.nameAr} من متجر زمردة. ${category.descriptionAr ?? ""}`.trim() } : {};
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
