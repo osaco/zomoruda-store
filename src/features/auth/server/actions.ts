@@ -52,18 +52,36 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
     .eq("is_active", true)
     .limit(2);
 
-  if (adminLookupError || !adminAccounts || adminAccounts.length !== 1 || !adminAccounts[0].email) {
-    return { error: "تعذر تحديد حساب المدير. تحقّق من وجود حساب مدير نشط واحد في Supabase." };
+  if (adminLookupError || !adminAccounts) {
+    return { error: "تعذر التحقق من حساب المدير في Supabase." };
+  }
+
+  let adminAccount = adminAccounts.length === 1 ? adminAccounts[0] : null;
+  if (adminAccounts.length === 0) {
+    const { data: activeAccounts, error: activeLookupError } = await adminClient
+      .from("admin_users")
+      .select("user_id, email")
+      .eq("is_active", true)
+      .limit(2);
+
+    if (activeLookupError || !activeAccounts) {
+      return { error: "تعذر التحقق من حساب المدير في Supabase." };
+    }
+    adminAccount = activeAccounts.length === 1 ? activeAccounts[0] : null;
+  }
+
+  if (!adminAccount?.email) {
+    return { error: "لم أجد حساب مدير نشطاً واحداً فقط لاسم المستخدم هذا. راجع سجل admin_users في Supabase." };
   }
 
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.signInWithPassword({ email: adminAccounts[0].email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email: adminAccount.email, password });
   if (error || !data.user) return { error: "بيانات الدخول غير صحيحة" };
 
   const { data: admin } = await adminClient
     .from("admin_users")
     .select("role, is_active")
-    .eq("user_id", adminAccounts[0].user_id)
+    .eq("user_id", data.user.id)
     .maybeSingle();
 
   if (!admin || !admin.is_active) {
