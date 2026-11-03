@@ -16,6 +16,8 @@ const loginSchema = z.object({
 
 export type LoginState = { error?: string };
 
+const DEFAULT_ADMIN_USERNAME = "zomoruda2026";
+
 function matchesSecret(value: string, expected: string) {
   const actualBytes = Buffer.from(value);
   const expectedBytes = Buffer.from(expected);
@@ -40,10 +42,10 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
     return { error: "تعذر التحقق من المحاولة. يرجى إعادة المحاولة لاحقاً." };
   }
 
-  const expectedUsername = serverEnv.ADMIN_LOGIN_USERNAME;
-  const expectedPassword = serverEnv.ADMIN_LOGIN_PASSWORD ?? (!isSupabaseConfigured ? serverEnv.ADMIN_DEMO_PASSWORD : undefined);
-  if (!expectedUsername || !expectedPassword) {
-    return { error: "إعداد اسم المستخدم وكلمة مرور لوحة الإدارة غير مكتمل في Vercel." };
+  const expectedUsername = serverEnv.ADMIN_LOGIN_USERNAME ?? DEFAULT_ADMIN_USERNAME;
+  const expectedPassword = serverEnv.ADMIN_LOGIN_PASSWORD ?? serverEnv.ADMIN_DEMO_PASSWORD;
+  if (!expectedPassword) {
+    return { error: "أضف ADMIN_LOGIN_PASSWORD أو ADMIN_DEMO_PASSWORD في إعدادات Production على Vercel." };
   }
   if (!matchesSecret(username, expectedUsername) || !matchesSecret(password, expectedPassword)) {
     return { error: "بيانات الدخول غير صحيحة" };
