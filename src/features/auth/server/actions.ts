@@ -10,25 +10,24 @@ import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
 import { createSession, destroySession } from "../session";
 
 const loginSchema = z.object({
-  email: z.preprocess(
-    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-    z.string().trim().min(1).max(254).optional(),
-  ),
+  username: z.string().trim().min(1).max(64),
   password: z.string().min(1).max(256),
 });
+
+const ADMIN_USERNAME = "zomoruda2026";
 
 export type LoginState = { error?: string };
 
 export async function login(_: LoginState, form: FormData): Promise<LoginState> {
-  const parsed = loginSchema.safeParse({ email: form.get("email") ?? undefined, password: form.get("password") });
+  const parsed = loginSchema.safeParse({ username: form.get("username"), password: form.get("password") });
   if (!parsed.success) return { error: "يرجى إدخال البيانات المطلوبة" };
-  const { email, password } = parsed.data;
+  const { username, password } = parsed.data;
 
   try {
     const ip = await getRequestIp();
     const [ipLimited, accountLimited] = await Promise.all([
       isRateLimited("login-ip", ip, 25, 15 * 60),
-      isRateLimited("login-account", email ?? ip, 5, 15 * 60),
+      isRateLimited("login-account", username.toLowerCase(), 5, 15 * 60),
     ]);
     if (ipLimited || accountLimited) {
       return { error: "تم تجاوز حد محاولات تسجيل الدخول. يرجى المحاولة لاحقاً." };
@@ -38,21 +37,33 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
   }
 
   if (!isSupabaseConfigured) {
-    if (!email) return { error: "اسم المستخدم مطلوب" };
+    if (username !== ADMIN_USERNAME) return { error: "بيانات الدخول غير صحيحة" };
     if (password !== serverEnv.ADMIN_DEMO_PASSWORD) return { error: "كلمة المرور غير صحيحة التجريبية" };
-    await createSession(email, "admin");
+    await createSession(username, "admin");
     redirect("/admin");
   }
 
-  if (!email) return { error: "البريد الإلكتروني مطلوب للحسابات" };
+  if (username !== ADMIN_USERNAME) return { error: "بيانات الدخول غير صحيحة" };
+  const adminClient = supabaseAdmin();
+  const { data: adminAccounts, error: adminLookupError } = await adminClient
+    .from("admin_users")
+    .select("user_id, email")
+    .eq("role", "admin")
+    .eq("is_active", true)
+    .limit(2);
+
+  if (adminLookupError || !adminAccounts || adminAccounts.length !== 1 || !adminAccounts[0].email) {
+    return { error: "تعذر تحديد حساب المدير. تحقّق من وجود حساب مدير نشط واحد في Supabase." };
+  }
+
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email: adminAccounts[0].email, password });
   if (error || !data.user) return { error: "بيانات الدخول غير صحيحة" };
 
-  const { data: admin } = await supabaseAdmin()
+  const { data: admin } = await adminClient
     .from("admin_users")
     .select("role, is_active")
-    .eq("user_id", data.user.id)
+    .eq("user_id", adminAccounts[0].user_id)
     .maybeSingle();
 
   if (!admin || !admin.is_active) {

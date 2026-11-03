@@ -10,8 +10,16 @@ export function LoginForm({ demo }: { demo: boolean }) {
   return (
     <form action={action} className="card w-full max-w-sm space-y-4 p-6">
       <h1 className="text-center font-heading text-2xl font-bold text-primary">لوحة تحكم زُمُرّدة</h1>
-      <Input name="email" type="text" label="اسم المستخدم / البريد الإلكتروني" dir="ltr" autoComplete="username" required />
-      {demo && <p className="rounded-input bg-accent/10 p-3 text-xs text-ink">وضع تجريبي: الدخول باسم المستخدم `admin` وكلمة المرور المحددة في ADMIN_DEMO_PASSWORD (الافتراضي `admin`).</p>}
+      <Input
+        name="username"
+        type="text"
+        label="اسم المستخدم"
+        placeholder="zomoruda2026"
+        dir="ltr"
+        autoComplete="username"
+        required
+      />
+      {demo && <p className="rounded-input bg-accent/10 p-3 text-xs text-ink">وضع تجريبي: استخدم اسم المستخدم المحدد للوحة وكلمة المرور المضبوطة في ADMIN_DEMO_PASSWORD.</p>}
       <Input name="password" type="password" label="كلمة المرور" dir="ltr" autoComplete="current-password" required />
       {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       <button disabled={pending} className="btn-primary w-full">
