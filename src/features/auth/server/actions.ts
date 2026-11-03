@@ -44,41 +44,14 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
   }
 
   if (username !== ADMIN_USERNAME) return { error: "بيانات الدخول غير صحيحة" };
-  const adminClient = supabaseAdmin();
-  const { data: adminAccounts, error: adminLookupError } = await adminClient
-    .from("admin_users")
-    .select("user_id, email")
-    .eq("role", "admin")
-    .eq("is_active", true)
-    .limit(2);
-
-  if (adminLookupError || !adminAccounts) {
-    return { error: "تعذر التحقق من حساب المدير في Supabase." };
-  }
-
-  let adminAccount = adminAccounts.length === 1 ? adminAccounts[0] : null;
-  if (adminAccounts.length === 0) {
-    const { data: activeAccounts, error: activeLookupError } = await adminClient
-      .from("admin_users")
-      .select("user_id, email")
-      .eq("is_active", true)
-      .limit(2);
-
-    if (activeLookupError || !activeAccounts) {
-      return { error: "تعذر التحقق من حساب المدير في Supabase." };
-    }
-    adminAccount = activeAccounts.length === 1 ? activeAccounts[0] : null;
-  }
-
-  if (!adminAccount?.email) {
-    return { error: "لم أجد حساب مدير نشطاً واحداً فقط لاسم المستخدم هذا. راجع سجل admin_users في Supabase." };
-  }
+  const adminEmail = serverEnv.ADMIN_LOGIN_EMAIL;
+  if (!adminEmail) return { error: "إعداد حساب المدير غير مكتمل. أضف ADMIN_LOGIN_EMAIL في إعدادات Vercel." };
 
   const supabase = await supabaseServer();
-  const { data, error } = await supabase.auth.signInWithPassword({ email: adminAccount.email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email: adminEmail, password });
   if (error || !data.user) return { error: "بيانات الدخول غير صحيحة" };
 
-  const { data: admin } = await adminClient
+  const { data: admin } = await supabaseAdmin()
     .from("admin_users")
     .select("role, is_active")
     .eq("user_id", data.user.id)
