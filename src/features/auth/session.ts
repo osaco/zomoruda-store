@@ -3,13 +3,14 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { AdminRole } from "@/types/enums";
 import { env, isSupabaseConfigured } from "@/lib/env";
+import { serverEnv } from "@/lib/server-env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sign, verify } from "@/lib/signing";
 
 export const SESSION_COOKIE = "zm_admin";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
-export type AdminSession = { email: string; role: AdminRole; exp: number };
+export type AdminSession = { email: string; role: AdminRole; exp: number; authProvider?: "supabase" | "standalone" };
 
 const deactivatedUsers = new Set<string>();
 
@@ -21,8 +22,8 @@ export function activateUser(email: string) {
   deactivatedUsers.delete(email.trim().toLowerCase());
 }
 
-export async function createSession(email: string, role: AdminRole) {
-  const payload = Buffer.from(JSON.stringify({ email, role, exp: Date.now() + MAX_AGE * 1000 })).toString("base64url");
+export async function createSession(email: string, role: AdminRole, authProvider: AdminSession["authProvider"] = "supabase") {
+  const payload = Buffer.from(JSON.stringify({ email, role, authProvider, exp: Date.now() + MAX_AGE * 1000 })).toString("base64url");
   (await cookies()).set(SESSION_COOKIE, `${payload}.${sign(payload)}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -55,6 +56,11 @@ export async function getActiveSession(): Promise<AdminSession | null> {
   if (!session) return null;
 
   if (deactivatedUsers.has(session.email.trim().toLowerCase())) return null;
+
+  if (session.authProvider === "standalone") {
+    if (session.role !== "admin" || !serverEnv.ADMIN_LOGIN_USERNAME || session.email !== serverEnv.ADMIN_LOGIN_USERNAME) return null;
+    return session;
+  }
 
   if (isSupabaseConfigured && env.SUPABASE_SERVICE_ROLE_KEY) {
     try {

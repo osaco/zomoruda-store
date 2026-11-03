@@ -19,7 +19,7 @@ export function LoginForm({ demo }: { demo: boolean }) {
         autoComplete="username"
         required
       />
-      {demo && <p className="rounded-input bg-accent/10 p-3 text-xs text-ink">وضع تجريبي: استخدم اسم المستخدم المحدد للوحة وكلمة المرور المضبوطة في ADMIN_DEMO_PASSWORD.</p>}
+      {demo && <p className="rounded-input bg-accent/10 p-3 text-xs text-ink">وضع تجريبي: بيانات الدخول مضبوطة في ADMIN_LOGIN_USERNAME وADMIN_LOGIN_PASSWORD.</p>}
       <Input name="password" type="password" label="كلمة المرور" dir="ltr" autoComplete="current-password" required />
       {state.error && <p role="alert" className="text-sm text-danger">{state.error}</p>}
       <button disabled={pending} className="btn-primary w-full">

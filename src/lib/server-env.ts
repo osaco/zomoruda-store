@@ -8,7 +8,14 @@ const isHostedDeployment = process.env.VERCEL_ENV === "production" || process.en
 
 export const serverEnv = z
   .object({
-    ADMIN_LOGIN_EMAIL: z.preprocess(blank, z.string().email().optional()),
+    ADMIN_LOGIN_USERNAME: z.preprocess(
+      blank,
+      isHostedDeployment ? z.string().min(3).max(64).optional() : z.string().min(3).max(64).default("zomoruda2026"),
+    ),
+    ADMIN_LOGIN_PASSWORD: z.preprocess(
+      blank,
+      isHostedDeployment ? z.string().min(8).optional() : z.string().min(4).max(256).optional(),
+    ),
     ADMIN_DEMO_PASSWORD: z.preprocess(
       blank,
       isHostedDeployment
@@ -27,7 +34,8 @@ export const serverEnv = z
     ),
   })
   .parse({
-    ADMIN_LOGIN_EMAIL: process.env.ADMIN_LOGIN_EMAIL,
+    ADMIN_LOGIN_USERNAME: process.env.ADMIN_LOGIN_USERNAME,
+    ADMIN_LOGIN_PASSWORD: process.env.ADMIN_LOGIN_PASSWORD,
     ADMIN_DEMO_PASSWORD: process.env.ADMIN_DEMO_PASSWORD,
     AUTH_SECRET: process.env.AUTH_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
