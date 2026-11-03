@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { Cairo, Reem_Kufi } from "next/font/google";
+import { Amiri, Cairo, Courier_Prime, Newsreader, Reem_Kufi } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import { env } from "@/lib/env";
@@ -27,6 +27,31 @@ const reemKufi = Reem_Kufi({
   variable: "--font-reem-kufi",
   display: "swap",
   preload: true,
+  adjustFontFallback: true,
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-newsreader",
+  display: "swap",
+  adjustFontFallback: true,
+});
+
+const amiri = Amiri({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "700"],
+  variable: "--font-amiri",
+  display: "swap",
+  adjustFontFallback: true,
+});
+
+const courierPrime = Courier_Prime({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-courier-prime",
+  display: "swap",
   adjustFontFallback: true,
 });
 
@@ -79,7 +104,7 @@ export default function RootLayout({
       // Tells Next.js the global `scroll-behavior: smooth` is intentional, so
       // it can still jump instantly on route transitions instead of gliding.
       data-scroll-behavior="smooth"
-      className={`${cairo.variable} ${reemKufi.variable}`}
+      className={`${cairo.variable} ${reemKufi.variable} ${newsreader.variable} ${amiri.variable} ${courierPrime.variable}`}
     >
       <body className="flex min-h-dvh flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-white">

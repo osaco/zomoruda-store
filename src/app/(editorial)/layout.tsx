@@ -1,17 +1,16 @@
 import { BottomNav } from "@/components/layout/BottomNav";
 import { DeferredCartDrawer } from "@/features/cart/components/DeferredCartDrawer";
-import { SiteFooter } from "@/features/home/components/SiteFooter";
-import { SiteHeader } from "@/features/home/components/SiteHeader";
+import { AtelierButterfly } from "@/features/home/components/AtelierButterfly";
+import { AtelierFooter } from "@/features/home/components/AtelierSections";
+import { AtelierHeader } from "@/features/home/components/AtelierHeader";
 import { getStoreSettings } from "@/features/settings/server/queries";
-import { site } from "@/lib/site";
+import "@/features/home/atelier.css";
 
 /**
- * Layout for the editorial home page.
+ * Layout for the atelier home page.
  *
- * It deliberately replaces the shared store chrome: the hero needs a
- * transparent overlay header, and the footer is the cropped wordmark signature.
- * The cart drawer, bottom nav and the orders-paused notice are preserved so
- * nothing about ordering behaviour changes.
+ * The atelier home page has its own stationery-inspired chrome. The cart
+ * drawer, bottom navigation and orders-paused notice remain wired to the store.
  *
  * Every other storefront route is untouched and keeps `(store)/layout.tsx`.
  */
@@ -19,26 +18,26 @@ export default async function EditorialHomeLayout({ children }: { children: Reac
   const settings = await getStoreSettings();
 
   return (
-    <>
+    <div className="atelier-shell">
+      <AtelierHeader />
       {/* When ordering is paused this is the one message that must win. */}
       {settings.ordersPaused && (
         <p
           role="status"
-          className="bg-warning/15 px-5 py-2 text-center text-sm text-ink"
+          className="atelier-paused"
         >
           {settings.ordersPausedMessage}
         </p>
       )}
 
-      <SiteHeader overlay />
-      {/* pb-20 clears the fixed bottom nav on mobile. */}
-      <main id="main" className="flex-1 pb-20 md:pb-0">
+      <main id="main" className={`atelier-main${settings.ordersPaused ? " atelier-main-paused" : ""}`}>
         {children}
       </main>
-      <SiteFooter addressAr={site.addressAr} />
+      <AtelierFooter />
 
-      <BottomNav />
+      <div className="atelier-bottom"><BottomNav /></div>
       <DeferredCartDrawer />
-    </>
+      <AtelierButterfly />
+    </div>
   );
 }

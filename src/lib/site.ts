@@ -10,6 +10,7 @@ export const site = {
   whatsapp: env.NEXT_PUBLIC_WHATSAPP_NUMBER,
   instagram: "zomoruda1",
   hoursAr: "السبت - الخميس: 10 صباحاً - 9 مساءً",
+  hoursCode: "SAT–THU // 10:00–21:00",
   mapUrl: "https://maps.google.com/?q=Al+Rimal+Gaza",
 } as const;
 

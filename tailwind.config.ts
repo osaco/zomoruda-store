@@ -34,6 +34,8 @@ const config: Config = {
         heading: ["var(--font-cairo)", "system-ui", "sans-serif"],
         body: ["var(--font-cairo)", "system-ui", "sans-serif"],
         display: ["var(--font-reem-kufi)", "var(--font-cairo)", "system-ui", "sans-serif"],
+        atelier: ["var(--font-newsreader)", "var(--font-amiri)", "serif"],
+        technical: ["var(--font-courier-prime)", "var(--font-cairo)", "monospace"],
       },
       borderRadius: {
         card: "20px",
