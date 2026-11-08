@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/types/db";
 import { formatPrice } from "@/lib/format";
+import { getProductStorefrontImage } from "@/lib/storefront-images";
 import { Reveal } from "./Reveal";
 import { isPieceAvailable } from "../lib/select-featured";
 import { arabicIndex, homeCopy } from "../constants";
@@ -55,7 +56,7 @@ export function FeaturedPieces({ products }: { products: Product[] }) {
 }
 
 function PieceCard({ product }: { product: Product }) {
-  const image = product.images[0];
+  const image = getProductStorefrontImage(product);
   const available = isPieceAvailable(product);
 
   return (
@@ -69,16 +70,14 @@ function PieceCard({ product }: { product: Product }) {
           data-testid="piece-art"
           className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-primary-light"
         >
-          {image ? (
-            <Image
-              src={image.url}
-              alt={image.altAr ?? product.nameAr}
-              fill
-              sizes="(max-width: 1024px) 100vw, 33vw"
-              loading="lazy"
-              className="object-cover transition-transform duration-700 ease-out-soft group-hover:scale-[1.04]"
-            />
-          ) : null}
+          <Image
+            src={image.src}
+            alt={image.alt}
+            fill
+            sizes="(max-width: 1024px) 100vw, 33vw"
+            loading="lazy"
+            className="object-cover transition-transform duration-700 ease-out-soft group-hover:scale-[1.04]"
+          />
           {!available && (
             <span className="absolute bottom-3 start-3 rounded-full bg-deep/90 px-3 py-1 text-xs text-on-deep">
               {homeCopy.pieces.unavailable}

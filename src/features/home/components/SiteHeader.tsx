@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -128,9 +129,12 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
       <div className="wrap flex min-h-[68px] items-center justify-between gap-4 py-3">
         <Link
           href="/"
-          className="focus-gold inline-flex min-h-11 items-center rounded-sm font-display text-2xl font-bold leading-none"
+          className="focus-gold inline-flex min-h-11 items-center gap-2.5 rounded-sm font-display text-xl font-bold leading-none sm:text-2xl"
         >
-          زُمُرّدة
+          <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/65 bg-primary shadow-[0_0_0_3px_rgba(255,255,255,.1)]">
+            <Image src="/logo.png" alt="" fill sizes="40px" className="object-cover" />
+          </span>
+          <span>زُمُرّدة</span>
         </Link>
 
         <nav aria-label="التنقل الرئيسي" data-testid="desktop-store-nav" className="hidden items-center gap-8 lg:flex">

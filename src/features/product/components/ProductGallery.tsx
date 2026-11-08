@@ -3,13 +3,16 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { X, ZoomIn } from "lucide-react";
-import type { ProductImage } from "@/types/db";
+import type { Product } from "@/types/db";
 import { cn } from "@/lib/utils";
+import { getProductGalleryImages } from "@/lib/storefront-images";
 
-export function ProductGallery({ images, name }: { images: ProductImage[]; name: string }) {
+export function ProductGallery({ product }: { product: Product }) {
   const track = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [zoom, setZoom] = useState(false);
+  const images = getProductGalleryImages(product);
+  const name = product.nameAr;
 
   const goTo = (i: number) => {
     const el = track.current;
@@ -42,8 +45,8 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
           className="flex snap-x snap-mandatory overflow-x-auto rounded-card bg-primary-light p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {images.map((image, i) => (
-            <button key={image.id} type="button" onClick={() => setZoom(true)} className="relative aspect-square min-w-full snap-center" aria-label="تكبير الصورة">
-              <Image src={image.url} alt={image.altAr ?? name} fill priority={i === 0} sizes="(min-width:1024px) 50vw, 100vw" className="object-contain" />
+            <button key={image.src} type="button" onClick={() => setZoom(true)} className="relative aspect-square min-w-full snap-center" aria-label="تكبير الصورة">
+              <Image src={image.src} alt={image.alt} fill priority={i === 0} sizes="(min-width:1024px) 50vw, 100vw" className="object-contain" />
             </button>
           ))}
         </div>
@@ -53,13 +56,13 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
         <div className="flex gap-2">
           {images.map((image, i) => (
             <button
-              key={image.id}
+              key={image.src}
               type="button"
               onClick={() => goTo(i)}
               aria-label={`الصورة ${i + 1}`}
               className={cn("tap relative h-16 w-16 overflow-hidden rounded-image border-2 bg-primary-light p-1", i === active ? "border-primary" : "border-transparent")}
             >
-              <Image src={image.url} alt="" fill sizes="64px" className="object-contain" />
+              <Image src={image.src} alt="" fill sizes="64px" className="object-contain" />
             </button>
           ))}
         </div>
@@ -70,7 +73,7 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
             <X className="h-6 w-6" />
           </button>
           <div className="relative h-full max-h-[85vh] w-full max-w-3xl touch-pinch-zoom">
-            <Image src={images[active].url} alt={name} fill sizes="100vw" className="object-contain" />
+            <Image src={images[active].src} alt={images[active].alt} fill sizes="100vw" className="object-contain" />
           </div>
         </div>
       )}

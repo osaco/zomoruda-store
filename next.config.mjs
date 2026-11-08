@@ -9,6 +9,9 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" },
+      // Demo data intentionally uses this image host until the merchant uploads
+      // store photography. Keeping it explicit avoids accepting arbitrary URLs.
+      { protocol: "https", hostname: "placehold.co", pathname: "/**" },
     ],
   },
   async headers() {

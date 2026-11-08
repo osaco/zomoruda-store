@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { serializeJsonLd } from "@/lib/json-ld";
 import { site } from "@/lib/site";
-import { AtelierCraftDemo } from "@/features/home/components/AtelierCraftDemo";
-import {
-  AtelierCraftArgument,
-  AtelierHero,
-  AtelierMaterials,
-  AtelierMeasurements,
-} from "@/features/home/components/AtelierSections";
+import { FeaturedPieces } from "@/features/home/components/FeaturedPieces";
+import { Hero } from "@/features/home/components/Hero";
+import { HowItWorks } from "@/features/home/components/HowItWorks";
+import { OccasionsIndex } from "@/features/home/components/OccasionsIndex";
+import { BotanicalDivider } from "@/features/home/components/BotanicalDivider";
+import { getFeaturedPieces, getHomeOccasions } from "@/features/home/server/queries";
 
 export const revalidate = 60;
 
@@ -47,13 +46,16 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
+  const [occasions, pieces] = await Promise.all([getHomeOccasions(), getFeaturedPieces()]);
+
   return (
     <>
-      <AtelierHero />
-      <AtelierCraftArgument />
-      <AtelierCraftDemo />
-      <AtelierMaterials />
-      <AtelierMeasurements />
+      <Hero addressAr={site.addressAr} featuredProduct={pieces[0]} />
+      <BotanicalDivider />
+      <OccasionsIndex occasions={occasions} />
+      <FeaturedPieces products={pieces} />
+      <BotanicalDivider />
+      <HowItWorks />
 
       <script
         type="application/ld+json"

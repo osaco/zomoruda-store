@@ -1,100 +1,53 @@
-"use client";
+type AtelierButterflyProps = {
+  className?: string;
+};
 
-import { useEffect, useRef } from "react";
-
-type FlightStop = { at: number; x: number; y: number; rotate: number; scale: number; opacity: number };
-
-function topOf(selector: string, fallback: number) {
-  const element = document.querySelector<HTMLElement>(selector);
-  return element ? element.getBoundingClientRect().top + window.scrollY : fallback;
-}
-
-export function AtelierButterfly() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const butterfly = ref.current;
-    if (!butterfly) return;
-
-    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (motionPreference.matches) return;
-
-    let frame = 0;
-
-    const render = () => {
-      frame = 0;
-      const vh = window.innerHeight || 800;
-      const heroTop = topOf("#atelier-hero", 0);
-      const heroBottom = topOf("#craft", heroTop + vh);
-      const craftBottom = topOf("#demo", heroBottom + vh);
-      const artTop = topOf("#demo-panel", craftBottom + vh * 0.3);
-      const demoBottom = craftBottom + (document.querySelector<HTMLElement>("#demo")?.offsetHeight ?? vh);
-      const stops: FlightStop[] = [
-        { at: heroTop, x: 80, y: 33, rotate: 10, scale: 0.84, opacity: 0.92 },
-        { at: heroTop + (heroBottom - heroTop) * 0.72, x: 18, y: 61, rotate: -19, scale: 0.9, opacity: 0.92 },
-        { at: craftBottom - vh * 0.18, x: 76, y: 27, rotate: 15, scale: 0.78, opacity: 0.84 },
-        { at: artTop + 100, x: 86, y: 25, rotate: 3, scale: 0.76, opacity: 0.78 },
-        { at: demoBottom, x: 90, y: 18, rotate: 12, scale: 0.62, opacity: 0 },
-      ];
-
-      const position = window.scrollY;
-      let from = stops[0];
-      let to = stops[stops.length - 1];
-      for (let index = 0; index < stops.length - 1; index += 1) {
-        if (position >= stops[index].at && position <= stops[index + 1].at) {
-          from = stops[index];
-          to = stops[index + 1];
-          break;
-        }
-        if (position < stops[index].at) {
-          from = stops[index];
-          to = stops[index];
-          break;
-        }
-      }
-
-      const span = Math.max(1, to.at - from.at);
-      const t = Math.max(0, Math.min(1, (position - from.at) / span));
-      const mix = (key: Exclude<keyof FlightStop, "at">) => from[key] + (to[key] - from[key]) * t;
-      const opacity = mix("opacity");
-      butterfly.style.transform = `translate3d(${mix("x")}vw, ${mix("y")}vh, 0) translate(-50%, -50%) rotate(${mix("rotate")}deg) scale(${mix("scale")})`;
-      butterfly.style.opacity = String(opacity);
-      butterfly.style.visibility = opacity <= 0.01 ? "hidden" : "visible";
-    };
-
-    const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(render);
-    };
-    render();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
-    const resizeObserver = new ResizeObserver(schedule);
-    resizeObserver.observe(document.body);
-    document.fonts?.ready.then(schedule);
-
-    return () => {
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      resizeObserver.disconnect();
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
+/**
+ * A softly glowing butterfly used as a brand ornament. It replaces the old
+ * scroll-tracked line drawing so the mark feels deliberate and classic.
+ */
+export function AtelierButterfly({ className = "" }: AtelierButterflyProps) {
   return (
-    <div ref={ref} className="atelier-butterfly" aria-hidden="true">
-      <svg viewBox="0 0 120 100" focusable="false">
-        <g className="atelier-wing atelier-wing-left">
-          <path d="M60 48C51 22 30 9 13 16 1 21 5 43 20 54c11 8 23 7 40-2Z" />
-          <path d="M52 51C35 47 17 52 13 68c-3 12 12 19 25 14 11-4 17-14 22-31Z" />
-          <path d="M48 45 20 23M44 56 21 71" />
+    <svg viewBox="0 0 156 128" className={className} aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="zomoruda-wing-l" cx="70%" cy="28%" r="86%">
+          <stop offset="0" stopColor="#fff9de" />
+          <stop offset=".34" stopColor="#e7c76f" />
+          <stop offset=".68" stopColor="#aa7bc7" />
+          <stop offset="1" stopColor="#4e2e75" />
+        </radialGradient>
+        <radialGradient id="zomoruda-wing-r" cx="30%" cy="28%" r="86%">
+          <stop offset="0" stopColor="#fff9de" />
+          <stop offset=".34" stopColor="#e7c76f" />
+          <stop offset=".68" stopColor="#aa7bc7" />
+          <stop offset="1" stopColor="#4e2e75" />
+        </radialGradient>
+        <linearGradient id="zomoruda-body" x1="0" x2="1">
+          <stop stopColor="#f6df91" />
+          <stop offset=".5" stopColor="#fff5cf" />
+          <stop offset="1" stopColor="#b78339" />
+        </linearGradient>
+        <filter id="zomoruda-butterfly-glow" x="-30%" y="-35%" width="160%" height="175%">
+          <feGaussianBlur stdDeviation="5" result="softGlow" />
+          <feColorMatrix in="softGlow" type="matrix" values="1 0 0 0 .25  0 1 0 0 .16  0 0 1 0 .5  0 0 0 .48 0" result="violetGlow" />
+          <feMerge>
+            <feMergeNode in="violetGlow" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#zomoruda-butterfly-glow)" strokeLinejoin="round" strokeLinecap="round">
+        <path d="M78 62C67 33 47 13 26 18 6 23 8 49 25 63c13 11 32 12 52 5Z" fill="url(#zomoruda-wing-l)" stroke="#f8e7a7" strokeOpacity=".78" strokeWidth="1.15" />
+        <path d="M77 64C54 63 33 72 31 91c-2 18 17 26 32 17 12-8 16-26 14-44Z" fill="url(#zomoruda-wing-l)" stroke="#f8e7a7" strokeOpacity=".62" strokeWidth="1.15" />
+        <path d="M79 62c11-29 31-49 52-44 20 5 18 31 1 45-13 11-32 12-52 5Z" fill="url(#zomoruda-wing-r)" stroke="#f8e7a7" strokeOpacity=".78" strokeWidth="1.15" />
+        <path d="M80 64c23-1 44 8 46 27 2 18-17 26-32 17-12-8-16-26-14-44Z" fill="url(#zomoruda-wing-r)" stroke="#f8e7a7" strokeOpacity=".62" strokeWidth="1.15" />
+        <g fill="none" stroke="#fff4c9" strokeOpacity=".38" strokeWidth=".85">
+          <path d="M77 63 30 29M77 63 25 48M78 64 42 90M79 63l47-34M79 63l52-15M78 64l36 26" />
         </g>
-        <g className="atelier-wing atelier-wing-right">
-          <path d="M60 48c9-26 30-39 47-32 12 5 8 27-7 38-11 8-23 7-40-2Z" />
-          <path d="M68 51c17-4 35 1 39 17 3 12-12 19-25 14-11-4-17-14-22-31Z" />
-          <path d="m72 45 28-22m-24 33 23 15" />
-        </g>
-        <path d="M60 43c-4-10-12-15-17-12m17 12c4-10 12-15 17-12M60 39v47m0-28c-6 10-10 18-17 24m17-24c6 10 10 18 17 24" />
-      </svg>
-    </div>
+        <path d="M77 50c-3 15-3 31 1 45" stroke="url(#zomoruda-body)" strokeWidth="4.6" />
+        <path d="M77 52c-5-10-11-14-17-15m18 15c5-10 11-14 17-15" fill="none" stroke="#fff1b5" strokeWidth="1.45" />
+        <ellipse cx="77" cy="49" rx="3.4" ry="3.8" fill="#fff4c9" />
+      </g>
+    </svg>
   );
 }

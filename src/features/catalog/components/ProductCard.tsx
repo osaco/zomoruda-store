@@ -3,9 +3,10 @@ import Link from "next/link";
 import type { Product } from "@/types/db";
 import { Badge } from "@/components/ui/Badge";
 import { discountPercent, formatPrice } from "@/lib/format";
+import { getProductStorefrontImage } from "@/lib/storefront-images";
 
 export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
-  const image = product.images[0];
+  const image = getProductStorefrontImage(product);
   const off = discountPercent(product.price, product.compareAtPrice);
   const soldOut = product.availability === "out_of_stock";
 
@@ -15,16 +16,14 @@ export function ProductCard({ product, priority = false }: { product: Product; p
       className="card group flex flex-col overflow-hidden transition duration-200 hover:-translate-y-0.5"
     >
       <div className="relative aspect-square overflow-hidden bg-primary-light">
-        {image && (
-          <Image
-            src={image.url}
-            alt={image.altAr ?? product.nameAr}
-            fill
-            sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
-            priority={priority}
-            className="object-contain p-3 transition duration-300 group-hover:scale-[1.02]"
-          />
-        )}
+        <Image
+          src={image.src}
+          alt={image.alt}
+          fill
+          sizes="(min-width:1024px) 25vw, (min-width:640px) 33vw, 50vw"
+          priority={priority}
+          className="object-contain p-3 transition duration-300 group-hover:scale-[1.02]"
+        />
         <div className="absolute start-2 top-2 flex flex-col gap-1">
           {off && <Badge variant="sale">-{off}%</Badge>}
           {product.isNew && <Badge variant="new">جديد</Badge>}

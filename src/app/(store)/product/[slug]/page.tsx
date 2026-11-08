@@ -63,7 +63,7 @@ export default async function ProductPage({ params }: Props) {
         crumbs={category ? [{ href: `/categories/${category.slug}`, label: category.nameAr }] : []}
       />
       <div className="container-page -mt-6 grid gap-8 pb-6 lg:grid-cols-2">
-        <ProductGallery images={product.images} name={product.nameAr} />
+        <ProductGallery product={product} />
         <ProductPurchasePanel product={product} ordersPaused={settings.ordersPaused} />
       </div>
       <ProductShowcase title="قد يعجبكِ أيضاً" products={related} />

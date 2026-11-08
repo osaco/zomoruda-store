@@ -1,43 +1,26 @@
 import { BottomNav } from "@/components/layout/BottomNav";
 import { DeferredCartDrawer } from "@/features/cart/components/DeferredCartDrawer";
-import { AtelierButterfly } from "@/features/home/components/AtelierButterfly";
-import { AtelierFooter } from "@/features/home/components/AtelierSections";
-import { AtelierHeader } from "@/features/home/components/AtelierHeader";
+import { SiteFooter } from "@/features/home/components/SiteFooter";
+import { SiteHeader } from "@/features/home/components/SiteHeader";
 import { getStoreSettings } from "@/features/settings/server/queries";
-import "@/features/home/atelier.css";
+import { site } from "@/lib/site";
 
-/**
- * Layout for the atelier home page.
- *
- * The atelier home page has its own stationery-inspired chrome. The cart
- * drawer, bottom navigation and orders-paused notice remain wired to the store.
- *
- * Every other storefront route is untouched and keeps `(store)/layout.tsx`.
- */
+/** Storefront chrome for the home page; cart and order controls stay shared. */
 export default async function EditorialHomeLayout({ children }: { children: React.ReactNode }) {
   const settings = await getStoreSettings();
 
   return (
-    <div className="atelier-shell">
-      <AtelierHeader />
-      {/* When ordering is paused this is the one message that must win. */}
+    <>
       {settings.ordersPaused && (
-        <p
-          role="status"
-          className="atelier-paused"
-        >
+        <p role="status" className="bg-warning/15 px-5 py-2 text-center text-sm text-ink">
           {settings.ordersPausedMessage}
         </p>
       )}
-
-      <main id="main" className={`atelier-main${settings.ordersPaused ? " atelier-main-paused" : ""}`}>
-        {children}
-      </main>
-      <AtelierFooter />
-
-      <div className="atelier-bottom"><BottomNav /></div>
+      <SiteHeader overlay />
+      <main id="main" className="flex-1 pb-20 md:pb-0">{children}</main>
+      <SiteFooter addressAr={site.addressAr} />
+      <BottomNav />
       <DeferredCartDrawer />
-      <AtelierButterfly />
-    </div>
+    </>
   );
 }
