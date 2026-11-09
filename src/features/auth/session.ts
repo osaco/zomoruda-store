@@ -9,8 +9,14 @@ import { sign, verify } from "@/lib/signing";
 
 export const SESSION_COOKIE = "zm_admin";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+export const DEFAULT_ADMIN_USERNAME = "zomoruda2026";
 
 export type AdminSession = { email: string; role: AdminRole; exp: number; authProvider?: "supabase" | "standalone" };
+
+/** The same username must be used at login time and when validating a cookie. */
+export function getStandaloneAdminUsername() {
+  return serverEnv.ADMIN_LOGIN_USERNAME ?? DEFAULT_ADMIN_USERNAME;
+}
 
 const deactivatedUsers = new Set<string>();
 
@@ -58,7 +64,7 @@ export async function getActiveSession(): Promise<AdminSession | null> {
   if (deactivatedUsers.has(session.email.trim().toLowerCase())) return null;
 
   if (session.authProvider === "standalone") {
-    if (session.role !== "admin" || !serverEnv.ADMIN_LOGIN_USERNAME || session.email !== serverEnv.ADMIN_LOGIN_USERNAME) return null;
+    if (session.role !== "admin" || session.email !== getStandaloneAdminUsername()) return null;
     return session;
   }
 

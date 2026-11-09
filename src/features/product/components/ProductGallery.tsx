@@ -12,7 +12,6 @@ export function ProductGallery({ product }: { product: Product }) {
   const [active, setActive] = useState(0);
   const [zoom, setZoom] = useState(false);
   const images = getProductGalleryImages(product);
-  const name = product.nameAr;
 
   const goTo = (i: number) => {
     const el = track.current;

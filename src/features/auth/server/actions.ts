@@ -7,7 +7,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { serverEnv } from "@/lib/server-env";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
-import { createSession, destroySession, getSession } from "../session";
+import { createSession, destroySession, getSession, getStandaloneAdminUsername } from "../session";
 
 const loginSchema = z.object({
   username: z.string().trim().min(1).max(64),
@@ -15,8 +15,6 @@ const loginSchema = z.object({
 });
 
 export type LoginState = { error?: string };
-
-const DEFAULT_ADMIN_USERNAME = "zomoruda2026";
 
 function matchesSecret(value: string, expected: string) {
   const actualBytes = Buffer.from(value);
@@ -42,7 +40,7 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
     return { error: "تعذر التحقق من المحاولة. يرجى إعادة المحاولة لاحقاً." };
   }
 
-  const expectedUsername = serverEnv.ADMIN_LOGIN_USERNAME ?? DEFAULT_ADMIN_USERNAME;
+  const expectedUsername = getStandaloneAdminUsername();
   const expectedPassword = serverEnv.ADMIN_LOGIN_PASSWORD ?? serverEnv.ADMIN_DEMO_PASSWORD;
   if (!expectedPassword) {
     return { error: "أضف ADMIN_LOGIN_PASSWORD أو ADMIN_DEMO_PASSWORD في إعدادات Production على Vercel." };

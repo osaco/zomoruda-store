@@ -14,7 +14,6 @@ export function LoginForm({ demo }: { demo: boolean }) {
         name="username"
         type="text"
         label="اسم المستخدم"
-        placeholder="zomoruda2026"
         dir="ltr"
         autoComplete="username"
         required
