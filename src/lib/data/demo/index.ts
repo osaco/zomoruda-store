@@ -287,7 +287,7 @@ export function createDemoRepositories(): Repositories {
 
         let customer = s.customers.find((c) => c.phone === customerInput.phone);
         if (customer) {
-          customer.name = customerInput.name || customer.name;
+          customer.name = customer.name || customerInput.name;
           if (customerInput.birthday !== undefined) customer.birthday = customerInput.birthday;
         } else {
           customer = {

@@ -99,4 +99,35 @@ describe("placeOrder (demo adapter)", () => {
       expect(third.error).toContain("لديك طلبان بانتظار التأكيد");
     }
   });
+
+  it("preserves registered customer name on repeated checkout with same phone", async () => {
+    const repos = getRepos();
+    const product = (await repos.products.getBySlug("pearl-bracelet"))!;
+    const phone = "0598888777";
+
+    const res1 = await placeOrder({
+      customerName: "فاطمة الأصلية",
+      customerPhone: phone,
+      fulfillment: "pickup",
+      paymentMethod: "cash_on_delivery",
+      items: [{ productId: product.id, quantity: 1, options: [] }],
+    });
+    expect(res1.ok).toBe(true);
+
+    const customerBefore = await repos.customers.getByPhone(phone);
+    expect(customerBefore?.name).toBe("فاطمة الأصلية");
+
+    // Second checkout with same phone but different name
+    const res2 = await placeOrder({
+      customerName: "اسم بديل مؤقت",
+      customerPhone: phone,
+      fulfillment: "pickup",
+      paymentMethod: "cash_on_delivery",
+      items: [{ productId: product.id, quantity: 1, options: [] }],
+    });
+    expect(res2.ok).toBe(true);
+
+    const customerAfter = await repos.customers.getByPhone(phone);
+    expect(customerAfter?.name).toBe("فاطمة الأصلية");
+  });
 });
