@@ -1,0 +1,16 @@
+# سجل تقدم المراجعة (Review Progress)
+
+- [x] **Phase 0 — Setup and claims inventory** (Commit: 3357d6a, node: v24.16.0, npm: 11.13.0, npm ci: Success, 29 claims cataloged)
+- [x] **Phase 1 — Gates** (typecheck: 0 errors PASS, lint: 0 errors 0 warnings PASS, test: 69/69 PASS, build: 22/22 routes PASS, audit --omit=dev: 0 vulnerabilities PASS)
+- [x] **Phase 2 — Dependencies and supply chain** (All 23 packages verified in npm registry, 0 unused runtime dependencies, package-lock.json committed)
+- [x] **Phase 3 — Secrets and configuration** (No leaked secrets in git tree or history, server-only guards verified, .gitignore contains all 5 required paths, standalone auth behavior documented)
+- [x] **Phase 4 — Security code review** (Route handlers verified, session cookies audited, timingSafeEqual confirmed, DoS lockout finding F-01 identified)
+- [x] **Phase 5 — Business logic and database** (place_checkout_order, transition_order_status audited; local db cli unavailable NOT RUN; test suite exercises Demo repo only F-04; SQL expiry logic F-05)
+- [x] **Phase 6 — Frontend, responsive, accessibility** (16px iOS zoom guard, 44x44px tap targets, RTL layout, Cairo/Reem Kufi self-hosted fonts, color contrast tokens verified)
+- [x] **Phase 7 — SEO, PWA, operations** (per-page metadata, manifest.ts, sw.js network-first caching, missing root error/not-found F-07, cron keepalive schedule verified)
+- [x] **Phase 8 — Code quality and vibe-code smells** (0 any, 0 @ts-ignore, 0 @ts-expect-error, 1 justified eslint-disable, 0 TODOs, 0 console.logs, 11 unreferenced dead components identified)
+- [x] **Phase 9 — Known suspects S1–S15** (S1-S6 FIXED, S7 STILL PRESENT, S8-S10 FIXED, S11 STILL PRESENT, S12 STILL PRESENT, S13 FIXED, S14 STILL PRESENT, S15 STILL PRESENT)
+- [x] **Phase 10 — Live site smoke test** (200 OK on all routes, security headers verified, GET /admin -> 307 redirect, POST /api/admin/upload -> 401 unauthorized, live catalog has 0 products F-02)
+- [x] **Phase 11 — Report and decision** (`REVIEW.md` generated with full verdict, gates, findings table, S1-S15, C1-C29, not run, and good points)
+- [ ] **Phase 12 — Fix mode** (Waiting for owner approval per Decision Rule)
+- [ ] **Phase 13 — Publish and verify**
