@@ -4,18 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/format";
+import { getStorefrontImageUrl } from "@/lib/storefront-images";
 import { useCart, type CartLine } from "../store";
 
 export function CartLineItem({ line, compact = false }: { line: CartLine; compact?: boolean }) {
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
   const unit = line.unitPrice + line.options.reduce((d, o) => d + o.priceDelta, 0);
+  const imageUrl = getStorefrontImageUrl(line.slug, line.imageUrl);
 
   return (
     <li className="flex gap-3 py-4">
       <Link href={`/product/${line.slug}`} className="shrink-0">
         <Image
-          src={line.imageUrl ?? "/placeholder.png"}
+          src={imageUrl}
           alt={line.nameAr}
           width={compact ? 64 : 88}
           height={compact ? 64 : 88}

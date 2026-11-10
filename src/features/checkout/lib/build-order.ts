@@ -6,6 +6,7 @@ import type { Coupon, Customer, DeliveryZone, OrderItem, Product } from "@/types
 import type { NewOrderRecord } from "@/lib/data/repositories";
 import { calculateLineTotal, calculateTotals } from "@/lib/pricing";
 import { normalizePsPhone } from "@/lib/phone";
+import { getProductStorefrontImage } from "@/lib/storefront-images";
 import type { CheckoutInput } from "../schemas";
 import { checkCoupon } from "./coupon";
 
@@ -58,7 +59,7 @@ export function buildOrder(args: {
       nameAr: product.nameAr,
       price: product.price,
       quantity: line.quantity,
-      imageUrl: product.images[0]?.url ?? null,
+      imageUrl: getProductStorefrontImage(product).src,
       options,
       customName: product.allowName ? line.customName || null : null,
       cardMessage: product.allowCardMessage ? line.cardMessage || null : null,

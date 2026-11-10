@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { discountPercent, formatPrice } from "@/lib/format";
 import { env } from "@/lib/env";
 import { whatsappLink } from "@/lib/site";
+import { getProductStorefrontImage } from "@/lib/storefront-images";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/features/cart/store";
 import { CARD_MESSAGE_MAX } from "@/features/checkout/schemas";
@@ -37,13 +38,14 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
   );
   const unitPrice = product.price + chosen.reduce((d, o) => d + o.priceDelta, 0);
   const off = discountPercent(product.price, product.compareAtPrice);
+  const displayImage = getProductStorefrontImage(product);
   const soldOut = product.availability === "out_of_stock";
   const disabled = soldOut || ordersPaused;
   const addToCart = () => add({
     productId: product.id,
     slug: product.slug,
     nameAr: product.nameAr,
-    imageUrl: product.images[0]?.url ?? null,
+    imageUrl: displayImage.src,
     unitPrice: product.price,
     quantity,
     options: chosen,

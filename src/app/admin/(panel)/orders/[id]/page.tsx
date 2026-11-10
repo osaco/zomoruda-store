@@ -6,6 +6,7 @@ import { getRepos } from "@/lib/data";
 import { env } from "@/lib/env";
 import { formatDate, formatPrice } from "@/lib/format";
 import { toInternational } from "@/lib/phone";
+import { getOrderImageUrl } from "@/lib/storefront-images";
 import { FULFILLMENT_LABELS_AR, ORDER_STATUS_LABELS_AR, ORDER_STATUS_VALUES, PAYMENT_METHOD_LABELS_AR } from "@/types/enums";
 import { AdminPageTitle, inputCls } from "@/features/admin/components/ui";
 import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
@@ -39,7 +40,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
             <ul className="divide-y divide-primary/5">
               {order.items.map((item, i) => (
                 <li key={i} className="flex gap-3 py-3">
-                  {item.imageUrl && <Image src={item.imageUrl} alt="" width={56} height={56} sizes="56px" className="rounded-image bg-primary-light object-contain p-1" />}
+                  <Image src={getOrderImageUrl(item.imageUrl)} alt="" width={56} height={56} sizes="56px" className="rounded-image bg-primary-light object-contain p-1" />
                   <div className="flex-1 text-sm">
                     <p className="font-bold">{item.nameAr} × {item.quantity}</p>
                     {item.options.map((o) => <p key={o.nameAr} className="text-xs text-muted">{o.nameAr}: {o.valueAr}</p>)}

@@ -52,6 +52,20 @@ function primaryImage(images: ProductImage[]) {
   return images.find((image) => image.isPrimary) ?? images[0];
 }
 
+/**
+ * Safe for persisted cart and order snapshots, which only retain a product
+ * slug and image URL. Real merchant uploads are returned untouched.
+ */
+export function getStorefrontImageUrl(slug: string, url?: string | null) {
+  if (url && !isDemoPlaceholder(url)) return url;
+  return asset(productArtwork[slug] ?? "gift-box.svg");
+}
+
+/** Use this when a historical order item does not include a product slug. */
+export function getOrderImageUrl(url?: string | null) {
+  return url && !isDemoPlaceholder(url) ? url : asset("gift-box.svg");
+}
+
 export function getProductStorefrontImage(product: Product): StorefrontImage {
   const uploaded = product.images.filter((image) => !isDemoPlaceholder(image.url));
   const image = primaryImage(uploaded);
@@ -60,7 +74,7 @@ export function getProductStorefrontImage(product: Product): StorefrontImage {
   }
 
   return {
-    src: asset(productArtwork[product.slug] ?? "gift-box.svg"),
+    src: getStorefrontImageUrl(product.slug),
     alt: product.nameAr,
   };
 }
