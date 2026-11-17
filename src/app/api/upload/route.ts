@@ -2,11 +2,10 @@ import { NextResponse } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
-import { hasImageSignature, isBodyTooLarge } from "@/lib/image-upload";
+import { hasImageSignature, imageFileExtension, isBodyTooLarge } from "@/lib/image-upload";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"];
-const ALLOWED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "avif", "heic", "heif"]);
 
 const MAX_UPLOADS_PER_WINDOW = 15;
 
@@ -44,17 +43,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "محتوى الملف لا يطابق صيغة الصورة" }, { status: 400 });
   }
 
-  const rawExt = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-  const ext = ALLOWED_EXTS.has(rawExt) ? rawExt : "jpg";
+  const ext = imageFileExtension(file.type);
   const path = `${kind}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${ext}`;
 
   if (!isSupabaseConfigured) {
     return NextResponse.json({ ok: true, path: `demo/${path}` });
   }
 
-  const { error } = await supabaseAdmin()
-    .storage.from("uploads")
-    .upload(path, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
-  if (error) return NextResponse.json({ ok: false, error: "فشل حفظ الملف المرفق" }, { status: 500 });
+  try {
+    const { error } = await supabaseAdmin()
+      .storage.from("uploads")
+      .upload(path, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+    if (error) return NextResponse.json({ ok: false, error: "فشل حفظ الملف المرفق" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ ok: false, error: "تعذر حفظ الملف المرفق حالياً" }, { status: 503 });
+  }
   return NextResponse.json({ ok: true, path });
 }

@@ -3,16 +3,17 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getActiveSession } from "@/features/auth/session";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
-import { hasImageSignature, isBodyTooLarge } from "@/lib/image-upload";
+import { hasImageSignature, imageFileExtension, isBodyTooLarge } from "@/lib/image-upload";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"];
-const ALLOWED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "avif", "heic", "heif"]);
 const MAX_BYTES = 200 * 1024;
 const MAX_BODY_BYTES = 256 * 1024;
 
 /** Product image upload (admin only) -> public "products" bucket, returns a public URL. */
 export async function POST(request: Request) {
-  if (!(await getActiveSession())) return NextResponse.json({ ok: false, error: "غير مصرح" }, { status: 401 });
+  const session = await getActiveSession();
+  if (!session) return NextResponse.json({ ok: false, error: "غير مصرح" }, { status: 401 });
+  if (session.role !== "admin") return NextResponse.json({ ok: false, error: "صلاحية المدير مطلوبة" }, { status: 403 });
   if (isBodyTooLarge(request, MAX_BODY_BYTES)) {
     return NextResponse.json({ ok: false, error: "تعذّر رفع الصورة بهذا الحجم" }, { status: 413 });
   }
@@ -42,14 +43,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const rawExt = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-  const ext = ALLOWED_EXTS.has(rawExt) ? rawExt : "jpg";
+  const ext = imageFileExtension(file.type);
   const path = `${crypto.randomUUID()}.${ext}`;
-  const storage = supabaseAdmin().storage.from("products");
-  const { error } = await storage.upload(path, Buffer.from(await file.arrayBuffer()), {
-    contentType: file.type,
-    upsert: false,
-  });
-  if (error) return NextResponse.json({ ok: false, error: "فشل الرفع" }, { status: 500 });
-  return NextResponse.json({ ok: true, url: storage.getPublicUrl(path).data.publicUrl });
+  try {
+    const storage = supabaseAdmin().storage.from("products");
+    const { error } = await storage.upload(path, Buffer.from(await file.arrayBuffer()), {
+      contentType: file.type,
+      upsert: false,
+    });
+    if (error) return NextResponse.json({ ok: false, error: "فشل الرفع" }, { status: 500 });
+    return NextResponse.json({ ok: true, url: storage.getPublicUrl(path).data.publicUrl });
+  } catch {
+    return NextResponse.json({ ok: false, error: "تعذر رفع الصورة حالياً" }, { status: 503 });
+  }
 }

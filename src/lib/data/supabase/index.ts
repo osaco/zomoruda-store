@@ -30,6 +30,15 @@ import {
 
 type Row = Record<string, unknown>;
 
+/** Quote user-provided text as a PostgREST filter literal, not filter syntax. */
+function ilikeSearchPattern(input: string): string {
+  const literal = input.trim().slice(0, 120)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, "\\\"")
+    .replace(/[%_*]/g, "\\$&");
+  return `"%${literal}%"`;
+}
+
 function check<T>(result: { data: T; error: { message: string } | null }): T {
   if (result.error) throw new Error(`Supabase: ${result.error.message}`);
   return result.data;
@@ -159,7 +168,10 @@ export function createSupabaseRepositories(): Repositories {
           const links = check(await db().from("product_occasions").select("product_id").eq("occasion_id", id)) as Row[];
           q = q.in("id", links.map((l) => String(l.product_id)));
         }
-        if (query.search) q = q.or(`name_ar.ilike.%${query.search}%,description_ar.ilike.%${query.search}%`);
+        if (query.search) {
+          const pattern = ilikeSearchPattern(query.search);
+          q = q.or(`name_ar.ilike.${pattern},description_ar.ilike.${pattern}`);
+        }
         if (query.featured) q = q.eq("is_featured", true);
         if (query.isNew) q = q.eq("is_new", true);
         if (query.onSale) q = q.not("compare_at_price", "is", null);
@@ -221,7 +233,10 @@ export function createSupabaseRepositories(): Repositories {
         const page = query.page ?? 1;
         const perPage = query.perPage ?? 20;
         let q = db().from("customers").select("*", { count: "exact" }).order("total_spent", { ascending: false }).order("id");
-        if (query.search) q = q.or(`name.ilike.%${query.search}%,phone.ilike.%${query.search}%`);
+        if (query.search) {
+          const pattern = ilikeSearchPattern(query.search);
+          q = q.or(`name.ilike.${pattern},phone.ilike.${pattern}`);
+        }
         const from = (page - 1) * perPage;
         const result = await q.range(from, from + perPage - 1);
         const rows = check(result) as Row[];
@@ -283,7 +298,10 @@ export function createSupabaseRepositories(): Repositories {
         } else {
           q = q.or(`created_at.gte.${cutoff},status.not.in.(delivered,cancelled)`);
         }
-        if (query.search) q = q.or(`order_number.ilike.%${query.search}%,customer_name.ilike.%${query.search}%,customer_phone.ilike.%${query.search}%`);
+        if (query.search) {
+          const pattern = ilikeSearchPattern(query.search);
+          q = q.or(`order_number.ilike.${pattern},customer_name.ilike.${pattern},customer_phone.ilike.${pattern}`);
+        }
         const from = (page - 1) * perPage;
         const result = await q.range(from, from + perPage - 1);
         const rows = check(result) as Row[];

@@ -36,11 +36,6 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
 
   const phoneForLimit = normalizePsPhone(input.customerPhone);
   if (!phoneForLimit) return fail("رقم الجوال غير صحيح");
-  const repos = getRepos();
-  const pendingOrders = await repos.orders.list({ customerPhone: phoneForLimit, status: "new", perPage: 3 });
-  if (!canPlaceUnconfirmedOrder(pendingOrders.total)) {
-    return fail("لديك طلبان بانتظار التأكيد. تواصلي معنا على واتساب أو انتظري تحديث الطلبات السابقة قبل إنشاء طلب جديد.");
-  }
   try {
     const ip = await getRequestIp();
     const [ipLimited, phoneLimited] = await Promise.all([
@@ -54,33 +49,44 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
     return fail("تعذر التحقق من الطلب حالياً. يرجى المحاولة بعد قليل.");
   }
 
-  const settings = await getStoreSettings();
-  if (settings.ordersPaused) return fail(settings.ordersPausedMessage);
+  try {
+    const repos = getRepos();
+    const pendingOrders = await repos.orders.list({ customerPhone: phoneForLimit, status: "new", perPage: 3 });
+    if (!canPlaceUnconfirmedOrder(pendingOrders.total)) {
+      return fail("لديك طلبان بانتظار التأكيد. تواصلي معنا على واتساب أو انتظري تحديث الطلبات السابقة قبل إنشاء طلب جديد.");
+    }
 
-  const [products, zone, coupon] = await Promise.all([
-    repos.products.getManyByIds([...new Set(input.items.map((i) => i.productId))]),
-    input.fulfillment === "delivery" && input.zoneId ? repos.zones.getById(input.zoneId) : Promise.resolve(null),
-    input.couponCode ? repos.coupons.getByCode(input.couponCode) : Promise.resolve(null),
-  ]);
+    const settings = await getStoreSettings();
+    if (settings.ordersPaused) return fail(settings.ordersPausedMessage);
 
-  const built = buildOrder({ input, products, zone, coupon, customer: null });
-  if (!built.ok) return fail(built.error);
+    const [products, zone, coupon] = await Promise.all([
+      repos.products.getManyByIds([...new Set(input.items.map((i) => i.productId))]),
+      input.fulfillment === "delivery" && input.zoneId ? repos.zones.getById(input.zoneId) : Promise.resolve(null),
+      input.couponCode ? repos.coupons.getByCode(input.couponCode) : Promise.resolve(null),
+    ]);
 
-  const phone = normalizePsPhone(input.customerPhone)!;
-  const order = await repos.orders.placeCheckoutOrder(
-    { ...built.order, customerId: null },
-    { name: input.customerName, phone },
-    built.couponId,
-  );
-  if (!order) return fail("تغيّر المخزون أو انتهت صلاحية الكوبون أثناء إتمام الطلب. راجعي السلة وحاولي مرة أخرى.");
+    const built = buildOrder({ input, products, zone, coupon, customer: null });
+    if (!built.ok) return fail(built.error);
 
-  revalidatePath("/admin", "layout");
-  return ok({
-    orderNumber: order.orderNumber,
-    total: order.total,
-    whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL)),
-    successUrl: `/order/${order.orderNumber}?t=${signOrderAccessToken(order.orderNumber)}`,
-  });
+    const phone = normalizePsPhone(input.customerPhone)!;
+    const order = await repos.orders.placeCheckoutOrder(
+      { ...built.order, customerId: null },
+      { name: input.customerName, phone },
+      built.couponId,
+    );
+    if (!order) return fail("تغيّر المخزون أو انتهت صلاحية الكوبون أثناء إتمام الطلب. راجعي السلة وحاولي مرة أخرى.");
+
+    revalidatePath("/admin", "layout");
+    return ok({
+      orderNumber: order.orderNumber,
+      total: order.total,
+      whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL)),
+      successUrl: `/order/${order.orderNumber}?t=${signOrderAccessToken(order.orderNumber)}`,
+    });
+  } catch {
+    console.error("[checkout] Failed to place order");
+    return fail("تعذر إتمام الطلب حالياً. لم يتم تأكيده، يرجى المحاولة بعد قليل.");
+  }
 }
 
 /** Live coupon preview in the checkout form (the order action re-checks it). */
@@ -95,8 +101,13 @@ export async function previewCoupon(code: string, lines: { price: number; quanti
   } catch {
     return { ok: false as const, error: "تعذر التحقق من الكوبون حالياً" };
   }
-  const coupon = await (await getRepos()).coupons.getByCode(parsed.data.code);
-  const subtotal = calculateSubtotal(parsed.data.lines.map((l) => ({ ...l, options: l.options.map((o) => ({ nameAr: "", valueAr: "", priceDelta: o.priceDelta })) })));
-  const check = checkCoupon(coupon, subtotal);
-  return check.ok ? { ok: true as const, discount: check.discount, code: check.coupon.code } : { ok: false as const, error: check.reason };
+  try {
+    const coupon = await (await getRepos()).coupons.getByCode(parsed.data.code);
+    const subtotal = calculateSubtotal(parsed.data.lines.map((l) => ({ ...l, options: l.options.map((o) => ({ nameAr: "", valueAr: "", priceDelta: o.priceDelta })) })));
+    const check = checkCoupon(coupon, subtotal);
+    return check.ok ? { ok: true as const, discount: check.discount, code: check.coupon.code } : { ok: false as const, error: check.reason };
+  } catch {
+    console.error("[checkout] Failed to preview coupon");
+    return { ok: false as const, error: "تعذر التحقق من الكوبون حالياً" };
+  }
 }

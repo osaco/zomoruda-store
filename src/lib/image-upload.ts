@@ -19,3 +19,15 @@ export async function hasImageSignature(file: File): Promise<boolean> {
   }
   return false;
 }
+
+export function imageFileExtension(mimeType: string): string {
+  switch (mimeType) {
+    case "image/jpeg": return "jpg";
+    case "image/png": return "png";
+    case "image/webp": return "webp";
+    case "image/avif": return "avif";
+    case "image/heic": return "heic";
+    case "image/heif": return "heif";
+    default: return "jpg";
+  }
+}

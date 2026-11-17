@@ -5,7 +5,8 @@ import type { AdminRole } from "@/types/enums";
 import { env, isSupabaseConfigured } from "@/lib/env";
 import { serverEnv } from "@/lib/server-env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { sign, verify } from "@/lib/signing";
+import { sign } from "@/lib/signing";
+import { parseAdminSessionCookie } from "./session-cookie";
 
 export const SESSION_COOKIE = "zm_admin";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -16,16 +17,6 @@ export type AdminSession = { email: string; role: AdminRole; exp: number; authPr
 /** The same username must be used at login time and when validating a cookie. */
 export function getStandaloneAdminUsername() {
   return serverEnv.ADMIN_LOGIN_USERNAME ?? DEFAULT_ADMIN_USERNAME;
-}
-
-const deactivatedUsers = new Set<string>();
-
-export function deactivateUser(email: string) {
-  deactivatedUsers.add(email.trim().toLowerCase());
-}
-
-export function activateUser(email: string) {
-  deactivatedUsers.delete(email.trim().toLowerCase());
 }
 
 export async function createSession(email: string, role: AdminRole, authProvider: AdminSession["authProvider"] = "supabase") {
@@ -45,23 +36,13 @@ export async function destroySession() {
 
 export async function getSession(): Promise<AdminSession | null> {
   const raw = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
-  const [payload, signature] = raw.split(".");
-  if (!payload || !verify(payload, signature)) return null;
-  try {
-    const session = JSON.parse(Buffer.from(payload, "base64url").toString()) as AdminSession;
-    return session.exp > Date.now() ? session : null;
-  } catch {
-    return null;
-  }
+  return parseAdminSessionCookie(raw);
 }
 
 /** Returns a currently authorized admin session without redirects or cookie mutation. */
 export async function getActiveSession(): Promise<AdminSession | null> {
   const session = await getSession();
   if (!session) return null;
-
-  if (deactivatedUsers.has(session.email.trim().toLowerCase())) return null;
 
   if (session.authProvider === "standalone") {
     if (session.role !== "admin" || session.email !== getStandaloneAdminUsername()) return null;
@@ -83,7 +64,7 @@ export async function getActiveSession(): Promise<AdminSession | null> {
     }
   }
 
-  return session;
+  return null;
 }
 
 /** Guard for admin pages and actions. Staff can't reach admin-only areas. */
