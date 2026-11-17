@@ -1,7 +1,7 @@
 # سجل تقدم المراجعة (Review Progress)
 
 - [x] **Phase 0 — Setup and claims inventory** (Commit: 3357d6a, node: v24.16.0, npm: 11.13.0, npm ci: Success, 29 claims cataloged)
-- [x] **Phase 1 — Gates** (typecheck: 0 errors PASS, lint: 0 errors 0 warnings PASS, test: 69/69 PASS, build: 22/22 routes PASS, audit --omit=dev: 0 vulnerabilities PASS)
+- [x] **Phase 1 — Gates (reviewed 2026-11-17)** (typecheck PASS, lint PASS, test: 70/70 PASS, build: 22/22 routes PASS after the Next security reminder retry; `npm audit --omit=dev` now reports Next.js 16.4.3 advisory)
 - [x] **Phase 2 — Dependencies and supply chain** (All 23 packages verified in npm registry, 0 unused runtime dependencies, package-lock.json committed)
 - [x] **Phase 3 — Secrets and configuration** (No leaked secrets in git tree or history, server-only guards verified, .gitignore contains all 5 required paths, standalone auth behavior documented)
 - [x] **Phase 4 — Security code review** (Route handlers verified, session cookies audited, timingSafeEqual confirmed, DoS lockout finding F-01 identified)
@@ -10,7 +10,7 @@
 - [x] **Phase 7 — SEO, PWA, operations** (per-page metadata, manifest.ts, sw.js network-first caching, missing root error/not-found F-07, cron keepalive schedule verified)
 - [x] **Phase 8 — Code quality and vibe-code smells** (0 any, 0 @ts-ignore, 0 @ts-expect-error, 1 justified eslint-disable, 0 TODOs, 0 console.logs, 11 unreferenced dead components identified)
 - [x] **Phase 9 — Known suspects S1–S15** (S1-S6 FIXED, S7 STILL PRESENT, S8-S10 FIXED, S11 STILL PRESENT, S12 STILL PRESENT, S13 FIXED, S14 STILL PRESENT, S15 STILL PRESENT)
-- [x] **Phase 10 — Live site smoke test** (200 OK on all routes, security headers verified, GET /admin -> 307 redirect, POST /api/admin/upload -> 401 unauthorized, live catalog has 0 products F-02)
+- [x] **Phase 10 — Live site smoke test (reviewed 2026-11-17)** (home/categories/search/product/cart/admin-login 200; `/admin` redirects to login without session; current production catalog shows 3 home picks and 12 search results; one admin login reached `/admin`; no username placeholder; local Demo checkout saved an order and presented WhatsApp link; no production order created)
 - [x] **Phase 11 — Report and decision** (`REVIEW.md` generated with full verdict, gates, findings table, S1-S15, C1-C29, not run, and good points)
-- [ ] **Phase 12 — Fix mode** (Waiting for owner approval per Decision Rule)
+- [x] **Phase 12 — In-scope fixes and verification** (home butterfly polish, correct 1200×630 OG share image and metadata, admin sign-in behavior already fixed in 3357d6a, username placeholder absent; 187 responsive route/viewport cases passed)
 - [ ] **Phase 13 — Publish and verify**

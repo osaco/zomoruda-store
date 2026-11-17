@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     description,
     images: [
       {
-        url: "/logo.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: `${site.nameAr} — هدايا تُشبه من تُهديها`,
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/logo.png"],
+    images: ["/og-image.png"],
   },
 };
 

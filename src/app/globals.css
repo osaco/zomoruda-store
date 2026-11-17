@@ -225,3 +225,62 @@
     transition: none !important;
   }
 }
+
+.zomoruda-butterfly {
+  overflow: visible;
+  transform-origin: center;
+  animation: zomoruda-butterfly-float 5.8s ease-in-out infinite;
+}
+
+.zomoruda-butterfly-wing {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: zomoruda-butterfly-flutter 4.8s ease-in-out infinite;
+}
+
+.zomoruda-butterfly-wing-right {
+  animation-delay: -2.4s;
+}
+
+.zomoruda-butterfly-sheen {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: zomoruda-butterfly-sheen 4s ease-in-out infinite;
+}
+
+.zomoruda-butterfly-glint {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: zomoruda-butterfly-glint 3.4s ease-in-out infinite;
+}
+
+@keyframes zomoruda-butterfly-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-4px) rotate(1deg); }
+}
+
+@keyframes zomoruda-butterfly-flutter {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(.94); }
+}
+
+@keyframes zomoruda-butterfly-sheen {
+  0%, 18%, 100% { opacity: .08; }
+  48% { opacity: .78; }
+  68% { opacity: .3; }
+}
+
+@keyframes zomoruda-butterfly-glint {
+  0%, 32%, 100% { opacity: .35; }
+  52% { opacity: 1; }
+  72% { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zomoruda-butterfly,
+  .zomoruda-butterfly-wing,
+  .zomoruda-butterfly-sheen,
+  .zomoruda-butterfly-glint {
+    animation: none !important;
+  }
+}
