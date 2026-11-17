@@ -13,4 +13,4 @@
 - [x] **Phase 10 — Live site smoke test (reviewed 2026-11-17)** (home/categories/search/product/cart/admin-login 200; `/admin` redirects to login without session; current production catalog shows 3 home picks and 12 search results; one admin login reached `/admin`; no username placeholder; local Demo checkout saved an order and presented WhatsApp link; no production order created)
 - [x] **Phase 11 — Report and decision** (`REVIEW.md` generated with full verdict, gates, findings table, S1-S15, C1-C29, not run, and good points)
 - [x] **Phase 12 — In-scope fixes and verification** (home butterfly polish, correct 1200×630 OG share image and metadata, admin sign-in behavior already fixed in 3357d6a, username placeholder absent; 187 responsive route/viewport cases passed)
-- [ ] **Phase 13 — Publish and verify**
+- [x] **Phase 13 — Publish and verify** (commit `2959c41` pushed to `main`; Vercel status success; production OG image is the new 1200×630 asset; live mobile/desktop homepage verified)
