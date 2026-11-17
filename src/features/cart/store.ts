@@ -28,6 +28,44 @@ export type CartLine = {
   giftBoxCapacity: number | null;
 };
 
+const finiteOr = (value: unknown, fallback = 0) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
+/** Older persisted carts don't contain customization or gift-box fields yet. */
+function normalizePersistedLine(value: unknown): CartLine | null {
+  if (!value || typeof value !== "object") return null;
+  const line = value as Partial<CartLine>;
+  if (typeof line.productId !== "string" || typeof line.slug !== "string" || typeof line.nameAr !== "string") return null;
+  const options = Array.isArray(line.options)
+    ? line.options.flatMap((option) => {
+        if (!option || typeof option.nameAr !== "string" || typeof option.valueAr !== "string") return [];
+        return [{ nameAr: option.nameAr, valueAr: option.valueAr, priceDelta: finiteOr(option.priceDelta) }];
+      })
+    : [];
+
+  return {
+    key: typeof line.key === "string" ? line.key : `${line.productId}:${line.slug}`,
+    productId: line.productId,
+    slug: line.slug,
+    nameAr: line.nameAr,
+    imageUrl: typeof line.imageUrl === "string" ? line.imageUrl : null,
+    unitPrice: finiteOr(line.unitPrice),
+    quantity: Math.max(1, Math.min(50, Math.trunc(finiteOr(line.quantity, 1)))),
+    options,
+    customName: typeof line.customName === "string" ? line.customName : null,
+    cardMessage: typeof line.cardMessage === "string" ? line.cardMessage : null,
+    photoPath: typeof line.photoPath === "string" ? line.photoPath : null,
+    nameFee: finiteOr(line.nameFee),
+    cardMessageFee: finiteOr(line.cardMessageFee),
+    photoFee: finiteOr(line.photoFee),
+    giftBoxKey: typeof line.giftBoxKey === "string" ? line.giftBoxKey : null,
+    giftBoxId: typeof line.giftBoxId === "string" ? line.giftBoxId : null,
+    giftBoxName: typeof line.giftBoxName === "string" ? line.giftBoxName : null,
+    isGiftBox: line.isGiftBox === true,
+    giftBoxCapacity: line.giftBoxCapacity == null ? null : finiteOr(line.giftBoxCapacity, 0),
+  };
+}
+
 type CartState = {
   lines: CartLine[];
   isOpen: boolean;
@@ -96,10 +134,27 @@ export const useCart = create<CartState>()(
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),
     }),
-    { name: "zomoruda-cart", partialize: (s) => ({ lines: s.lines }) },
+    {
+      name: "zomoruda-cart",
+      version: 1,
+      partialize: (s) => ({ lines: s.lines }),
+      merge: (persistedState, currentState) => {
+        const storedLines = (persistedState as { lines?: unknown } | null)?.lines;
+        return {
+          ...currentState,
+          lines: Array.isArray(storedLines)
+            ? storedLines.map(normalizePersistedLine).filter((line): line is CartLine => line !== null)
+            : currentState.lines,
+        };
+      },
+    },
   ),
 );
 
 export const cartCount = (lines: CartLine[]) => lines.reduce((n, l) => n + l.quantity, 0);
 export const cartSubtotal = (lines: CartLine[]) =>
-  lines.reduce((sum, l) => sum + (l.unitPrice + l.options.reduce((d, o) => d + o.priceDelta, 0) + l.nameFee + l.cardMessageFee + l.photoFee) * l.quantity, 0);
+  lines.reduce((sum, line) => {
+    const optionsTotal = (line.options ?? []).reduce((subtotal, option) => subtotal + finiteOr(option.priceDelta), 0);
+    const unitPrice = finiteOr(line.unitPrice) + optionsTotal + finiteOr(line.nameFee) + finiteOr(line.cardMessageFee) + finiteOr(line.photoFee);
+    return sum + unitPrice * Math.max(0, finiteOr(line.quantity));
+  }, 0);
