@@ -8,7 +8,7 @@ import { getProductStorefrontImage } from "@/lib/storefront-images";
 export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const image = getProductStorefrontImage(product);
   const off = discountPercent(product.price, product.compareAtPrice);
-  const soldOut = product.availability === "out_of_stock";
+  const soldOut = product.availability === "out_of_stock" || (product.availability === "in_stock" && product.stockQty < 1);
 
   return (
     <Link

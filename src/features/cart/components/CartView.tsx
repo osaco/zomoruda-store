@@ -45,7 +45,7 @@ export function CartView() {
               <span className="line-clamp-1">{l.nameAr} × {l.quantity}</span>
               <span className="shrink-0">
                 {formatPrice(
-                  (l.unitPrice + l.options.reduce((d, o) => d + o.priceDelta, 0)) * l.quantity,
+                  (l.unitPrice + l.options.reduce((d, o) => d + o.priceDelta, 0) + (l.nameFee ?? 0) + (l.cardMessageFee ?? 0) + (l.photoFee ?? 0)) * l.quantity,
                 )}
               </span>
             </li>

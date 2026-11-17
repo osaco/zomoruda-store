@@ -74,8 +74,17 @@ export type Product = {
   isNew: boolean;
   isActive: boolean;
   allowName: boolean;
+  nameRequired: boolean;
+  namePrice: number;
   allowCardMessage: boolean;
+  cardMessageRequired: boolean;
+  cardMessagePrice: number;
   allowPhotoUpload: boolean;
+  photoRequired: boolean;
+  photoPrice: number;
+  isGiftBox: boolean;
+  giftBoxCapacity: number | null;
+  allowInGiftBox: boolean;
   images: ProductImage[];
   options: ProductOption[];
   occasionIds: Id[];
@@ -133,8 +142,16 @@ export type OrderItem = {
   imageUrl: string | null;
   options: OrderItemOption[];
   customName: string | null;
+  nameFee?: number;
   cardMessage: string | null;
+  cardMessageFee?: number;
   photoPath: string | null;
+  photoFee?: number;
+  /** Links contents to one specific gift box in this order snapshot. */
+  giftBoxKey?: string | null;
+  giftBoxId?: Id | null;
+  giftBoxName?: string | null;
+  isGiftBox?: boolean;
   lineTotal: number;
 };
 

@@ -11,7 +11,7 @@ export type TrackingState = {
   order?: {
     orderNumber: string;
     createdAt: string;
-    items: { nameAr: string; quantity: number; lineTotal: number }[];
+    items: { nameAr: string; quantity: number; lineTotal: number; giftBoxName?: string | null }[];
     total: number;
     status: OrderStatus;
     fulfillment: FulfillmentType;
@@ -43,7 +43,7 @@ export async function trackOrderAction(_: TrackingState, form: FormData): Promis
     order: {
       orderNumber: order.orderNumber,
       createdAt: order.createdAt,
-      items: order.items.map(({ nameAr, quantity, lineTotal }) => ({ nameAr, quantity, lineTotal })),
+      items: order.items.map(({ nameAr, quantity, lineTotal, giftBoxName }) => ({ nameAr, quantity, lineTotal, giftBoxName })),
       total: order.total,
       status: order.status,
       fulfillment: order.fulfillment,

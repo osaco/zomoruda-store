@@ -49,7 +49,7 @@ export function TrackOrderForm({ initialOrderNumber = "" }: { initialOrderNumber
           <StatusTimeline order={order} />
           <ul className="space-y-1 border-t border-primary/10 pt-3 text-sm">
             {order.items.map((item, i) => (
-              <li key={`${item.nameAr}-${i}`} className="flex justify-between"><span>{item.nameAr} × {item.quantity}</span><span>{formatPrice(item.lineTotal)}</span></li>
+              <li key={`${item.nameAr}-${i}`} className="flex justify-between"><span>{item.nameAr} × {item.quantity}{item.giftBoxName ? <small className="block text-xs text-muted">داخل بوكس: {item.giftBoxName}</small> : null}</span><span>{formatPrice(item.lineTotal)}</span></li>
             ))}
             <li className="flex justify-between pt-2 font-bold"><span>الإجمالي</span><span>{formatPrice(order.total)}</span></li>
           </ul>

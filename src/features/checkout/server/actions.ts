@@ -69,7 +69,7 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
   const phone = normalizePsPhone(input.customerPhone)!;
   const order = await repos.orders.placeCheckoutOrder(
     { ...built.order, customerId: null },
-    { name: input.customerName, phone, birthday: input.birthday || undefined },
+    { name: input.customerName, phone },
     built.couponId,
   );
   if (!order) return fail("تغيّر المخزون أو انتهت صلاحية الكوبون أثناء إتمام الطلب. راجعي السلة وحاولي مرة أخرى.");

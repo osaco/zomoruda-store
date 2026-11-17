@@ -8,6 +8,7 @@ import { ProductShowcase } from "@/features/catalog/components/ProductShowcase";
 import { getCategories, getProductBySlug } from "@/features/catalog/server/queries";
 import { ProductGallery } from "@/features/product/components/ProductGallery";
 import { ProductPurchasePanel } from "@/features/product/components/ProductPurchasePanel";
+import { GiftBoxBuilder } from "@/features/product/components/GiftBoxBuilder";
 import { getStoreSettings } from "@/features/settings/server/queries";
 import { serializeJsonLd } from "@/lib/json-ld";
 
@@ -33,10 +34,11 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   if (!product || !product.isActive) notFound();
 
-  const [categories, related, settings] = await Promise.all([
+  const [categories, related, settings, giftBoxContents] = await Promise.all([
     getCategories(),
     getRepos().products.related(product.id, 4),
     getStoreSettings(),
+    product.isGiftBox ? getRepos().products.list({ giftBoxEligible: true, perPage: 60, sort: "newest" }) : Promise.resolve({ items: [] }),
   ]);
   const category = categories.find((c) => c.id === product.categoryId);
 
@@ -64,7 +66,11 @@ export default async function ProductPage({ params }: Props) {
       />
       <div className="container-page -mt-6 grid gap-8 pb-6 lg:grid-cols-2">
         <ProductGallery product={product} />
-        <ProductPurchasePanel product={product} ordersPaused={settings.ordersPaused} />
+        {product.isGiftBox ? (
+          <GiftBoxBuilder box={product} products={giftBoxContents.items.filter((item) => item.isActive && !item.isGiftBox && item.id !== product.id)} ordersPaused={settings.ordersPaused} />
+        ) : (
+          <ProductPurchasePanel product={product} ordersPaused={settings.ordersPaused} />
+        )}
       </div>
       <ProductShowcase title="قد يعجبكِ أيضاً" products={related} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />

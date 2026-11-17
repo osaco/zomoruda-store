@@ -44,6 +44,7 @@ export type ProductQuery = {
   isNew?: boolean;
   onSale?: boolean;
   availability?: Availability;
+  giftBoxEligible?: boolean;
   minPrice?: number;
   maxPrice?: number;
   sort?: ProductSort;

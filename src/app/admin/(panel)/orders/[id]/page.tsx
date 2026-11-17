@@ -43,6 +43,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
                   <Image src={getOrderImageUrl(item.imageUrl)} alt="" width={56} height={56} sizes="56px" className="rounded-image bg-primary-light object-contain p-1" />
                   <div className="flex-1 text-sm">
                     <p className="font-bold">{item.nameAr} × {item.quantity}</p>
+                    {item.giftBoxId && item.giftBoxName && <p className="text-xs font-medium text-primary">داخل بوكس: {item.giftBoxName}</p>}
                     {item.options.map((o) => <p key={o.nameAr} className="text-xs text-muted">{o.nameAr}: {o.valueAr}</p>)}
                     {item.customName && <p className="text-xs">الاسم: <strong>{item.customName}</strong></p>}
                     {item.cardMessage && <p className="text-xs">رسالة الكرت: {item.cardMessage}</p>}

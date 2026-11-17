@@ -10,7 +10,7 @@ import { useCart, type CartLine } from "../store";
 export function CartLineItem({ line, compact = false }: { line: CartLine; compact?: boolean }) {
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
-  const unit = line.unitPrice + line.options.reduce((d, o) => d + o.priceDelta, 0);
+  const unit = line.unitPrice + line.options.reduce((d, o) => d + o.priceDelta, 0) + (line.nameFee ?? 0) + (line.cardMessageFee ?? 0) + (line.photoFee ?? 0);
   const imageUrl = getStorefrontImageUrl(line.slug, line.imageUrl);
 
   return (
@@ -42,11 +42,12 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
         {line.options.length > 0 && (
           <p className="text-xs text-muted">{line.options.map((o) => `${o.nameAr}: ${o.valueAr}`).join(" • ")}</p>
         )}
+        {line.giftBoxId && <p className="text-xs font-medium text-primary">داخل بوكس: {line.giftBoxName}</p>}
         {line.customName && <p className="text-xs text-muted">الاسم: {line.customName}</p>}
         {line.cardMessage && <p className="line-clamp-1 text-xs text-muted">الكرت: {line.cardMessage}</p>}
         {line.photoPath && <p className="text-xs text-success">✓ تم رفع الصورة</p>}
         <div className="mt-1 flex items-center justify-between">
-          <div className="flex items-center rounded-full border border-primary/15">
+          {!line.isGiftBox ? <div className="flex items-center rounded-full border border-primary/15">
             <button type="button" aria-label="زيادة الكمية" onClick={() => setQuantity(line.key, line.quantity + 1)} className="tap p-1.5 text-primary">
               <Plus className="h-3.5 w-3.5" />
             </button>
@@ -54,7 +55,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
             <button type="button" aria-label="إنقاص الكمية" onClick={() => setQuantity(line.key, line.quantity - 1)} className="tap p-1.5 text-primary">
               <Minus className="h-3.5 w-3.5" />
             </button>
-          </div>
+          </div> : <span className="text-xs text-muted">بوكس واحد</span>}
           <span className="text-sm font-bold text-primary">{formatPrice(unit * line.quantity)}</span>
         </div>
       </div>

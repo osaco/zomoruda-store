@@ -99,6 +99,8 @@ export const toCustomer = (r: Row): Customer => ({
 export const PRODUCT_SELECT = "*, product_images(*), product_options(*), product_occasions(occasion_id)";
 
 export const toProduct = (r: Row): Product => {
+  const stockQty = Number(r.stock_qty ?? 0);
+  const storedAvailability = r.availability as Product["availability"];
   const images = ((r.product_images as Row[]) ?? [])
     .map((i) => ({
       id: String(i.id),
@@ -130,14 +132,23 @@ export const toProduct = (r: Row): Product => {
     price: Number(r.price),
     compareAtPrice: num(r.compare_at_price),
     categoryId: String(r.category_id),
-    stockQty: Number(r.stock_qty ?? 0),
-    availability: r.availability as Product["availability"],
+    stockQty,
+    availability: storedAvailability === "in_stock" && stockQty === 0 ? "out_of_stock" : storedAvailability,
     isFeatured: Boolean(r.is_featured),
     isNew: Boolean(r.is_new),
     isActive: Boolean(r.is_active),
     allowName: Boolean(r.allow_name),
+    nameRequired: Boolean(r.name_required),
+    namePrice: Number(r.name_price ?? 0),
     allowCardMessage: Boolean(r.allow_card_message),
+    cardMessageRequired: Boolean(r.card_message_required),
+    cardMessagePrice: Number(r.card_message_price ?? 0),
     allowPhotoUpload: Boolean(r.allow_photo_upload),
+    photoRequired: Boolean(r.photo_required),
+    photoPrice: Number(r.photo_price ?? 0),
+    isGiftBox: Boolean(r.is_gift_box),
+    giftBoxCapacity: num(r.gift_box_capacity),
+    allowInGiftBox: Boolean(r.allow_in_gift_box),
     images,
     options,
     occasionIds: ((r.product_occasions as Row[]) ?? []).map((o) => String(o.occasion_id)),

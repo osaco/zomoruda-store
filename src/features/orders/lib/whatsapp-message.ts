@@ -29,6 +29,7 @@ export function orderWhatsappFullMessage(order: Order, siteUrl: string): string 
   lines.push(`📦 *تفاصيل المنتجات:*`);
   order.items.forEach((item, i) => {
     lines.push(`${i + 1}. *${item.nameAr}* × ${item.quantity} = ${formatPrice(item.lineTotal)}`);
+    if (item.giftBoxId && item.giftBoxName) lines.push(`   ▫️ داخل بوكس «${item.giftBoxName}»`);
     const opts = item.options.map((o) => `${o.nameAr}: ${o.valueAr}`).join("، ");
     if (opts) lines.push(`   ▫️ الخيارات: ${opts}`);
     if (item.customName) lines.push(`   ▫️ الاسم المكتوب: ${item.customName}`);

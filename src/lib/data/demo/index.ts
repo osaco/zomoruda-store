@@ -119,6 +119,7 @@ function matchesQuery(product: Product, query: ProductQuery): boolean {
   if (query.isNew && !product.isNew) return false;
   if (query.onSale && !(product.compareAtPrice && product.compareAtPrice > product.price)) return false;
   if (query.availability && product.availability !== query.availability) return false;
+  if (query.giftBoxEligible && !product.allowInGiftBox) return false;
   if (query.minPrice !== undefined && product.price < query.minPrice) return false;
   if (query.maxPrice !== undefined && product.price > query.maxPrice) return false;
   return true;

@@ -4,17 +4,17 @@ import { scaleImageDimensions } from "./image-sizing";
 
 export const MAX_UPLOAD_MB = 4;
 export const MAX_CUSTOM_UPLOAD_SOURCE_MB = 15;
-export const MAX_PRODUCT_SOURCE_MB = 15;
+export const MAX_PRODUCT_SOURCE_MB = 10;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"]);
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 const MAX_CUSTOM_UPLOAD_SOURCE_BYTES = MAX_CUSTOM_UPLOAD_SOURCE_MB * 1024 * 1024;
 const MAX_PRODUCT_SOURCE_BYTES = MAX_PRODUCT_SOURCE_MB * 1024 * 1024;
 
 const IMAGE_PRESETS = {
-  productMain: { maxDimension: 1600, minDimension: 1200, startQuality: 0.8, targetBytes: 150 * 1024 },
-  productGallery: { maxDimension: 1000, minDimension: 800, startQuality: 0.78, targetBytes: 120 * 1024 },
-  category: { maxDimension: 600, minDimension: 400, startQuality: 0.75, targetBytes: 40 * 1024 },
-  banner: { maxDimension: 1920, minDimension: 1600, startQuality: 0.78, targetBytes: 250 * 1024 },
+  productMain: { maxDimension: 1200, minDimension: 320, startQuality: 0.82, targetBytes: 200 * 1024 },
+  productGallery: { maxDimension: 1000, minDimension: 320, startQuality: 0.8, targetBytes: 200 * 1024 },
+  category: { maxDimension: 600, minDimension: 320, startQuality: 0.8, targetBytes: 200 * 1024 },
+  banner: { maxDimension: 1920, minDimension: 480, startQuality: 0.82, targetBytes: 200 * 1024 },
 } as const;
 
 function validateImageType(file: File) {
@@ -127,7 +127,7 @@ async function optimizeImage(
       return encodeImage(canvas, quality);
     };
 
-    const qualities = [preset.startQuality, preset.startQuality - 0.05, preset.startQuality - 0.1];
+    const qualities = Array.from({ length: 9 }, (_, index) => Math.max(0.42, preset.startQuality - index * 0.05));
     let optimized: Blob | undefined;
     while (dimension >= minimumDimension) {
       for (const quality of qualities) {
@@ -138,7 +138,8 @@ async function optimizeImage(
       if (dimension === minimumDimension || dimension < minimumDimension) break;
       dimension = Math.max(minimumDimension, Math.round(dimension * 0.85));
     }
-    if (optimized) return optimized;
+    if (optimized?.size && optimized.size <= preset.targetBytes) return optimized;
+    if (optimized) throw new Error("تعذّر ضغط الصورة للحجم المطلوب. اختاري صورة أبسط أو أصغر أبعاداً.");
     throw new Error("تعذّر ضغط الصورة");
   } finally {
     bitmap?.close();

@@ -7,13 +7,14 @@ import { hasImageSignature, isBodyTooLarge } from "@/lib/image-upload";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"];
 const ALLOWED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "avif", "heic", "heif"]);
-const MAX_BYTES = 4 * 1024 * 1024;
+const MAX_BYTES = 200 * 1024;
+const MAX_BODY_BYTES = 256 * 1024;
 
 /** Product image upload (admin only) -> public "products" bucket, returns a public URL. */
 export async function POST(request: Request) {
   if (!(await getActiveSession())) return NextResponse.json({ ok: false, error: "غير مصرح" }, { status: 401 });
-  if (isBodyTooLarge(request, MAX_BYTES)) {
-    return NextResponse.json({ ok: false, error: "الحجم الأقصى 4 ميجابايت" }, { status: 413 });
+  if (isBodyTooLarge(request, MAX_BODY_BYTES)) {
+    return NextResponse.json({ ok: false, error: "تعذّر رفع الصورة بهذا الحجم" }, { status: 413 });
   }
   try {
     const ip = await getRequestIp(request.headers);
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "ملف غير صالـح أو صيغة غير مدعومة" }, { status: 400 });
   }
   if (file.size <= 0 || file.size > MAX_BYTES) {
-    return NextResponse.json({ ok: false, error: "الحجم الأقصى 4 ميجابايت" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "حجم الصورة بعد الضغط يجب ألا يتجاوز 200 كيلوبايت" }, { status: 400 });
   }
   if (!(await hasImageSignature(file))) {
     return NextResponse.json({ ok: false, error: "محتوى الملف لا يطابق صيغة الصورة" }, { status: 400 });

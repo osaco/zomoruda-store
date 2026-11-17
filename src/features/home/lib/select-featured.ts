@@ -48,5 +48,5 @@ export function selectFeaturedPieces(
  * `made_to_order` still counts as available (the store makes it on request).
  */
 export function isPieceAvailable(product: Product): boolean {
-  return product.availability !== "out_of_stock";
+  return product.availability !== "out_of_stock" && !(product.availability === "in_stock" && product.stockQty < 1);
 }

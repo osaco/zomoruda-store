@@ -36,11 +36,17 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
       }),
     [product.options, selected],
   );
-  const unitPrice = product.price + chosen.reduce((d, o) => d + o.priceDelta, 0);
+  const nameFee = customName.trim() ? product.namePrice : 0;
+  const cardMessageFee = cardMessage.trim() ? product.cardMessagePrice : 0;
+  const photoFee = photoPath ? product.photoPrice : 0;
+  const unitPrice = product.price + chosen.reduce((d, o) => d + o.priceDelta, 0) + nameFee + cardMessageFee + photoFee;
   const off = discountPercent(product.price, product.compareAtPrice);
   const displayImage = getProductStorefrontImage(product);
-  const soldOut = product.availability === "out_of_stock";
+  const soldOut = product.availability === "out_of_stock" || (product.availability === "in_stock" && product.stockQty < 1);
   const disabled = soldOut || ordersPaused;
+  const missingRequired = product.options.some((option) => option.isRequired && !selected[option.nameAr]) ||
+    (product.nameRequired && !customName.trim()) || (product.cardMessageRequired && !cardMessage.trim()) ||
+    (product.photoRequired && !photoPath);
   const addToCart = () => add({
     productId: product.id,
     slug: product.slug,
@@ -52,6 +58,14 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
     customName: customName.trim() || null,
     cardMessage: cardMessage.trim() || null,
     photoPath,
+    nameFee,
+    cardMessageFee,
+    photoFee,
+    giftBoxKey: null,
+    giftBoxId: null,
+    giftBoxName: null,
+    isGiftBox: false,
+    giftBoxCapacity: null,
   });
 
   const blurCustomField = () => requestAnimationFrame(() => {
@@ -118,11 +132,11 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
         <div className="card space-y-4 p-4">
           <p className="text-sm font-bold text-primary">✨ خصّصي هديتك</p>
           {product.allowName && (
-            <Input label="الاسم المطلوب على الهدية" maxLength={40} value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="مثال: لين" />
+            <Input label={`الاسم على الهدية${product.nameRequired ? " (مطلوب)" : " (اختياري)"}`} maxLength={40} value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="مثال: لين" />
           )}
           {product.allowCardMessage && (
             <div className="space-y-1.5">
-              <label htmlFor="card-message" className="text-sm font-medium">رسالة الكرت</label>
+              <label htmlFor="card-message" className="text-sm font-medium">رسالة الكرت{product.cardMessageRequired ? " (مطلوبة)" : " (اختيارية)"}</label>
               <textarea
                 id="card-message"
                 rows={3}
@@ -135,7 +149,7 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
               <p className="text-end text-xs text-muted">{cardMessage.length}/{CARD_MESSAGE_MAX}</p>
             </div>
           )}
-          {product.allowPhotoUpload && <PhotoUploadField label="الصورة المطلوب طباعتها" kind="photo" value={photoPath} onChange={setPhotoPath} />}
+          {product.allowPhotoUpload && <PhotoUploadField label={`الصورة المطلوب طباعتها${product.photoRequired ? " (مطلوبة)" : " (اختيارية)"}`} kind="photo" value={photoPath} onChange={setPhotoPath} />}
         </div>
       )}
 
@@ -147,12 +161,12 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
         </div>
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || missingRequired}
           onClick={addToCart}
           className="btn-primary flex-1"
         >
           <ShoppingBag className="h-5 w-5" />
-          {soldOut ? "نفد من المخزون" : ordersPaused ? "الطلبات متوقفة مؤقتاً" : "أضيفي للسلة"}
+          {soldOut ? "نفد من المخزون" : ordersPaused ? "الطلبات متوقفة مؤقتاً" : missingRequired ? "أكملي خيارات المنتج" : "أضيفي للسلة"}
         </button>
       </div>
 
@@ -178,8 +192,8 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
           <p className="text-xs text-muted">السعر</p>
           <p className="font-bold text-primary">{formatPrice(unitPrice * quantity)}</p>
         </div>
-        <button type="button" disabled={disabled} onClick={addToCart} className="btn-primary min-h-11 flex-1 !py-2">
-          <ShoppingBag className="h-4 w-4" aria-hidden="true" /> {soldOut ? "نفد من المخزون" : ordersPaused ? "الطلبات متوقفة" : "أضيفي للسلة"}
+        <button type="button" disabled={disabled || missingRequired} onClick={addToCart} className="btn-primary min-h-11 flex-1 !py-2">
+          <ShoppingBag className="h-4 w-4" aria-hidden="true" /> {soldOut ? "نفد من المخزون" : ordersPaused ? "الطلبات متوقفة" : missingRequired ? "أكملي خيارات المنتج" : "أضيفي للسلة"}
         </button>
       </div>}
     </div>

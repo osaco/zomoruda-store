@@ -51,7 +51,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
 
   const applyCoupon = async () => {
     if (!coupon.code.trim()) return;
-    const res = await previewCoupon(coupon.code, lines.map((l) => ({ price: l.unitPrice, quantity: l.quantity, options: l.options })));
+    const res = await previewCoupon(coupon.code, lines.map((l) => ({ price: l.unitPrice + (l.nameFee ?? 0) + (l.cardMessageFee ?? 0) + (l.photoFee ?? 0), quantity: l.quantity, options: l.options })));
     setCoupon((c) => (res.ok ? { ...c, discount: res.discount, message: `تم تطبيق الخصم (${res.code})` } : { ...c, discount: 0, message: res.error }));
   };
 
@@ -70,7 +70,6 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
       receiptPath,
       couponCode: coupon.discount > 0 ? coupon.code : null,
       notes: String(form.get("notes") ?? ""),
-      birthday: String(form.get("birthday") ?? ""),
       items: lines.map((l) => ({
         productId: l.productId,
         quantity: l.quantity,
@@ -78,6 +77,8 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
         customName: l.customName,
         cardMessage: l.cardMessage,
         photoPath: l.photoPath,
+        giftBoxKey: l.giftBoxKey,
+        giftBoxId: l.giftBoxId,
       })),
     };
     startTransition(async () => {
@@ -211,7 +212,6 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 error={errors.customerPhone}
                 className="text-end"
               />
-              <Input name="birthday" label="تاريخ ميلادك (اختياري — لنفاجئك بهدية 🎁)" type="date" />
             </section>
 
             {/* طريقة الاستلام */}

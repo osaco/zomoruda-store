@@ -57,8 +57,17 @@ export const productFormSchema = z.object({
   isNew: bool,
   isActive: bool,
   allowName: bool,
+  nameRequired: bool,
+  namePrice: money.default(0),
   allowCardMessage: bool,
+  cardMessageRequired: bool,
+  cardMessagePrice: money.default(0),
   allowPhotoUpload: bool,
+  photoRequired: bool,
+  photoPrice: money.default(0),
+  isGiftBox: bool,
+  giftBoxCapacity: z.preprocess((v) => (v === "" || v === null || v === undefined ? null : v), z.coerce.number().int().min(1).max(100).nullable()),
+  allowInGiftBox: bool,
   images: z.string().default(""),
   options: z.string().default(""),
   occasionIds: z.array(z.string()).default([]),
@@ -69,10 +78,17 @@ export function toProductInput(form: FormData): { ok: true; data: ProductInput }
   const parsed = productFormSchema.safeParse({ ...raw, occasionIds: form.getAll("occasionIds").map(String) });
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "بيانات غير صحيحة" };
   const v = parsed.data;
+  if (v.nameRequired && !v.allowName) return { ok: false, error: "فعّلي خيار الاسم قبل جعله مطلوباً" };
+  if (v.cardMessageRequired && !v.allowCardMessage) return { ok: false, error: "فعّلي خيار بطاقة الإهداء قبل جعلها مطلوبة" };
+  if (v.photoRequired && !v.allowPhotoUpload) return { ok: false, error: "فعّلي خيار طباعة الصورة قبل جعلها مطلوبة" };
+  if (v.isGiftBox && !v.giftBoxCapacity) return { ok: false, error: "حددي سعة بوكس الهدايا" };
+  if (v.isGiftBox && v.allowInGiftBox) return { ok: false, error: "لا يمكن إضافة بوكس هدية داخل بوكس آخر" };
   return {
     ok: true,
     data: {
       ...v,
+      availability: v.availability === "in_stock" && v.stockQty === 0 ? "out_of_stock" : v.availability,
+      giftBoxCapacity: v.isGiftBox ? v.giftBoxCapacity : null,
       slug: slugify(v.slug || v.nameAr),
       images: v.images.split("\n").map((u) => u.trim()).filter((u) => /^https?:\/\//.test(u)).map((url) => ({ url, altAr: v.nameAr })),
       options: parseOptions(v.options),

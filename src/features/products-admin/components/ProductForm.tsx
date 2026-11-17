@@ -1,32 +1,28 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { ImagePlus, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { ImagePlus, Loader2, X } from "lucide-react";
 import type { Category, Occasion, Product } from "@/types/db";
 import { AVAILABILITY_LABELS_AR, AVAILABILITY_VALUES } from "@/types/enums";
 import { Checkbox, Field, inputCls } from "@/features/admin/components/ui";
-import { MAX_PRODUCT_SOURCE_MB, uploadProductImage } from "@/features/uploads/client";
+import { uploadProductImage } from "@/features/uploads/client";
 import { saveProduct, type ProductFormState } from "../server/actions";
 import { formatOptions } from "../lib/parse";
 
 export function ProductForm({ product, categories, occasions }: { product?: Product; categories: Category[]; occasions: Occasion[] }) {
   const [state, action, pending] = useActionState<ProductFormState, FormData>(saveProduct, {});
-  const [images, setImages] = useState(product?.images.map((i) => i.url).join("\n") ?? "");
+  const [images, setImages] = useState(product?.images.map((i) => i.url) ?? []);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
-  const [uploadNotice, setUploadNotice] = useState("");
 
   const upload = async (file: File) => {
     setUploading(true);
     setUploadError("");
-    setUploadNotice("");
     try {
-      const isMainImage = images.trim().length === 0;
+      const isMainImage = images.length === 0;
       const url = await uploadProductImage(file, isMainImage ? "main" : "gallery");
-      setImages((v) => (v ? `${v}\n${url}` : url));
-      setUploadNotice(isMainImage
-        ? "الصورة الرئيسية حُوّلت إلى WebP (حتى 1600px) واستُهدف حجم 80–150KB."
-        : "صورة المعرض حُوّلت إلى WebP (حتى 1000px) واستُهدف حجم 60–120KB.");
+      setImages((v) => [...v, url]);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "تعذّر الرفع");
     } finally {
@@ -45,15 +41,26 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
           <Field label="السعر ₪"><input name="price" type="number" step="0.5" min={0} required defaultValue={product?.price} className={inputCls} /></Field>
           <Field label="السعر قبل الخصم ₪"><input name="compareAtPrice" type="number" step="0.5" min={0} defaultValue={product?.compareAtPrice ?? ""} className={inputCls} /></Field>
         </div>
-        <Field label="الصور (رابط في كل سطر — الأول هو الرئيسي)">
-          <textarea name="images" rows={4} dir="ltr" value={images} onChange={(e) => setImages(e.target.value)} className={inputCls} />
-        </Field>
+        <input type="hidden" name="images" value={images.join("\n")} />
+        {images.length > 0 && (
+          <div className="grid grid-cols-3 gap-3">
+            {images.map((url, index) => (
+              <div key={`${url}-${index}`} className="relative">
+                <Image src={url} alt={`${product?.nameAr ?? "صورة المنتج"} ${index + 1}`} width={240} height={240} unoptimized className="aspect-square w-full rounded-xl border border-primary/10 bg-primary-light object-contain p-1" />
+                <button type="button" onClick={() => setImages((current) => current.filter((_, i) => i !== index))} aria-label="حذف الصورة" className="absolute end-1 top-1 rounded-full bg-white p-1 text-danger shadow"><X className="h-4 w-4" /></button>
+                {index === 0 && <span className="absolute bottom-1 start-1 rounded-full bg-ink/75 px-2 py-0.5 text-[10px] text-white">رئيسية</span>}
+              </div>
+            ))}
+          </div>
+        )}
         <label className="btn-secondary w-fit cursor-pointer !py-2 text-sm">
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />} رفع صورة
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif" className="sr-only" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />} إرفاق صورة
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/heic,image/heif" disabled={uploading} className="sr-only" onChange={(e) => {
+            const input = e.currentTarget;
+            const file = input.files?.[0];
+            if (file) void upload(file).finally(() => { input.value = ""; });
+          }} />
         </label>
-        <p className="text-xs text-muted">حتى {MAX_PRODUCT_SOURCE_MB} ميجابايت للصورة الأصلية؛ الرئيسية حتى 1600px والمعرض حتى 1000px. الحجم المستهدف تقريبي ويتغيّر حسب تفاصيل الصورة.</p>
-        {uploadNotice && <p role="status" className="text-xs text-success">{uploadNotice}</p>}
         {uploadError && <p className="text-xs text-danger">{uploadError}</p>}
         <Field label="الخيارات" hint="للعطور: الحجم*: 5 مل=0، 10 مل=فرق السعر، 30 مل=فرق السعر، القارورة كاملة=فرق السعر. اجعل السعر الأساسي سعر 5 مل، ثم أدخل فرق كل حجم عن سعره. مثال عام: الحجم*: وسط=0، كبير=30 (* = إجباري)">
           <textarea name="options" rows={3} defaultValue={product ? formatOptions(product.options) : ""} className={inputCls} />
@@ -86,8 +93,17 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
           <Checkbox name="isFeatured" label="مميز" defaultChecked={product?.isFeatured} />
           <Checkbox name="isNew" label="وصل حديثاً" defaultChecked={product?.isNew} />
           <Checkbox name="allowName" label="يسمح بكتابة اسم" defaultChecked={product?.allowName} />
+          <Checkbox name="nameRequired" label="الاسم إلزامي" defaultChecked={product?.nameRequired} />
+          <Field label="رسوم إضافة الاسم ₪"><input name="namePrice" type="number" min={0} step="0.5" defaultValue={product?.namePrice ?? 0} className={inputCls} /></Field>
           <Checkbox name="allowCardMessage" label="يسمح برسالة كرت" defaultChecked={product?.allowCardMessage} />
-          <Checkbox name="allowPhotoUpload" label="يسمح برفع صورة" defaultChecked={product?.allowPhotoUpload} />
+          <Checkbox name="cardMessageRequired" label="رسالة الكرت إلزامية" defaultChecked={product?.cardMessageRequired} />
+          <Field label="رسوم بطاقة الإهداء ₪"><input name="cardMessagePrice" type="number" min={0} step="0.5" defaultValue={product?.cardMessagePrice ?? 0} className={inputCls} /></Field>
+          <Checkbox name="allowPhotoUpload" label="يسمح بطباعة صورة يرفعها الزبون" defaultChecked={product?.allowPhotoUpload} />
+          <Checkbox name="photoRequired" label="صورة الطباعة إلزامية" defaultChecked={product?.photoRequired} />
+          <Field label="رسوم طباعة الصورة ₪"><input name="photoPrice" type="number" min={0} step="0.5" defaultValue={product?.photoPrice ?? 0} className={inputCls} /></Field>
+          <Checkbox name="isGiftBox" label="هذا المنتج بوكس هدية" defaultChecked={product?.isGiftBox} />
+          <Field label="سعة البوكس (عدد القطع)"><input name="giftBoxCapacity" type="number" min={1} max={100} defaultValue={product?.giftBoxCapacity ?? ""} className={inputCls} /></Field>
+          <Checkbox name="allowInGiftBox" label="يمكن إضافته داخل بوكس هدية" defaultChecked={product?.allowInGiftBox} />
         </div>
         {state.error && <p role="alert" className="rounded-input bg-danger/10 p-3 text-sm text-danger">{state.error}</p>}
         <button disabled={pending} className="btn-primary w-full">{pending && <Loader2 className="h-4 w-4 animate-spin" />} حفظ المنتج</button>

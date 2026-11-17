@@ -11,6 +11,8 @@ export const cartLineSchema = z.object({
   customName: z.string().trim().max(40).nullish(),
   cardMessage: z.string().trim().max(CARD_MESSAGE_MAX, `رسالة الكرت ${CARD_MESSAGE_MAX} حرف كحد أقصى`).nullish(),
   photoPath: z.string().max(300).nullish(),
+  giftBoxKey: z.string().max(80).nullish(),
+  giftBoxId: z.string().max(80).nullish(),
 });
 export type CartLineInput = z.infer<typeof cartLineSchema>;
 
@@ -27,7 +29,6 @@ export const checkoutSchema = z
     receiptPath: z.string().max(300).nullish(),
     couponCode: z.string().trim().max(30).nullish(),
     notes: z.string().trim().max(500).nullish(),
-    birthday: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish().or(z.literal("")),
     items: z.array(cartLineSchema).min(1, "السلة فارغة").max(50, "السلة تحتوي على منتجات أكثر من المسموح"),
   })
   .superRefine((value, ctx) => {
