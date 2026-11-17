@@ -4,6 +4,9 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
