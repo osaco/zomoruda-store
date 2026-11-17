@@ -136,7 +136,6 @@ export const useCart = create<CartState>()(
     }),
     {
       name: "zomoruda-cart",
-      version: 1,
       partialize: (s) => ({ lines: s.lines }),
       merge: (persistedState, currentState) => {
         const storedLines = (persistedState as { lines?: unknown } | null)?.lines;
