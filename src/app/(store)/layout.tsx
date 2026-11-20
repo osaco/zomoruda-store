@@ -6,6 +6,8 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { CartDrawer } from "@/features/cart/components/CartDrawer";
 import { getStoreSettings } from "@/features/settings/server/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
   const settings = await getStoreSettings();
   return (

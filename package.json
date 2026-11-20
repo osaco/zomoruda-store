@@ -12,7 +12,10 @@
     "test": "vitest run",
     "check:visual": "node scripts/visual-check.mjs",
     "check:interaction": "node scripts/interaction-check.mjs",
-    "check:lcp": "node scripts/lcp-throttled.mjs"
+    "check:lcp": "node scripts/lcp-throttled.mjs",
+    "build:worker": "opennextjs-cloudflare build",
+    "deploy:worker": "opennextjs-cloudflare deploy",
+    "preview:worker": "opennextjs-cloudflare preview"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -29,6 +32,7 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.18",
     "@types/node": "^22.10.6",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
@@ -39,6 +43,7 @@
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.12"
+    "vitest": "^4.1.12",
+    "wrangler": "4.148.0"
   }
 }

@@ -4,13 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { navLinks } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { useCart, cartCount } from "@/features/cart/store";
 import { useHydrated } from "@/features/cart/useHydrated";
 
 const heroLinks = [
+  { href: "/categories", label: "الأقسام" },
   { href: "#occ", label: "المناسبات" },
   { href: "#pieces", label: "المختارات" },
   { href: "#steps", label: "كيف تطلب" },
@@ -153,6 +154,9 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link href="/search" aria-label="بحث في المنتجات" className="focus-gold hidden min-h-11 min-w-11 items-center justify-center rounded-full hover:bg-primary/10 lg:inline-flex">
+            <Search className="h-5 w-5" aria-hidden="true" />
+          </Link>
           <button
             type="button"
             data-testid="cart-button"
@@ -205,7 +209,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }) {
           role="dialog"
           aria-modal="true"
           aria-label="قائمة التنقل"
-          className="border-t border-primary/10 bg-bg px-5 pb-6 pt-2 lg:hidden"
+          className="border-t border-primary/10 bg-bg px-5 pb-6 pt-2 text-ink lg:hidden"
         >
           <nav aria-label="التنقل في القائمة">
             <ul className="flex flex-col">

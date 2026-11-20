@@ -30,6 +30,7 @@ export function SearchBox() {
       <Search className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" aria-hidden="true" />
       <input
         type="search"
+        maxLength={120}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         enterKeyHint="search"

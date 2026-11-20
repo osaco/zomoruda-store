@@ -5,6 +5,8 @@ import { SiteHeader } from "@/features/home/components/SiteHeader";
 import { getStoreSettings } from "@/features/settings/server/queries";
 import { site } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 /** Storefront chrome for the home page; cart and order controls stay shared. */
 export default async function EditorialHomeLayout({ children }: { children: React.ReactNode }) {
   const settings = await getStoreSettings();

@@ -5,12 +5,11 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import { getStorefrontImageUrl } from "@/lib/storefront-images";
-import { useCart, type CartLine } from "../store";
+import { cartLineTotal, useCart, type CartLine } from "../store";
 
 export function CartLineItem({ line, compact = false }: { line: CartLine; compact?: boolean }) {
   const setQuantity = useCart((s) => s.setQuantity);
   const remove = useCart((s) => s.remove);
-  const unit = line.unitPrice + line.options.reduce((d, o) => d + o.priceDelta, 0) + (line.nameFee ?? 0) + (line.cardMessageFee ?? 0) + (line.photoFee ?? 0);
   const imageUrl = getStorefrontImageUrl(line.slug, line.imageUrl);
 
   return (
@@ -56,7 +55,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
               <Minus className="h-3.5 w-3.5" />
             </button>
           </div> : <span className="text-xs text-muted">بوكس واحد</span>}
-          <span className="text-sm font-bold text-primary">{formatPrice(unit * line.quantity)}</span>
+          <span className="text-sm font-bold text-primary">{formatPrice(cartLineTotal(line))}</span>
         </div>
       </div>
     </li>

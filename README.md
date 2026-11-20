@@ -1,7 +1,7 @@
 # زُمُرّدة | Zomoruda Store
 
 متجر هدايا عربي (RTL) لمحل **زُمُرّدة** في غزة — الرمال، مفترق البلميرا.
-Next.js 16 (App Router) · TypeScript · Tailwind · Supabase · Vercel · zod · zustand · recharts · vitest.
+Next.js 16 (App Router) · TypeScript · Tailwind · Supabase · Cloudflare Workers · zod · zustand · recharts · vitest.
 
 الطلب يُحفظ في قاعدة البيانات ثم يفتح واتساب المتجر برسالة مرتّبة (بدون دفع إلكتروني: كاش عند الاستلام أو تحويل مع صورة الإيصال).
 
@@ -47,16 +47,14 @@ npm run dev                  # http://localhost:3000
 
 حاويات التخزين (Storage) تُنشأ من الـ migration: `products` (عامة لصور المنتجات) و `uploads` (خاصة لإيصالات التحويل وصور الطباعة، تُفتح من لوحة التحكم برابط مؤقت).
 
-## النشر على Vercel
+## النشر على Cloudflare Workers
 
-1. Import للمستودع `osaco/zomoruda-store`.
-2. Environment Variables في Production وPreview:
-   - `NEXT_PUBLIC_SITE_URL` = رابط الموقع النهائي
-   - `AUTH_SECRET` = نص عشوائي 32+ حرف (`openssl rand -base64 32`)
-   - `CRON_SECRET` = نص عشوائي بطول 32+ حرفاً
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-   لا تضعي مفاتيح الخدمة في متغيرات تبدأ بـ`NEXT_PUBLIC_`. التطبيق يرفض بيانات العرض في البيئتين.
-3. Deploy. ملف `vercel.json` يضيف cron يومي `/api/cron/keepalive` حتى لا يتوقف مشروع Supabase المجاني لعدم النشاط.
+1. اربطي المستودع `osaco/zomoruda-store` مع Workers Builds. استخدمي `npm run build:worker` للبناء و`npm run deploy:worker` للنشر، مع مجلد المشروع الجذر.
+2. أضيفي `NEXT_PUBLIC_SITE_URL` (رابط المتجر على Cloudflare)، و`NEXT_PUBLIC_SUPABASE_URL` و`NEXT_PUBLIC_SUPABASE_ANON_KEY` في **Build variables and secrets** وفي **Variables and Secrets** للـ Worker. أضيفي `NEXT_PUBLIC_WHATSAPP_NUMBER` عند الحاجة لتغيير رقم المتجر.
+3. في إعدادات تشغيل الـ Worker أضيفي `SUPABASE_SERVICE_ROLE_KEY` و`AUTH_SECRET` و`CRON_SECRET` و`ADMIN_LOGIN_PASSWORD` كأسرار. انقلي قيمة `AUTH_SECRET` الحالية للحفاظ على صلاحية رموز الطلبات، واضبطي `ADMIN_LOGIN_USERNAME` إذا كان مختلفاً عن الاسم الافتراضي. أسرار قاعدة البيانات والإدارة تُستخدم أثناء التشغيل.
+4. تحققي من الكتالوج ولوحة الإدارة قبل إيقاف Vercel. جدول الصيانة في `wrangler.jsonc` يعمل يومياً الساعة 18:00 UTC ويستدعي نفس مسار صيانة الطلبات.
+
+للمعاينة المحلية في بيئة Workers، شغّلي `npm run build:worker` ثم `npm run preview:worker`. اضبطي متغيرات `.env.local` وملف `.dev.vars` محلياً عند الحاجة. النشر المباشر يتطلب تفويض `npx wrangler login`.
 
 ## البنية
 

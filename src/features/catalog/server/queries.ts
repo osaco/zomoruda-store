@@ -16,22 +16,31 @@ export const getActiveBanners = cache(async () => {
   return banners.filter((b) => (!b.startsAt || b.startsAt <= now) && (!b.endsAt || b.endsAt >= now));
 });
 
-export type CatalogSearchParams = { sort?: string; page?: string; min?: string; max?: string; q?: string; avail?: string };
+type CatalogParam = "sort" | "page" | "min" | "max" | "q" | "avail";
+export type CatalogSearchParams = Partial<Record<CatalogParam, string | string[]>>;
 
 /** Parses URL search params into a safe ProductQuery. */
 export function parseCatalogParams(params: CatalogSearchParams): ProductQuery {
-  const sort = SORT_OPTIONS.some((o) => o.value === params.sort) ? (params.sort as ProductSort) : "newest";
-  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
-  const min = Number(params.min);
-  const max = Number(params.max);
+  const first = (key: CatalogParam) => {
+    const value = params[key];
+    return Array.isArray(value) ? value[0] : value;
+  };
+  const requestedSort = first("sort");
+  const sort = SORT_OPTIONS.some((o) => o.value === requestedSort) ? (requestedSort as ProductSort) : "newest";
+  const requestedPage = Number(first("page"));
+  // Bound the offset to PostgreSQL's signed integer range.
+  const maxPage = Math.floor(2_147_483_647 / PER_PAGE);
+  const page = Number.isSafeInteger(requestedPage) ? Math.min(maxPage, Math.max(1, requestedPage)) : 1;
+  const min = Number(first("min") || NaN);
+  const max = Number(first("max") || NaN);
   return {
     sort,
     page,
     perPage: PER_PAGE,
-    minPrice: Number.isFinite(min) && params.min ? min : undefined,
-    maxPrice: Number.isFinite(max) && params.max ? max : undefined,
-    availability: params.avail === "in_stock" ? "in_stock" : undefined,
-    search: params.q?.trim() || undefined,
+    minPrice: Number.isFinite(min) ? min : undefined,
+    maxPrice: Number.isFinite(max) ? max : undefined,
+    availability: first("avail") === "in_stock" ? "in_stock" : undefined,
+    search: first("q")?.trim().slice(0, 120) || undefined,
   };
 }
 

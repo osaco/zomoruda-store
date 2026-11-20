@@ -8,9 +8,10 @@ import type { DeliveryZone } from "@/types/db";
 import { PAYMENT_METHOD_LABELS_AR, PAYMENT_METHOD_VALUES, TIME_SLOTS, type FulfillmentType, type PaymentMethod } from "@/types/enums";
 import { Input } from "@/components/ui/Input";
 import { formatPrice } from "@/lib/format";
+import { roundMoney } from "@/lib/pricing";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { cartSubtotal, useCart } from "@/features/cart/store";
+import { cartLineTotal, cartSubtotal, useCart } from "@/features/cart/store";
 import { CartLineItem } from "@/features/cart/components/CartLineItem";
 import { useHydrated } from "@/features/cart/useHydrated";
 import { PhotoUploadField } from "@/features/product/components/PhotoUploadField";
@@ -29,7 +30,8 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
   const [zoneId, setZoneId] = useState(zones[0]?.id ?? "");
   const [payment, setPayment] = useState<PaymentMethod>("cash_on_delivery");
   const [receiptPath, setReceiptPath] = useState<string | null>(null);
-  const [coupon, setCoupon] = useState({ code: "", discount: 0, message: "" });
+  const [coupon, setCoupon] = useState({ code: "", discount: 0, message: "", checkedSubtotal: null as number | null });
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
   const [fieldFocused, setFieldFocused] = useState(false);
@@ -47,15 +49,30 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
   const zone = zones.find((z) => z.id === zoneId);
   const subtotal = cartSubtotal(lines);
   const deliveryFee = fulfillment === "delivery" ? (zone?.fee ?? 0) : 0;
-  const total = Math.max(0, subtotal + deliveryFee - coupon.discount);
+  const activeDiscount = coupon.checkedSubtotal === subtotal ? coupon.discount : 0;
+  const total = roundMoney(Math.max(0, subtotal + deliveryFee - activeDiscount));
 
   const applyCoupon = async () => {
-    if (!coupon.code.trim()) return;
-    const res = await previewCoupon(coupon.code, lines.map((l) => ({ price: l.unitPrice + (l.nameFee ?? 0) + (l.cardMessageFee ?? 0) + (l.photoFee ?? 0), quantity: l.quantity, options: l.options })));
-    setCoupon((c) => (res.ok ? { ...c, discount: res.discount, message: `تم تطبيق الخصم (${res.code})` } : { ...c, discount: 0, message: res.error }));
+    const code = coupon.code;
+    if (!code.trim() || checkingCoupon) return;
+    setCheckingCoupon(true);
+    try {
+      const res = await previewCoupon(code, lines.map((line) => ({ price: line.unitPrice + line.nameFee + line.cardMessageFee + line.photoFee, quantity: line.quantity, options: line.options })));
+      setCoupon((current) => current.code !== code ? current : {
+        ...current,
+        checkedSubtotal: subtotal,
+        discount: res.ok ? res.discount : 0,
+        message: res.ok ? `تم تطبيق الخصم (${res.code})` : res.error,
+      });
+    } catch {
+      setCoupon((current) => ({ ...current, discount: 0, checkedSubtotal: subtotal, message: "تعذر التحقق من الكوبون حالياً" }));
+    } finally {
+      setCheckingCoupon(false);
+    }
   };
 
   const submit = (form: FormData) => {
+    if (checkingCoupon) return;
     setFormError("");
     setErrors({});
     const payload = {
@@ -68,7 +85,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
       timeSlot: String(form.get("timeSlot") ?? ""),
       paymentMethod: payment,
       receiptPath,
-      couponCode: coupon.discount > 0 ? coupon.code : null,
+      couponCode: activeDiscount > 0 ? coupon.code : null,
       notes: String(form.get("notes") ?? ""),
       items: lines.map((l) => ({
         productId: l.productId,
@@ -379,9 +396,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 {l.nameAr} × {l.quantity}
               </span>
               <span className="shrink-0 font-bold">
-                {formatPrice(
-                  (l.unitPrice + l.options.reduce((d, o) => d + o.priceDelta, 0)) * l.quantity,
-                )}
+                {formatPrice(cartLineTotal(l))}
               </span>
             </li>
           ))}
@@ -393,7 +408,9 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
             <div className="flex gap-2">
               <input
                 value={coupon.code}
-                onChange={(e) => setCoupon({ code: e.target.value.toUpperCase(), discount: 0, message: "" })}
+                onChange={(e) => setCoupon({ code: e.target.value.toUpperCase(), discount: 0, message: "", checkedSubtotal: null })}
+                disabled={checkingCoupon}
+                maxLength={30}
                 placeholder="كود الخصم"
                 aria-label="كود الخصم"
                 dir="ltr"
@@ -403,13 +420,13 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 enterKeyHint="done"
                 className="field min-w-0 flex-1 rounded-full py-2"
               />
-              <button type="button" onClick={applyCoupon} className="btn-secondary !px-4 !py-2">
-                تطبيق
+              <button type="button" onClick={applyCoupon} disabled={checkingCoupon || !coupon.code.trim()} className="btn-secondary !px-4 !py-2">
+                {checkingCoupon ? "جارٍ التحقق…" : "تطبيق"}
               </button>
             </div>
             {coupon.message && (
-              <p className={cn("text-xs", coupon.discount ? "text-success" : "text-danger")}>
-                {coupon.message}
+              <p aria-live="polite" className={cn("text-xs", activeDiscount ? "text-success" : "text-danger")}>
+                {coupon.checkedSubtotal === subtotal ? coupon.message : "تغيّر المجموع. أعيدي تطبيق الكود."}
               </p>
             )}
           </div>
@@ -427,10 +444,10 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
               <dd className="font-bold">{formatPrice(deliveryFee)}</dd>
             </div>
           )}
-          {coupon.discount > 0 && (
+          {activeDiscount > 0 && (
             <div className="flex justify-between text-success">
               <dt>الخصم</dt>
-              <dd>-{formatPrice(coupon.discount)}</dd>
+              <dd>-{formatPrice(activeDiscount)}</dd>
             </div>
           )}
           <div className="flex justify-between text-base font-bold text-primary border-t border-primary/10 pt-2">
@@ -446,7 +463,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
           </p>
         )}
 
-        <button type="submit" disabled={pending} className="btn-primary hidden w-full gap-2 lg:flex">
+        <button type="submit" disabled={pending || checkingCoupon} className="btn-primary hidden w-full gap-2 lg:flex">
           {pending ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
@@ -466,7 +483,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
           <p className="text-xs text-muted">الإجمالي</p>
           <p className="font-bold text-primary">{formatPrice(total)}</p>
         </div>
-        <button type="submit" disabled={pending} className="btn-primary min-h-11 flex-1 !px-3 !py-2 text-xs">
+        <button type="submit" disabled={pending || checkingCoupon} className="btn-primary min-h-11 flex-1 !px-3 !py-2 text-xs">
           {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : `تأكيد الطلب — ${formatPrice(total)}`}
         </button>
       </div>}

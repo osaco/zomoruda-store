@@ -4,6 +4,9 @@ export type PricedLine = {
   price: number;
   quantity: number;
   options?: OrderItemOption[] | null;
+  nameFee?: number | null;
+  cardMessageFee?: number | null;
+  photoFee?: number | null;
 };
 
 export type Totals = {
@@ -22,7 +25,8 @@ export function calculateLineTotal(line: PricedLine): number {
     (sum, option) => sum + (option.priceDelta ?? 0),
     0,
   );
-  const unitPrice = Math.max(0, line.price + optionDelta);
+  const customizationFee = (line.nameFee ?? 0) + (line.cardMessageFee ?? 0) + (line.photoFee ?? 0);
+  const unitPrice = Math.max(0, line.price + optionDelta + customizationFee);
   return roundMoney(unitPrice * Math.max(0, line.quantity));
 }
 

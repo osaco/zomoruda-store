@@ -9,6 +9,8 @@ const nextConfig = {
   },
   reactStrictMode: true,
   images: {
+    // Catalog uploads are already compressed. Workers serve them directly.
+    unoptimized: process.env.NEXT_PRIVATE_STANDALONE === "true",
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" },

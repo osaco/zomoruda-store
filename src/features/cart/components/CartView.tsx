@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { formatPrice } from "@/lib/format";
-import { cartSubtotal, useCart } from "../store";
+import { cartLineTotal, cartSubtotal, useCart } from "../store";
 import { useHydrated } from "../useHydrated";
 import { CartLineItem } from "./CartLineItem";
 
@@ -44,9 +44,7 @@ export function CartView() {
             <li key={l.key} className="flex justify-between gap-2 text-muted">
               <span className="line-clamp-1">{l.nameAr} × {l.quantity}</span>
               <span className="shrink-0">
-                {formatPrice(
-                  (l.unitPrice + l.options.reduce((d, o) => d + o.priceDelta, 0) + (l.nameFee ?? 0) + (l.cardMessageFee ?? 0) + (l.photoFee ?? 0)) * l.quantity,
-                )}
+                {formatPrice(cartLineTotal(l))}
               </span>
             </li>
           ))}

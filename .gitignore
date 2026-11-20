@@ -4,6 +4,9 @@ node_modules
 .artifacts/
 !.env.example
 .vercel
+.open-next/
+.wrangler/
+.dev.vars*
 .opencode/node_modules
 
 # private AI/OpenCode files (kept local, not in repo)

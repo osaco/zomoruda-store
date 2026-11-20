@@ -4,7 +4,8 @@ import { env, isSupabaseConfigured } from "@/lib/env";
 
 const blank = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 // Preview deployments are public too; never fall back to predictable secrets there.
-const isHostedDeployment = process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview";
+export const isCloudflareDeployment = process.env.ZOMORUDA_HOSTED === "1";
+const isHostedDeployment = isCloudflareDeployment || process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview";
 
 export const serverEnv = z
   .object({
@@ -42,8 +43,8 @@ export const serverEnv = z
   });
 
 if (isHostedDeployment && !isSupabaseConfigured) {
-  throw new Error("\u064A\u062C\u0628 \u0625\u0639\u062F\u0627\u062F \u0631\u0648\u0627\u0628\u0637 \u0648\u0645\u0641\u0627\u062A\u064A\u062D Supabase \u0643\u0627\u0645\u0644\u0629 \u0641\u064A \u0628\u064A\u0626\u062A\u064A Vercel Production \u0648 Preview");
+  throw new Error("Supabase credentials are required on hosted deployments.");
 }
 if (isHostedDeployment && new URL(env.NEXT_PUBLIC_SITE_URL).hostname === "localhost") {
-  throw new Error("\u064A\u062C\u0628 \u0625\u0639\u062F\u0627\u062F NEXT_PUBLIC_SITE_URL \u0628\u0631\u0627\u0628\u0637 \u0627\u0644\u0645\u062A\u062C\u0631 \u0627\u0644\u0645\u0646\u0634\u0648\u0631 \u0641\u064A Vercel");
+  throw new Error("NEXT_PUBLIC_SITE_URL must point to the hosted store.");
 }

@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { calculateLineTotal, calculateSubtotal, type PricedLine } from "@/lib/pricing";
 
 export type CartOption = { nameAr: string; valueAr: string; priceDelta: number };
 
@@ -151,9 +152,16 @@ export const useCart = create<CartState>()(
 );
 
 export const cartCount = (lines: CartLine[]) => lines.reduce((n, l) => n + l.quantity, 0);
-export const cartSubtotal = (lines: CartLine[]) =>
-  lines.reduce((sum, line) => {
-    const optionsTotal = (line.options ?? []).reduce((subtotal, option) => subtotal + finiteOr(option.priceDelta), 0);
-    const unitPrice = finiteOr(line.unitPrice) + optionsTotal + finiteOr(line.nameFee) + finiteOr(line.cardMessageFee) + finiteOr(line.photoFee);
-    return sum + unitPrice * Math.max(0, finiteOr(line.quantity));
-  }, 0);
+export function pricedCartLine(line: CartLine): PricedLine {
+  return {
+    price: line.unitPrice,
+    options: line.options,
+    quantity: line.quantity,
+    nameFee: line.nameFee,
+    cardMessageFee: line.cardMessageFee,
+    photoFee: line.photoFee,
+  };
+}
+
+export const cartLineTotal = (line: CartLine) => calculateLineTotal(pricedCartLine(line));
+export const cartSubtotal = (lines: CartLine[]) => calculateSubtotal(lines.map(pricedCartLine));

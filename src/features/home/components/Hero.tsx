@@ -52,10 +52,10 @@ export function Hero({
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              href="/categories"
+              href="/search"
               className="focus-gold inline-flex min-h-12 items-center gap-3 rounded-full bg-[#c9a24a] px-6 font-semibold text-deep transition-colors hover:bg-[#dfbd68]"
             >
-              تصفّحي الأقسام <ArrowLeft aria-hidden="true" size={17} />
+              تصفّحي المنتجات <ArrowLeft aria-hidden="true" size={17} />
             </Link>
             <a
               href={whatsappLink(defaultWhatsappMessage)}

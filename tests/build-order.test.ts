@@ -12,6 +12,7 @@ import type { Order } from "@/types/db";
 const box = seedProducts.find((p) => p.slug === "royal-gift-box")!;
 const mug = seedProducts.find((p) => p.slug === "name-mug")!;
 const zone = seedZones[0];
+const giftBoxKey = "c682d7d6-69a8-465e-b7fb-289675715e04";
 
 const input = (over: Partial<CheckoutInput> = {}): CheckoutInput => ({
   customerName: "سارة",
@@ -21,8 +22,8 @@ const input = (over: Partial<CheckoutInput> = {}): CheckoutInput => ({
   address: "الرمال، شارع عمر المختار",
   paymentMethod: "cash_on_delivery",
   items: [
-    { productId: box.id, quantity: 1, options: [{ nameAr: "الحجم", valueAr: "كبير" }], cardMessage: "كل عام وأنتِ بخير" },
-    { productId: mug.id, quantity: 2, options: [], customName: "لين" },
+    { productId: box.id, quantity: 1, options: [{ nameAr: "الحجم", valueAr: "كبير" }], cardMessage: "كل عام وأنتِ بخير", giftBoxKey },
+    { productId: mug.id, quantity: 2, options: [], customName: "لين", giftBoxKey, giftBoxId: box.id },
   ],
   ...over,
 });
@@ -38,8 +39,9 @@ describe("buildOrder", () => {
     expect(result.order.customerPhone).toBe("0599123456");
     expect(result.order.items[0].cardMessage).toBe("كل عام وأنتِ بخير");
   });
-  it("ignores unknown option values (no client price injection)", () => {
-    const bad = input({ items: [{ productId: box.id, quantity: 1, options: [{ nameAr: "الحجم", valueAr: "مجاني" }] }] });
+  it("rejects unknown option values (no client price injection)", () => {
+    const [parent, child] = input().items;
+    const bad = input({ items: [{ ...parent, options: [{ nameAr: "الحجم", valueAr: "مجاني" }] }, child] });
     const result = buildOrder({ input: bad, products: seedProducts, zone, coupon: null, customer: null });
     expect(result.ok).toBe(false);
   });
@@ -57,10 +59,10 @@ describe("buildOrder", () => {
     expect(buildOrder({ input: input(), products, zone, coupon: null, customer: null }).ok).toBe(false);
   });
   it("checks stock across duplicate cart lines for the same product", () => {
-    const products = seedProducts.map((p) => (p.id === box.id ? { ...p, stockQty: 5 } : p));
+    const products = seedProducts.map((p) => (p.id === mug.id ? { ...p, stockQty: 5, availability: "in_stock" as const } : p));
     const duplicateLines = input({ items: [
-      { productId: box.id, quantity: 4, options: [{ nameAr: "الحجم", valueAr: "وسط" }] },
-      { productId: box.id, quantity: 4, options: [{ nameAr: "الحجم", valueAr: "كبير" }] },
+      { productId: mug.id, quantity: 4, options: [], customName: "لين" },
+      { productId: mug.id, quantity: 4, options: [], customName: "سارة" },
     ] });
     expect(buildOrder({ input: duplicateLines, products, zone, coupon: null, customer: null })).toMatchObject({ ok: false });
   });

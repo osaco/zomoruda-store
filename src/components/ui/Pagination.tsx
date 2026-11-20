@@ -11,16 +11,20 @@ export function Pagination({
   page: number;
   pageCount: number;
   basePath: string;
-  params: Record<string, string | undefined>;
+  params: Record<string, string | string[] | undefined>;
 }) {
   if (pageCount <= 1) return null;
   const href = (p: number) => {
-    const next = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]);
+    const next = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      const first = Array.isArray(value) ? value[0] : value;
+      if (first) next.set(key, first);
+    }
     next.set("page", String(p));
     return `${basePath}?${next.toString()}`;
   };
   return (
-    <nav aria-label="الصفحات" className="mt-8 flex justify-center gap-2">
+    <nav aria-label="الصفحات" className="mt-8 flex flex-wrap justify-center gap-2">
       {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
         <Link
           key={p}

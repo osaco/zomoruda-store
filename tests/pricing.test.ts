@@ -23,6 +23,10 @@ describe("pricing", () => {
   it("computes totals", () => {
     expect(calculateTotals({ lines: [{ price: 45, quantity: 2 }], deliveryFee: 10, coupon: coupon() })).toEqual({ subtotal: 90, deliveryFee: 10, discount: 9, total: 91 });
   });
+  it("includes customization fees in the subtotal and percentage discount", () => {
+    const lines = [{ price: 65, quantity: 2, nameFee: 5, photoFee: 10 }];
+    expect(calculateTotals({ lines, deliveryFee: 10, coupon: coupon() })).toEqual({ subtotal: 160, deliveryFee: 10, discount: 16, total: 154 });
+  });
   it("formats order numbers", () => {
     expect(formatOrderNumber(7)).toBe("ZM-0007");
     expect(formatOrderNumber(1234)).toBe("ZM-1234");

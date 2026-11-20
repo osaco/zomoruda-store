@@ -8,9 +8,9 @@ let repos: Repositories | null = null;
 
 /** Single entry point to the data layer. Picks Supabase when configured, demo otherwise. */
 export function getRepos(): Repositories {
-  const hosted = process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview";
+  const hosted = process.env.ZOMORUDA_HOSTED === "1" || process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview";
   if (hosted && !isSupabaseConfigured) {
-    throw new Error("Supabase credentials are required in Vercel Production and Preview; demo data is disabled there.");
+    throw new Error("Supabase credentials are required on hosted deployments.");
   }
   repos ??= isSupabaseConfigured ? createSupabaseRepositories() : createDemoRepositories();
   return repos;

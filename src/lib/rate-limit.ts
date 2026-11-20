@@ -2,7 +2,7 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
 import { env } from "@/lib/env";
-import { serverEnv } from "@/lib/server-env";
+import { isCloudflareDeployment, serverEnv } from "@/lib/server-env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type LocalLimit = { startedAt: number; hits: number };
@@ -19,6 +19,7 @@ export async function getRequestIp(requestHeaders?: Headers): Promise<string> {
       return "local";
     }
   }
+  if (isCloudflareDeployment) return source.get("cf-connecting-ip")?.trim() || "unknown";
   const forwarded = source.get("x-vercel-forwarded-for") ?? source.get("x-forwarded-for") ?? source.get("x-real-ip");
   return forwarded?.split(",")[0]?.trim().slice(0, 128) || "unknown";
 }

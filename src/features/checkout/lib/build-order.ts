@@ -4,7 +4,7 @@
  */
 import type { Coupon, Customer, DeliveryZone, OrderItem, Product } from "@/types/db";
 import type { NewOrderRecord } from "@/lib/data/repositories";
-import { calculateTotals } from "@/lib/pricing";
+import { calculateLineTotal, calculateTotals } from "@/lib/pricing";
 import { normalizePsPhone } from "@/lib/phone";
 import { getProductStorefrontImage } from "@/lib/storefront-images";
 import type { CheckoutInput } from "../schemas";
@@ -101,7 +101,6 @@ export function buildOrder(args: {
     const nameFee = customName ? product.namePrice : 0;
     const cardMessageFee = cardMessage ? product.cardMessagePrice : 0;
     const photoFee = photoPath ? product.photoPrice : 0;
-    const unitTotal = Math.max(0, product.price + options.reduce((sum, option) => sum + option.priceDelta, 0) + nameFee + cardMessageFee + photoFee);
 
     items.push({
       productId: product.id,
@@ -120,7 +119,7 @@ export function buildOrder(args: {
       giftBoxId: line.giftBoxId || null,
       giftBoxName: line.giftBoxId ? group?.product.nameAr ?? null : null,
       isGiftBox: !line.giftBoxId && product.isGiftBox,
-      lineTotal: Math.round(unitTotal * line.quantity * 100) / 100,
+      lineTotal: calculateLineTotal({ price: product.price, quantity: line.quantity, options, nameFee, cardMessageFee, photoFee }),
     });
   }
 
