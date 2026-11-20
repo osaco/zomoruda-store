@@ -30,7 +30,7 @@ export async function login(_: LoginState, form: FormData): Promise<LoginState> 
   const expectedUsername = getStandaloneAdminUsername();
   const expectedPassword = serverEnv.ADMIN_LOGIN_PASSWORD ?? serverEnv.ADMIN_DEMO_PASSWORD;
   if (!expectedPassword) {
-    return { error: "أضف ADMIN_LOGIN_PASSWORD أو ADMIN_DEMO_PASSWORD في إعدادات Production على Vercel." };
+    return { error: "دخول لوحة الإدارة غير مهيأ حالياً." };
   }
 
   try {
