@@ -9,6 +9,9 @@
     "binding": "ASSETS"
   },
   "vars": { "ZOMORUDA_HOSTED": "1" },
+  "secrets": {
+    "required": ["SUPABASE_SERVICE_ROLE_KEY", "AUTH_SECRET", "CRON_SECRET", "ADMIN_LOGIN_PASSWORD"]
+  },
   "triggers": { "crons": ["0 18 * * *"] },
   "keep_vars": true,
   "preview_urls": false,
