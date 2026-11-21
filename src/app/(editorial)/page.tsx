@@ -3,11 +3,12 @@ import { env } from "@/lib/env";
 import { serializeJsonLd } from "@/lib/json-ld";
 import { site } from "@/lib/site";
 import { FeaturedPieces } from "@/features/home/components/FeaturedPieces";
+import { GiftBoxSpotlight } from "@/features/home/components/GiftBoxSpotlight";
 import { Hero } from "@/features/home/components/Hero";
 import { HowItWorks } from "@/features/home/components/HowItWorks";
 import { OccasionsIndex } from "@/features/home/components/OccasionsIndex";
 import { BotanicalDivider } from "@/features/home/components/BotanicalDivider";
-import { getFeaturedPieces, getHomeOccasions } from "@/features/home/server/queries";
+import { getFeaturedPieces, getHomeGiftBox, getHomeOccasions } from "@/features/home/server/queries";
 
 export const revalidate = 60;
 
@@ -46,14 +47,15 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [occasions, pieces] = await Promise.all([getHomeOccasions(), getFeaturedPieces()]);
+  const [occasions, pieces, giftBox] = await Promise.all([getHomeOccasions(), getFeaturedPieces(), getHomeGiftBox()]);
 
   return (
     <>
-      <Hero addressAr={site.addressAr} featuredProduct={pieces[0]} />
+      <Hero addressAr={site.addressAr} />
+      <FeaturedPieces products={pieces} />
+      <GiftBoxSpotlight box={giftBox} />
       <BotanicalDivider />
       <OccasionsIndex occasions={occasions} />
-      <FeaturedPieces products={pieces} />
       <BotanicalDivider />
       <HowItWorks />
 

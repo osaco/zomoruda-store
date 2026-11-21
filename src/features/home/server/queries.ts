@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { getRepos } from "@/lib/data";
 import type { Product } from "@/types/db";
-import { selectFeaturedPieces } from "../lib/select-featured";
+import { isPieceAvailable, selectFeaturedPieces } from "../lib/select-featured";
 
 // Public catalog reads only. Cache successful results briefly per warm Worker.
 function publicHomeRead<T>(read: () => Promise<T>) {
@@ -40,4 +40,11 @@ export const getFeaturedPieces = publicHomeRead(async (): Promise<Product[]> => 
   const featured = await products.featured(3);
   if (featured.length === 3) return featured;
   return selectFeaturedPieces(featured, await products.newest(3), []);
+});
+
+/** Find the first box shoppers can actually configure. */
+export const getHomeGiftBox = publicHomeRead(async () => {
+  const { items } = await getRepos().products.list({ giftBoxesOnly: true, perPage: 20 });
+  const box = items.find(product => isPieceAvailable(product) && product.giftBoxCapacity && product.giftBoxProductIds?.length !== 0);
+  return box ? { slug: box.slug, nameAr: box.nameAr } : null;
 });

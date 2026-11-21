@@ -172,6 +172,7 @@ export function createSupabaseRepositories(): Repositories {
         if (query.isNew) q = q.eq("is_new", true);
         if (query.onSale) q = q.not("compare_at_price", "is", null);
         if (query.availability) q = q.eq("availability", query.availability);
+        if (query.giftBoxesOnly) q = q.eq("is_gift_box", true);
         if (query.giftBoxEligible) q = q.eq("allow_in_gift_box", true);
         if (query.minPrice !== undefined) q = q.gte("price", query.minPrice);
         if (query.maxPrice !== undefined) q = q.lte("price", query.maxPrice);
