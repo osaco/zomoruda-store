@@ -31,7 +31,7 @@ const productArtwork: Record<string, string> = {
   "oud-perfume-50ml": "perfume.svg",
   "vanilla-perfume": "perfume.svg",
   "makeup-kit": "cosmetics.svg",
-  "name-mug": "mug.svg",
+  "name-mug": "name-mug.webp",
   "name-necklace": "watch.svg",
   "pearl-bracelet": "watch.svg",
   "crystal-earrings": "watch.svg",
