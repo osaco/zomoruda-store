@@ -18,6 +18,8 @@ export type CartLineInput = z.infer<typeof cartLineSchema>;
 
 export const checkoutSchema = z
   .object({
+    checkoutId: z.uuid().optional(),
+    draftId: z.uuid().optional(),
     customerName: z.string().trim().min(2, "الاسم مطلوب").max(60),
     customerPhone: z.string().trim().refine(isValidPsPhone, "رقم الجوال غير صحيح (059 أو 056)"),
     fulfillment: z.enum(FULFILLMENT_VALUES),

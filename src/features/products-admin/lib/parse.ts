@@ -78,20 +78,40 @@ export function toProductInput(form: FormData): { ok: true; data: ProductInput }
   const parsed = productFormSchema.safeParse({ ...raw, occasionIds: form.getAll("occasionIds").map(String) });
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "بيانات غير صحيحة" };
   const v = parsed.data;
+  let options = parseOptions(v.options);
+  if (form.has("optionGroups")) {
+    const schema = z.array(z.object({
+      nameAr: z.string().trim().min(1), isRequired: z.boolean(),
+      values: z.array(z.object({ valueAr: z.string().trim().min(1), priceDelta: z.number().finite().min(-100000).max(100000) })).min(1),
+    }));
+    try {
+      options = schema.parse(JSON.parse(String(form.get("optionGroups"))));
+    } catch {
+      return { ok: false, error: "أكملي اسم كل خيار وقيمه وأسعارها" };
+    }
+  }
+  if (new Set(options.map(option => option.nameAr)).size !== options.length ||
+      options.some(option => new Set(option.values.map(value => value.valueAr)).size !== option.values.length))
+    return { ok: false, error: "يجب أن تكون أسماء الخيارات والقيم داخل كل خيار مميزة" };
   if (v.nameRequired && !v.allowName) return { ok: false, error: "فعّلي خيار الاسم قبل جعله مطلوباً" };
   if (v.cardMessageRequired && !v.allowCardMessage) return { ok: false, error: "فعّلي خيار بطاقة الإهداء قبل جعلها مطلوبة" };
   if (v.photoRequired && !v.allowPhotoUpload) return { ok: false, error: "فعّلي خيار طباعة الصورة قبل جعلها مطلوبة" };
   if (v.isGiftBox && !v.giftBoxCapacity) return { ok: false, error: "حددي سعة بوكس الهدايا" };
   if (v.isGiftBox && v.allowInGiftBox) return { ok: false, error: "لا يمكن إضافة بوكس هدية داخل بوكس آخر" };
+  if (v.isGiftBox && form.get("boxContentsMode") === "selected" && !form.getAll("giftBoxProductIds").length)
+    return { ok: false, error: "اختاري إضافة واحدة على الأقل لهذا البوكس" };
   return {
     ok: true,
     data: {
       ...v,
       availability: v.availability === "in_stock" && v.stockQty === 0 ? "out_of_stock" : v.availability,
+      giftBoxProductIds: v.isGiftBox && form.get("boxContentsMode") === "selected"
+        ? [...new Set(form.getAll("giftBoxProductIds").map(String))]
+        : null,
       giftBoxCapacity: v.isGiftBox ? v.giftBoxCapacity : null,
       slug: slugify(v.slug || v.nameAr),
       images: v.images.split("\n").map((u) => u.trim()).filter((u) => /^https?:\/\//.test(u)).map((url) => ({ url, altAr: v.nameAr })),
-      options: parseOptions(v.options),
+      options,
     },
   };
 }

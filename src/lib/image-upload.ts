@@ -31,3 +31,27 @@ export function imageFileExtension(mimeType: string): string {
     default: return "jpg";
   }
 }
+
+export async function readUploadForm(request: Request, maxFileBytes: number) {
+  const reader = request.body?.getReader();
+  if (!reader) return null;
+  const chunks: ArrayBuffer[] = [];
+  let bytes = 0;
+  try {
+    for (;;) {
+      const part = await reader.read();
+      if (part.done) break;
+      bytes += part.value.byteLength;
+      if (bytes > maxFileBytes + 64 * 1024) {
+        await reader.cancel();
+        return "too-large" as const;
+      }
+      chunks.push(new Uint8Array(part.value).buffer);
+    }
+    return await new Response(new Blob(chunks), { headers: request.headers }).formData();
+  } catch {
+    return null;
+  } finally {
+    reader.releaseLock();
+  }
+}

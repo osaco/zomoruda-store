@@ -1,5 +1,7 @@
 # زُمُرّدة | Zomoruda Store
 
+[زيارة متجر زمردة](https://zomoruda-store.osaco-zomoruda.workers.dev)
+
 متجر هدايا عربي (RTL) لمحل **زُمُرّدة** في غزة — الرمال، مفترق البلميرا.
 Next.js 16 (App Router) · TypeScript · Tailwind · Supabase · Cloudflare Workers · zod · zustand · recharts · vitest.
 
@@ -34,7 +36,7 @@ npm run dev                  # http://localhost:3000
 ## ربط Supabase
 
 1. أنشئي مشروعاً على supabase.com.
-2. SQL Editor ← شغّلي بالترتيب `supabase/migrations/0001_init.sql` ثم `supabase/migrations/0002_production_hardening.sql` ثم `supabase/migrations/0003_rls_and_indexes.sql` ثم `supabase/migrations/0004_crm_order_sync.sql`. شغّلي `supabase/seed.sql` فقط إذا أردتِ بيانات العرض التجريبية.
+2. طبّقي جميع الملفات في `supabase/migrations/` بالترتيب الرقمي. شغّلي `supabase/seed.sql` فقط إذا أردتِ بيانات العرض التجريبية.
 3. Authentication ← Users ← أضيفي مستخدم المدير (بريد + كلمة مرور).
 4. أضيفيه كمدير:
    ```sql
@@ -61,3 +63,7 @@ npm run dev                  # http://localhost:3000
 ## البنية
 
 راجعي [ARCHITECTURE.md](./ARCHITECTURE.md) لشرح طبقات المشروع ولماذا صُمّم بهذه الطريقة.
+
+### إعداد بوكس هدايا
+
+من **الإدارة ← المنتجات**، فعّلي «يمكن إضافته داخل بوكس هدية» على المنتجات التي ستُباع كإضافات. أنشئي منتج البوكس وحددي سعره وسعته، ثم اختاري كل الإضافات أو حددي قائمة خاصة به. للمنتج المصنوع حسب الطلب اختاري حالة «حسب الطلب» وفعّلي حقول الاسم والصورة وبطاقة الإهداء المطلوبة وأسعارها. استخدمي «إضافة خيار للمنتج» لإدخال الألوان أو الأحجام أو نوع الورد وفرق سعر كل اختيار.

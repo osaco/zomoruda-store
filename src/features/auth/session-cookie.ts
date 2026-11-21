@@ -1,10 +1,12 @@
 import type { AdminRole } from "@/types/enums";
-import { verify } from "@/lib/signing";
+import { serverEnv } from "@/lib/server-env";
+import { sign, verify } from "@/lib/signing";
 
 export type AdminSessionCookie = {
   email: string;
   role: AdminRole;
   exp: number;
+  credentialVersion?: string;
   authProvider?: "supabase" | "standalone";
 };
 
@@ -17,6 +19,7 @@ export function parseAdminSessionCookie(raw: string | null | undefined): AdminSe
   try {
     const value = JSON.parse(Buffer.from(payload, "base64url").toString()) as Partial<AdminSessionCookie>;
     if (
+      (value.authProvider === "standalone" && value.credentialVersion !== sign("admin-credential:" + (serverEnv.ADMIN_LOGIN_PASSWORD ?? serverEnv.ADMIN_DEMO_PASSWORD))) ||
       typeof value.email !== "string" ||
       (value.role !== "admin" && value.role !== "staff") ||
       typeof value.exp !== "number" ||

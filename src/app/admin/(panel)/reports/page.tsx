@@ -1,13 +1,11 @@
 import { Download } from "lucide-react";
 import { getRepos } from "@/lib/data";
-import { daysAgoIso } from "@/lib/dates";
 import { formatPrice } from "@/lib/format";
 import { ORDER_STATUS_LABELS_AR, ORDER_STATUS_VALUES } from "@/types/enums";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/features/auth/session";
 import { AdminPageTitle, StatCard, Table, Td } from "@/features/admin/components/ui";
 import { SalesChart } from "@/features/reports/components/SalesChart";
-import { summarizeSales } from "@/features/reports/lib/analytics";
 import { Banknote, ShoppingCart, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
@@ -18,8 +16,7 @@ export default async function Reports({ searchParams }: { searchParams: Promise<
   await requireAdmin("admin");
   const requested = Number((await searchParams).days);
   const days = RANGES.includes(requested) ? requested : 30;
-  const orders = await getRepos().orders.all({ from: daysAgoIso(days) });
-  const s = summarizeSales(orders, days);
+  const s = await getRepos().orders.salesSummary(days);
 
   return (
     <>

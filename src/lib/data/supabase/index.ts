@@ -76,18 +76,6 @@ function crud<T extends { id: Id }>(
   };
 }
 
-async function writeProductChildren(db: SupabaseClient, id: Id, input: ProductInput) {
-  check(await db.from("product_images").delete().eq("product_id", id));
-  check(await db.from("product_options").delete().eq("product_id", id));
-  check(await db.from("product_occasions").delete().eq("product_id", id));
-  if (input.images.length)
-    check(await db.from("product_images").insert(input.images.map((i, n) => ({ product_id: id, url: i.url, alt_ar: i.altAr, sort_order: n, is_primary: n === 0 }))));
-  if (input.options.length)
-    check(await db.from("product_options").insert(input.options.map((o, n) => ({ product_id: id, name_ar: o.nameAr, is_required: o.isRequired, sort_order: n, values: o.values.map((v) => ({ value_ar: v.valueAr, price_delta: v.priceDelta })) }))));
-  if (input.occasionIds.length)
-    check(await db.from("product_occasions").insert(input.occasionIds.map((occasion_id) => ({ product_id: id, occasion_id }))));
-}
-
 const productRow = (p: ProductInput): Row => ({
   name_ar: p.nameAr,
   slug: p.slug,
@@ -111,6 +99,7 @@ const productRow = (p: ProductInput): Row => ({
   photo_price: p.photoPrice,
   is_gift_box: p.isGiftBox,
   gift_box_capacity: p.giftBoxCapacity,
+  gift_box_product_ids: p.giftBoxProductIds ?? null,
   allow_in_gift_box: p.allowInGiftBox,
 });
 
@@ -124,6 +113,14 @@ export function createSupabaseRepositories(): Repositories {
   async function idForSlug(table: string, slug: string) {
     const data = check(await db().from(table).select("id").eq("slug", slug).maybeSingle()) as Row | null;
     return data ? String(data.id) : null;
+  }
+
+  async function saveProduct(id: Id | null, input: ProductInput) {
+    const result = await db().rpc("save_catalog_product", {
+      p_id: id, p_product: productRow(input), p_images: input.images,
+      p_options: input.options, p_occasions: input.occasionIds,
+    });
+    return check(result) as string | null;
   }
 
   return {
@@ -155,7 +152,7 @@ export function createSupabaseRepositories(): Repositories {
       async list(query = {}): Promise<Paginated<Product>> {
         const page = query.page ?? 1;
         const perPage = query.perPage ?? 12;
-        let q = db().from("products").select(PRODUCT_SELECT, { count: "exact" });
+        let q = db().from("products").select(query.occasionSlug ? PRODUCT_SELECT + ", matching:product_occasions!inner(occasion_id)" : PRODUCT_SELECT, { count: "exact" });
         if (!query.includeInactive) q = q.eq("is_active", true);
         if (query.categorySlug) {
           const id = await idForSlug("categories", query.categorySlug);
@@ -165,8 +162,7 @@ export function createSupabaseRepositories(): Repositories {
         if (query.occasionSlug) {
           const id = await idForSlug("occasions", query.occasionSlug);
           if (!id) return paginate([], page, perPage);
-          const links = check(await db().from("product_occasions").select("product_id").eq("occasion_id", id)) as Row[];
-          q = q.in("id", links.map((l) => String(l.product_id)));
+          q = q.eq("matching.occasion_id", id);
         }
         if (query.search) {
           const pattern = ilikeSearchPattern(query.search);
@@ -187,7 +183,7 @@ export function createSupabaseRepositories(): Repositories {
           q.order("created_at", { ascending: false });
         const from = (page - 1) * perPage;
         const result = await q.range(from, from + perPage - 1);
-        const rows = check(result) as Row[];
+        const rows = check(result) as unknown as Row[];
         const total = result.count ?? rows.length;
         return { items: rows.map(toProduct), total, page, perPage, pageCount: Math.max(1, Math.ceil(total / perPage)) };
       },
@@ -215,14 +211,11 @@ export function createSupabaseRepositories(): Repositories {
         return (check(await db().from("products").select(PRODUCT_SELECT).eq("is_active", true).eq("category_id", product.categoryId).neq("id", productId).limit(limit)) as Row[]).map(toProduct);
       },
       async create(input) {
-        const row = check(await db().from("products").insert(productRow(input)).select("id").single()) as Row;
-        await writeProductChildren(db(), String(row.id), input);
-        return (await this.getById(String(row.id)))!;
+        const id = await saveProduct(null, input);
+        return (await this.getById(id!))!;
       },
       async update(id, input) {
-        check(await db().from("products").update(productRow(input)).eq("id", id));
-        await writeProductChildren(db(), id, input);
-        return this.getById(id);
+        return await saveProduct(id, input) ? this.getById(id) : null;
       },
       async remove(id) {
         check(await db().from("products").delete().eq("id", id));
@@ -239,7 +232,7 @@ export function createSupabaseRepositories(): Repositories {
         }
         const from = (page - 1) * perPage;
         const result = await q.range(from, from + perPage - 1);
-        const rows = check(result) as Row[];
+        const rows = check(result) as unknown as Row[];
         const total = result.count ?? rows.length;
         return { items: rows.map(toCustomer), total, page, perPage, pageCount: Math.max(1, Math.ceil(total / perPage)) };
       },
@@ -264,8 +257,16 @@ export function createSupabaseRepositories(): Repositories {
       },
     },
     orders: {
-      async placeCheckoutOrder(input, customer, couponId) {
-        const result = await db().rpc("place_checkout_order", {
+      async salesSummary(days) {
+        return check(await db().rpc("store_sales_summary", { p_days: days }));
+      },
+      async byCheckoutKey(key) {
+        const data = check(await db().from("orders").select(ORDER_SELECT).eq("checkout_key", key).maybeSingle());
+        return data ? toOrder(data as Row) : null;
+      },
+      async placeCheckoutOrder(input, customer, couponId, key) {
+        const result = await db().rpc("submit_checkout", {
+          p_key: key ?? crypto.randomUUID(),
           p_order: input,
           p_customer_name: customer.name,
           p_customer_phone: customer.phone,
@@ -273,6 +274,7 @@ export function createSupabaseRepositories(): Repositories {
           p_coupon_id: couponId,
         });
         if (result.error) {
+          if (result.error.message.includes("ATTACHMENT_EXPIRED")) throw new Error("ATTACHMENT_EXPIRED");
           if (result.error.message.includes("CHECKOUT_CONFLICT")) return null;
           throw new Error(`Supabase: ${result.error.message}`);
         }
@@ -304,14 +306,14 @@ export function createSupabaseRepositories(): Repositories {
         }
         const from = (page - 1) * perPage;
         const result = await q.range(from, from + perPage - 1);
-        const rows = check(result) as Row[];
+        const rows = check(result) as unknown as Row[];
         const total = result.count ?? rows.length;
         return { items: rows.map(toOrder), total, page, perPage, pageCount: Math.max(1, Math.ceil(total / perPage)) };
       },
-      async all(query = {}) {
-        const pageSize = 500;
+      async all(query = {}, batchWindow) {
+        const pageSize = batchWindow?.size ?? 500;
         const rows: Row[] = [];
-        for (let offset = 0; ; offset += pageSize) {
+        for (let offset = batchWindow?.offset ?? 0; ; offset += pageSize) {
           let q = db().from("orders").select(ORDER_SELECT)
             .order("created_at", { ascending: false }).order("id", { ascending: false })
             .range(offset, offset + pageSize - 1);
@@ -320,7 +322,7 @@ export function createSupabaseRepositories(): Repositories {
           if (query.to) q = q.lte("created_at", query.to);
           const batch = check(await q) as Row[];
           rows.push(...batch);
-          if (batch.length < pageSize) break;
+          if (batchWindow || batch.length < pageSize) break;
         }
         return rows.map(toOrder);
       },

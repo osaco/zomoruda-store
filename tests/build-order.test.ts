@@ -29,6 +29,12 @@ const input = (over: Partial<CheckoutInput> = {}): CheckoutInput => ({
 });
 
 describe("buildOrder", () => {
+  it("honors each box selection while keeping old unrestricted boxes orderable", () => {
+    for (const [ids, expected] of [[null, true], [[mug.id], true], [[], false]] as const) {
+      const products = seedProducts.map(p => p.id === box.id ? { ...p, giftBoxProductIds: ids ? [...ids] : null } : p);
+      expect(buildOrder({ input: input(), products, zone, coupon: null, customer: null }).ok).toBe(expected);
+    }
+  });
   it("re-prices lines server-side and adds delivery", () => {
     const result = buildOrder({ input: input(), products: seedProducts, zone, coupon: null, customer: null });
     expect(result.ok).toBe(true);

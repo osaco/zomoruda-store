@@ -83,6 +83,7 @@ export type Product = {
   photoRequired: boolean;
   photoPrice: number;
   isGiftBox: boolean;
+  giftBoxProductIds?: string[] | null;
   giftBoxCapacity: number | null;
   allowInGiftBox: boolean;
   images: ProductImage[];

@@ -4,6 +4,8 @@
  * On serverless hosts it resets on cold start — fine for demos, not for production.
  */
 import type { Customer, Id, Order, Product } from "@/types/db";
+import { summarizeSales } from "@/features/reports/lib/analytics";
+import { daysAgoIso } from "@/lib/dates";
 import { formatOrderNumber } from "@/lib/pricing";
 import { isArchivedOrder } from "@/features/orders/lib/order-retention";
 import {
@@ -33,6 +35,7 @@ type DemoState = {
   settings: Map<string, string>;
   customers: Customer[];
   orders: Order[];
+  checkoutIds?: Map<string, string>;
   sequence: number;
 };
 
@@ -266,8 +269,19 @@ export function createDemoRepositories(): Repositories {
       },
     },
     orders: {
-      async placeCheckoutOrder(input, customerInput, couponId) {
+      async salesSummary(days) {
+        return summarizeSales(await this.all({ from: daysAgoIso(days) }), days);
+      },
+      async byCheckoutKey(key) {
         const s = state();
+        const order = s.orders.find(o => o.id === s.checkoutIds?.get(key));
+        return order ? clone(order) : null;
+      },
+      async placeCheckoutOrder(input, customerInput, couponId, key) {
+        const s = state();
+        s.checkoutIds ??= new Map();
+        const previous = key && s.orders.find(order => order.id === s.checkoutIds!.get(key));
+        if (previous) return clone(previous);
         const quantities = new Map<string, number>();
         for (const item of input.items) quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
 
@@ -317,6 +331,7 @@ export function createDemoRepositories(): Repositories {
           statusHistory: [{ id: newId("hist"), orderId: id, status: "new", note: "تم استلام الطلب", createdBy: null, createdAt }],
         };
         s.orders.unshift(order);
+        if (key) s.checkoutIds.set(key, order.id);
         return clone(order);
       },
       async getById(id) {
@@ -337,13 +352,12 @@ export function createDemoRepositories(): Repositories {
         );
         return clone(paginate(list, query.page, query.perPage ?? 20));
       },
-      async all(query = {}) {
-        return clone(
-          state().orders.filter(
+      async all(query = {}, batch) {
+        const records = state().orders.filter(
             (o) => (!query.from || o.createdAt >= query.from) && (!query.to || o.createdAt <= query.to) &&
                 (!query.status || o.status === query.status),
-          ),
         );
+        return clone(batch ? records.slice(batch.offset, batch.offset + batch.size) : records);
       },
       async updateStatus(id, status, note = null, by = null) {
         const order = state().orders.find((o) => o.id === id);

@@ -1,5 +1,6 @@
 "use client";
 
+import { cartDraftId } from "@/features/cart/draft";
 import { scaleImageDimensions } from "./image-sizing";
 
 export const MAX_UPLOAD_MB = 4;
@@ -52,6 +53,7 @@ export async function uploadImage(file: File, kind: "receipt" | "photo"): Promis
   const body = new FormData();
   body.set("file", uploadFile, filename);
   body.set("kind", kind);
+  body.set("draftId", cartDraftId());
   const res = await fetch("/api/upload", { method: "POST", body });
   const json = (await res.json()) as { ok: boolean; path?: string; error?: string };
   if (!json.ok || !json.path) throw new Error(json.error ?? "تعذّر رفع الصورة");

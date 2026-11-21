@@ -1,8 +1,10 @@
+import { sign } from "@/lib/signing";
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
-import { hasImageSignature, imageFileExtension, isBodyTooLarge } from "@/lib/image-upload";
+import { hasImageSignature, imageFileExtension, readUploadForm, isBodyTooLarge } from "@/lib/image-upload";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"];
@@ -27,7 +29,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "تعذر التحقق من طلب الرفع" }, { status: 503 });
   }
 
-  const form = await request.formData().catch(() => null);
+  const form = await readUploadForm(request, MAX_BYTES);
+  if (form === "too-large") return NextResponse.json({ ok: false, error: "الملف كبير جداً" }, { status: 413 });
   const file = form?.get("file");
   const kindValue = form?.get("kind");
   if (kindValue !== "receipt" && kindValue !== "photo") {
@@ -43,8 +46,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "محتوى الملف لا يطابق صيغة الصورة" }, { status: 400 });
   }
 
+  const draft = z.uuid().safeParse(form?.get("draftId"));
+  if (!draft.success) return NextResponse.json({ ok: false, error: "هوية السلة مطلوبة" }, { status: 400 });
   const ext = imageFileExtension(file.type);
-  const path = `${kind}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${ext}`;
+  const path = `${kind}/draft/${sign("upload:" + draft.data)}/${crypto.randomUUID()}.${ext}`;
 
   if (!isSupabaseConfigured) {
     return NextResponse.json({ ok: true, path: `demo/${path}` });

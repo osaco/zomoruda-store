@@ -17,7 +17,8 @@ describe("placeOrder (demo adapter)", () => {
     const zone = (await repos.zones.list())[0];
     const stockBefore = product.stockQty;
 
-    const res = await placeOrder({
+    const payload = {
+      checkoutId: crypto.randomUUID(),
       customerName: "نور",
       customerPhone: "0597000111",
       fulfillment: "delivery",
@@ -26,7 +27,10 @@ describe("placeOrder (demo adapter)", () => {
       paymentMethod: "cash_on_delivery",
       couponCode: "GIFT5",
       items: [{ productId: product.id, quantity: 2, options: [{ nameAr: "اللون", valueAr: "روز جولد" }], customName: "نور" }],
-    });
+    };
+    const res = await placeOrder(payload);
+    const retry = await placeOrder(payload);
+    expect(retry.ok && res.ok && retry.data.orderNumber === res.data.orderNumber).toBe(true);
 
     expect(res.ok).toBe(true);
     if (!res.ok) return;

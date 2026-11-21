@@ -8,11 +8,13 @@ import { AVAILABILITY_LABELS_AR, AVAILABILITY_VALUES } from "@/types/enums";
 import { Checkbox, Field, inputCls } from "@/features/admin/components/ui";
 import { uploadProductImage } from "@/features/uploads/client";
 import { saveProduct, type ProductFormState } from "../server/actions";
-import { formatOptions } from "../lib/parse";
+import { ProductOptionsEditor } from "./ProductOptionsEditor";
 
-export function ProductForm({ product, categories, occasions }: { product?: Product; categories: Category[]; occasions: Occasion[] }) {
+export function ProductForm({ product, categories, occasions, fillings }: { fillings: { id: string; nameAr: string }[]; product?: Product; categories: Category[]; occasions: Occasion[] }) {
   const [state, action, pending] = useActionState<ProductFormState, FormData>(saveProduct, {});
   const [images, setImages] = useState(product?.images.map((i) => i.url) ?? []);
+  const [isBox, setIsBox] = useState(product?.isGiftBox ?? false);
+  const [selectedOnly, setSelectedOnly] = useState(product?.giftBoxProductIds != null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
@@ -62,9 +64,7 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
           }} />
         </label>
         {uploadError && <p className="text-xs text-danger">{uploadError}</p>}
-        <Field label="الخيارات" hint="للعطور: الحجم*: 5 مل=0، 10 مل=فرق السعر، 30 مل=فرق السعر، القارورة كاملة=فرق السعر. اجعل السعر الأساسي سعر 5 مل، ثم أدخل فرق كل حجم عن سعره. مثال عام: الحجم*: وسط=0، كبير=30 (* = إجباري)">
-          <textarea name="options" rows={3} defaultValue={product ? formatOptions(product.options) : ""} className={inputCls} />
-        </Field>
+        <ProductOptionsEditor initial={product?.options ?? []} />
       </div>
       <div className="space-y-4">
         <div className="card space-y-4 p-5">
@@ -101,7 +101,14 @@ export function ProductForm({ product, categories, occasions }: { product?: Prod
           <Checkbox name="allowPhotoUpload" label="يسمح بطباعة صورة يرفعها الزبون" defaultChecked={product?.allowPhotoUpload} />
           <Checkbox name="photoRequired" label="صورة الطباعة إلزامية" defaultChecked={product?.photoRequired} />
           <Field label="رسوم طباعة الصورة ₪"><input name="photoPrice" type="number" min={0} step="0.5" defaultValue={product?.photoPrice ?? 0} className={inputCls} /></Field>
-          <Checkbox name="isGiftBox" label="هذا المنتج بوكس هدية" defaultChecked={product?.isGiftBox} />
+          <label><input type="checkbox" name="isGiftBox" checked={isBox} onChange={event => setIsBox(event.target.checked)} /> هذا المنتج بوكس هدية</label>
+          {isBox && <fieldset className="space-y-2"><legend>الإضافات المتاحة داخل هذا البوكس</legend>
+            <select name="boxContentsMode" className={inputCls} value={selectedOnly ? "selected" : "all"} onChange={event => setSelectedOnly(event.target.value === "selected")}>
+              <option value="all">كل المنتجات المسموح بإضافتها للبوكسات</option><option value="selected">أختار منتجات لهذا البوكس</option>
+            </select>
+            {selectedOnly && fillings.filter(item => item.id !== product?.id).map(item => <label className="block" key={item.id}><input type="checkbox" name="giftBoxProductIds" value={item.id} defaultChecked={product?.giftBoxProductIds?.includes(item.id)} /> {item.nameAr}</label>)}
+            {selectedOnly && !fillings.length && <p>فعّلي «يمكن إضافته داخل بوكس هدية» على المنتجات المراد عرضها هنا.</p>}
+          </fieldset>}
           <Field label="سعة البوكس (عدد القطع)"><input name="giftBoxCapacity" type="number" min={1} max={100} defaultValue={product?.giftBoxCapacity ?? ""} className={inputCls} /></Field>
           <Checkbox name="allowInGiftBox" label="يمكن إضافته داخل بوكس هدية" defaultChecked={product?.allowInGiftBox} />
         </div>

@@ -135,15 +135,18 @@ export interface CustomerRepository {
 }
 
 export interface OrderRepository {
+  salesSummary(days: number): Promise<import("@/features/reports/lib/analytics").SalesSummary>;
+  byCheckoutKey(key: string): Promise<Order | null>;
   placeCheckoutOrder(
     input: NewOrderRecord,
     customer: UpsertCustomerInput,
     couponId: Id | null,
+    checkoutKey?: string,
   ): Promise<Order | null>;
   getById(id: Id): Promise<Order | null>;
   getByNumber(orderNumber: string): Promise<Order | null>;
   list(query?: OrderQuery): Promise<Paginated<Order>>;
-  all(query?: Pick<OrderQuery, "from" | "to" | "status">): Promise<Order[]>;
+  all(query?: Pick<OrderQuery, "from" | "to" | "status">, batch?: { offset: number; size: number }): Promise<Order[]>;
   updateStatus(id: Id, status: OrderStatus, note?: string | null, by?: string | null): Promise<Order | null>;
 }
 

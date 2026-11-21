@@ -31,6 +31,14 @@ export async function GET(request: Request) {
       getRepos().zones.list(),
     ]);
     if (error) throw error;
+    const storage = supabaseAdmin();
+    const unclaimed = await storage.rpc("unclaimed_uploads");
+    if (unclaimed.error) throw unclaimed.error;
+    const paths = (unclaimed.data as { path: string }[]).map(row => row.path);
+    if (paths.length) {
+      const removed = await storage.storage.from("uploads").remove(paths);
+      if (removed.error) throw removed.error;
+    }
     return NextResponse.json({
       ok: true,
       mode: "supabase",

@@ -148,6 +148,7 @@ export const toProduct = (r: Row): Product => {
     photoPrice: Number(r.photo_price ?? 0),
     isGiftBox: Boolean(r.is_gift_box),
     giftBoxCapacity: num(r.gift_box_capacity),
+    giftBoxProductIds: Array.isArray(r.gift_box_product_ids) ? r.gift_box_product_ids.map(String) : null,
     allowInGiftBox: Boolean(r.allow_in_gift_box),
     images,
     options,

@@ -58,7 +58,8 @@ export function buildOrder(args: {
     const product = byId.get(line.productId);
     if (!product) return { ok: false, error: "أحد منتجات البوكس لم يعد متوفراً" };
     const box = line.giftBoxKey ? giftBoxes.get(line.giftBoxKey) : undefined;
-    if (!box || line.giftBoxId !== box.product.id || !product.allowInGiftBox || product.isGiftBox) {
+    if (!box || line.giftBoxId !== box.product.id || !product.allowInGiftBox || product.isGiftBox ||
+        (box.product.giftBoxProductIds && !box.product.giftBoxProductIds.includes(product.id))) {
       return { ok: false, error: `«${product.nameAr}» لا يمكن وضعه في هذا البوكس` };
     }
     box.quantity += line.quantity;

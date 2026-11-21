@@ -13,7 +13,8 @@ import { checkCoupon } from "../lib/coupon";
 import { buildOrder } from "../lib/build-order";
 import { checkoutSchema } from "../schemas";
 import { calculateSubtotal } from "@/lib/pricing";
-import { signOrderAccessToken } from "@/lib/signing";
+import type { Order } from "@/types/db";
+import { sign, signOrderAccessToken } from "@/lib/signing";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
 import { canPlaceUnconfirmedOrder } from "../lib/unconfirmed-order-limit";
 
@@ -28,20 +29,40 @@ const couponPreviewSchema = z.object({
   })).min(1).max(50),
 });
 
+function confirmation(order: Order) {
+    return ok({
+      orderNumber: order.orderNumber,
+      total: order.total,
+      whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL)),
+      successUrl: `/order/${order.orderNumber}?t=${signOrderAccessToken(order.orderNumber)}`,
+    });
+}
+
 /** Creates an order: validate -> re-price on the server -> persist -> WhatsApp handoff URL. */
 export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
   const parsed = checkoutSchema.safeParse(raw);
   if (!parsed.success) return fail("بيانات الطلب غير صالحة", fieldErrorsFrom(parsed.error.issues));
   const input = parsed.data;
 
+  const prefix = input.draftId ? sign("upload:" + input.draftId) : null;
+  const validAttachment = (path: string | null | undefined, kind: string) => {
+    if (!path) return true;
+    const base = (getRepos().mode === "demo" ? "demo/" : "") + kind + "/draft/" + prefix + "/";
+    return prefix && path.startsWith(base) && /^[a-f0-9-]{36}\.(jpg|png|webp|avif|heic|heif)$/.test(path.slice(base.length));
+  };
+  if (!validAttachment(input.receiptPath, "receipts") || input.items.some(i => !validAttachment(i.photoPath, "photos")))
+    return fail("أعيدي رفع المرفق لهذه السلة قبل تأكيد الطلب.");
+
   const phoneForLimit = normalizePsPhone(input.customerPhone);
   if (!phoneForLimit) return fail("رقم الجوال غير صحيح");
   try {
     const ip = await getRequestIp();
-    const [ipLimited, phoneLimited] = await Promise.all([
-      isRateLimited("checkout-ip", ip, 30, 10 * 60),
-      isRateLimited("checkout-phone", phoneForLimit, 2, 10 * 60),
-    ]);
+    const ipLimited = await isRateLimited("checkout-ip", ip, 30, 10 * 60);
+    if (!ipLimited && input.checkoutId) {
+      const previous = await getRepos().orders.byCheckoutKey(sign("checkout:" + JSON.stringify(input)));
+      if (previous) return confirmation(previous);
+    }
+    const phoneLimited = await isRateLimited("checkout-phone", phoneForLimit, 2, 10 * 60);
     if (ipLimited || phoneLimited) {
       return fail("تم تجاوز عدد الطلبات المسموح به. يرجى الانتظار والمحاولة لاحقاً.");
     }
@@ -73,17 +94,14 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
       { ...built.order, customerId: null },
       { name: input.customerName, phone },
       built.couponId,
+      input.checkoutId ? sign("checkout:" + JSON.stringify(input)) : crypto.randomUUID(),
     );
     if (!order) return fail("تغيّر المخزون أو انتهت صلاحية الكوبون أثناء إتمام الطلب. راجعي السلة وحاولي مرة أخرى.");
 
     revalidatePath("/admin", "layout");
-    return ok({
-      orderNumber: order.orderNumber,
-      total: order.total,
-      whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL)),
-      successUrl: `/order/${order.orderNumber}?t=${signOrderAccessToken(order.orderNumber)}`,
-    });
-  } catch {
+    return confirmation(order);
+  } catch (error) {
+    if (error instanceof Error && error.message === "ATTACHMENT_EXPIRED") return fail("انتهت صلاحية المرفق. ارفعيه من جديد.");
     console.error("[checkout] Failed to place order");
     return fail("تعذر إتمام الطلب حالياً. لم يتم تأكيده، يرجى المحاولة بعد قليل.");
   }

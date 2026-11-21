@@ -1,3 +1,4 @@
+import { giftBoxProducts } from "@/features/product/gift-box-products";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getRepos } from "@/lib/data";
@@ -18,7 +19,7 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug((await params).slug);
-  if (!product) return {};
+  if (!product?.isActive) return {};
   const image = product.images[0]?.url;
   return {
     title: product.nameAr,
@@ -38,7 +39,7 @@ export default async function ProductPage({ params }: Props) {
     getCategories(),
     getRepos().products.related(product.id, 4),
     getStoreSettings(),
-    product.isGiftBox ? getRepos().products.list({ giftBoxEligible: true, perPage: 60, sort: "newest" }) : Promise.resolve({ items: [] }),
+    product.isGiftBox ? giftBoxProducts(false, product.giftBoxProductIds) : Promise.resolve([]),
   ]);
   const category = categories.find((c) => c.id === product.categoryId);
 
@@ -67,7 +68,7 @@ export default async function ProductPage({ params }: Props) {
       <div className="container-page -mt-6 grid gap-8 pb-6 lg:grid-cols-2">
         <ProductGallery product={product} />
         {product.isGiftBox ? (
-          <GiftBoxBuilder box={product} products={giftBoxContents.items.filter((item) => item.isActive && !item.isGiftBox && item.id !== product.id)} ordersPaused={settings.ordersPaused} />
+          <GiftBoxBuilder box={product} products={giftBoxContents} ordersPaused={settings.ordersPaused} />
         ) : (
           <ProductPurchasePanel product={product} ordersPaused={settings.ordersPaused} />
         )}

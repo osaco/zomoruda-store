@@ -1,23 +1,19 @@
 import Link from "next/link";
 import { Banknote, Clock, ShoppingCart, TrendingUp } from "lucide-react";
 import { getRepos } from "@/lib/data";
-import { daysAgoIso } from "@/lib/dates";
 import { formatDate, formatPrice } from "@/lib/format";
 import { AdminPageTitle, StatCard, Table, Td } from "@/features/admin/components/ui";
 import { OrderStatusBadge } from "@/features/orders/components/OrderStatusBadge";
 import { SalesChart } from "@/features/reports/components/SalesChart";
-import { summarizeSales } from "@/features/reports/lib/analytics";
 
 export default async function AdminOverview({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const { denied } = await searchParams;
   const repos = getRepos();
-  const since = daysAgoIso(30);
-  const [orders, latest, products] = await Promise.all([
-    repos.orders.all({ from: since }),
+  const [summary, latest, products] = await Promise.all([
+    repos.orders.salesSummary(30),
     repos.orders.list({ perPage: 8 }),
     repos.products.list({ perPage: 200, includeInactive: true }),
   ]);
-  const summary = summarizeSales(orders, 30);
   const lowStock = products.items.filter((p) => p.availability === "in_stock" && p.stockQty <= 5);
   const pending = summary.byStatus.new + summary.byStatus.confirmed + summary.byStatus.preparing;
 

@@ -3,7 +3,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getActiveSession } from "@/features/auth/session";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
-import { hasImageSignature, imageFileExtension, isBodyTooLarge } from "@/lib/image-upload";
+import { hasImageSignature, imageFileExtension, readUploadForm, isBodyTooLarge } from "@/lib/image-upload";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic", "image/heif"];
 const MAX_BYTES = 200 * 1024;
@@ -25,7 +25,8 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ ok: false, error: "تعذر التحقق من طلب الرفع" }, { status: 503 });
   }
-  const form = await request.formData().catch(() => null);
+  const form = await readUploadForm(request, MAX_BODY_BYTES);
+  if (form === "too-large") return NextResponse.json({ ok: false, error: "الملف كبير جداً" }, { status: 413 });
   const file = form?.get("file");
   if (!(file instanceof File) || !ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json({ ok: false, error: "ملف غير صالـح أو صيغة غير مدعومة" }, { status: 400 });

@@ -20,7 +20,8 @@ export function getStandaloneAdminUsername() {
 }
 
 export async function createSession(email: string, role: AdminRole, authProvider: AdminSession["authProvider"] = "supabase") {
-  const payload = Buffer.from(JSON.stringify({ email, role, authProvider, exp: Date.now() + MAX_AGE * 1000 })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({ email, role, authProvider,
+    credentialVersion: authProvider === "standalone" ? sign("admin-credential:" + (serverEnv.ADMIN_LOGIN_PASSWORD ?? serverEnv.ADMIN_DEMO_PASSWORD)) : undefined, exp: Date.now() + MAX_AGE * 1000 })).toString("base64url");
   (await cookies()).set(SESSION_COOKIE, `${payload}.${sign(payload)}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

@@ -1,5 +1,6 @@
 "use client";
 
+import { cartDraftId } from "@/features/cart/draft";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import Link from "next/link";
@@ -99,12 +100,14 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
       })),
     };
     startTransition(async () => {
-      const res = await placeOrder(payload);
+      const draftId = cartDraftId();
+      const res = await placeOrder({ ...payload, checkoutId: draftId, draftId });
       if (!res.ok) {
         setFormError(res.error);
         setErrors(res.fieldErrors ?? {});
         return;
       }
+      localStorage.removeItem("zm.cart.draft");
       clear();
         // صفحة النجاح تعرض رابط واتساب مباشراً، ولا نعتمد على نافذة منبثقة قد يحجبها المتصفح.
       router.push(res.data.successUrl);
