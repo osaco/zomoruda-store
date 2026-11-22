@@ -33,6 +33,7 @@ export function orderWhatsappFullMessage(order: Order, siteUrl: string): string 
     const opts = item.options.map((o) => `${o.nameAr}: ${o.valueAr}`).join("، ");
     if (opts) lines.push(`   ▫️ الخيارات: ${opts}`);
     if (item.customName) lines.push(`   ▫️ الاسم المكتوب: ${item.customName}`);
+    if (item.itemNote) lines.push(`   ▫️ ملاحظة الطلب لهذه القطعة: ${item.itemNote}`);
     if (item.cardMessage) lines.push(`   ▫️ رسالة الكرت: "${item.cardMessage}"`);
     if (item.photoPath) lines.push(`   ▫️ مرفق صورة مخصصة للطباعة 🖼️`);
   });

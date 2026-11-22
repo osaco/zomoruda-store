@@ -24,7 +24,7 @@ export function Hero({ addressAr }: { addressAr: string }) {
           </div>
         </div>
         <div className={styles.heroImage}>
-          <Image src="/home/roses.webp" alt="باقة ورد جوري بتغليف عاجي" fill preload sizes="(max-width: 720px) 92vw, 49vw" />
+          <Image src="/showcase/rose-bouquet.webp" alt="باقة ورد جوري بتغليف عاجي" fill preload sizes="(max-width: 720px) 92vw, 49vw" />
         </div>
       </div>
     </section>

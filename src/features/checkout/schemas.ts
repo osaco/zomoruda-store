@@ -3,6 +3,7 @@ import { FULFILLMENT_VALUES, PAYMENT_METHOD_VALUES } from "@/types/enums";
 import { isValidPsPhone } from "@/lib/phone";
 
 export const CARD_MESSAGE_MAX = 150;
+export const ITEM_NOTE_MAX = 250;
 
 export const cartLineSchema = z.object({
   productId: z.string().min(1),
@@ -10,6 +11,7 @@ export const cartLineSchema = z.object({
   options: z.array(z.object({ nameAr: z.string(), valueAr: z.string() })).default([]),
   customName: z.string().trim().max(40).nullish(),
   cardMessage: z.string().trim().max(CARD_MESSAGE_MAX, `رسالة الكرت ${CARD_MESSAGE_MAX} حرف كحد أقصى`).nullish(),
+  itemNote: z.string().trim().max(ITEM_NOTE_MAX).nullish(),
   photoPath: z.string().max(300).nullish(),
   giftBoxKey: z.string().max(80).nullish(),
   giftBoxId: z.string().max(80).nullish(),

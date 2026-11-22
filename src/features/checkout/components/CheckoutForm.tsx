@@ -94,6 +94,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
         options: l.options.map(({ nameAr, valueAr }) => ({ nameAr, valueAr })),
         customName: l.customName,
         cardMessage: l.cardMessage,
+        itemNote: l.itemNote,
         photoPath: l.photoPath,
         giftBoxKey: l.giftBoxKey,
         giftBoxId: l.giftBoxId,

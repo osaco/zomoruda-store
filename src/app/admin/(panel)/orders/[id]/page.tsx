@@ -46,6 +46,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
                     {item.giftBoxId && item.giftBoxName && <p className="text-xs font-medium text-primary">داخل بوكس: {item.giftBoxName}</p>}
                     {item.options.map((o) => <p key={o.nameAr} className="text-xs text-muted">{o.nameAr}: {o.valueAr}</p>)}
                     {item.customName && <p className="text-xs">الاسم: <strong>{item.customName}</strong></p>}
+                    {item.itemNote && <p className="break-words text-xs">ملاحظة القطعة: {item.itemNote}</p>}
                     {item.cardMessage && <p className="text-xs">رسالة الكرت: {item.cardMessage}</p>}
                     {item.photoPath && <a href={`/admin/files?path=${encodeURIComponent(item.photoPath)}`} target="_blank" className="text-xs text-primary underline">عرض الصورة المطلوب طباعتها</a>}
                   </div>

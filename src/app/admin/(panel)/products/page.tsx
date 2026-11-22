@@ -22,7 +22,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
       <AdminPageTitle title="المنتجات" action={{ href: "/admin/products/new", label: "+ منتج جديد" }} />
       {sp.saved && <p className="mb-4 rounded-input bg-success/10 p-3 text-sm text-success">تم الحفظ ✓</p>}
       <form className="mb-4 flex gap-2"><input name="q" defaultValue={sp.q} placeholder="بحث بالاسم" className={inputCls} /><button className="btn-secondary !py-2">بحث</button></form>
-      <Table head={["", "المنتج", "القسم", "السعر", "المخزون", "التوفر", "الحالة", "المبيعات"]} empty={result.items.length === 0}>
+      <Table head={["", "المنتج", "القسم", "السعر", "المخزون", "التوفر", "الحالة", "المبيعات", "الإجراء"]} empty={result.items.length === 0}>
         {result.items.map((p) => (
           <tr key={p.id} className="hover:bg-primary-light/30">
             <Td>{p.images[0] && <Image src={p.images[0].url} alt="" width={40} height={40} sizes="40px" className="rounded-lg bg-primary-light object-contain p-1" />}</Td>
@@ -33,6 +33,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
             <Td className="text-xs">{AVAILABILITY_LABELS_AR[p.availability]}</Td>
             <Td>{p.isActive ? <Badge variant="success">ظاهر</Badge> : <Badge variant="danger">مخفي</Badge>}</Td>
             <Td>{p.soldCount}</Td>
+            <Td><Link href={`/admin/products/${p.id}`} className="btn-secondary !py-1.5" aria-label={`تعديل ${p.nameAr}`}>تعديل</Link></Td>
           </tr>
         ))}
       </Table>

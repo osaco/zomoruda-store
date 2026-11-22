@@ -37,7 +37,6 @@ export function ProductForm({ product, categories, occasions, fillings }: { fill
       {product && <input type="hidden" name="id" value={product.id} />}
       <div className="card space-y-4 p-5">
         <Field label="اسم المنتج"><input name="nameAr" required defaultValue={product?.nameAr} className={inputCls} /></Field>
-        <Field label="الرابط (slug)" hint="يُولَّد تلقائياً من الاسم إذا تُرك فارغاً"><input name="slug" dir="ltr" defaultValue={product?.slug} className={inputCls} /></Field>
         <Field label="الوصف"><textarea name="descriptionAr" rows={4} defaultValue={product?.descriptionAr} className={inputCls} /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="السعر ₪"><input name="price" type="number" step="0.5" min={0} required defaultValue={product?.price} className={inputCls} /></Field>
@@ -110,7 +109,7 @@ export function ProductForm({ product, categories, occasions, fillings }: { fill
             {selectedOnly && !fillings.length && <p>فعّلي «يمكن إضافته داخل بوكس هدية» على المنتجات المراد عرضها هنا.</p>}
           </fieldset>}
           <Field label="سعة البوكس (عدد القطع)"><input name="giftBoxCapacity" type="number" min={1} max={100} defaultValue={product?.giftBoxCapacity ?? ""} className={inputCls} /></Field>
-          <Checkbox name="allowInGiftBox" label="يمكن إضافته داخل بوكس هدية" defaultChecked={product?.allowInGiftBox} />
+          {!isBox && <Checkbox name="allowInGiftBox" label="اعرضي هذا المنتج ضمن إضافات بوكسات الهدايا" defaultChecked={product?.allowInGiftBox} />}
         </div>
         {state.error && <p role="alert" className="rounded-input bg-danger/10 p-3 text-sm text-danger">{state.error}</p>}
         <button disabled={pending} className="btn-primary w-full">{pending && <Loader2 className="h-4 w-4 animate-spin" />} حفظ المنتج</button>

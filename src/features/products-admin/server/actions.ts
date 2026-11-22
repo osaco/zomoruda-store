@@ -14,11 +14,17 @@ export async function saveProduct(_: ProductFormState, form: FormData): Promise<
   if (!parsed.ok) return { error: parsed.error };
   const id = String(form.get("id") ?? "");
   const repos = getRepos();
-  const clash = await repos.products.getBySlug(parsed.data.slug);
-  if (clash && clash.id !== id) return { error: "الرابط (slug) مستخدم لمنتج آخر" };
+  const input = parsed.data;
   try {
-    if (id) await repos.products.update(id, parsed.data);
-    else await repos.products.create(parsed.data);
+    if (id) {
+      const product = await repos.products.getById(id);
+      if (!product) return { error: "المنتج غير موجود" };
+      await repos.products.update(id, { ...input, slug: product.slug });
+    } else {
+      const base = input.slug || "gift";
+      const slug = await repos.products.getBySlug(base) ? `${base}-${crypto.randomUUID().slice(0, 8)}` : base;
+      await repos.products.create({ ...input, slug });
+    }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "تعذّر الحفظ" };
   }

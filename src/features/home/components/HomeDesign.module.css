@@ -85,3 +85,5 @@
   .galleryImage img { transition: none; }
   .galleryImage:hover img { transform: none; }
 }
+
+.controls .playback { width: auto; padding-inline: .7rem; font-size: .8rem; }

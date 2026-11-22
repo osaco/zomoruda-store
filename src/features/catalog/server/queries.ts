@@ -9,7 +9,19 @@ export const getCategories = cache(() => getRepos().categories.list());
 export const getOccasions = cache(() => getRepos().occasions.list());
 export const getCategoryBySlug = cache((slug: string) => getRepos().categories.getBySlug(slug));
 export const getOccasionBySlug = cache((slug: string) => getRepos().occasions.getBySlug(slug));
-export const getProductBySlug = cache((slug: string) => getRepos().products.getBySlug(slug));
+export const getProductBySlug = cache(async (slug: string) => {
+  // Some adapters pass percent-encoded dynamic segments to the page.
+  const decoded = /%[a-f0-9]{2}/i.test(slug) ? safelyDecodeSlug(slug) : slug;
+  return getRepos().products.getBySlug(decoded);
+});
+
+function safelyDecodeSlug(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 export const getActiveBanners = cache(async () => {
   const now = new Date().toISOString();
   const banners = await getRepos().banners.list();

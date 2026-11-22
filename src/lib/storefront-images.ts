@@ -27,12 +27,12 @@ const categoryArtwork: Record<string, string> = {
 
 const productArtwork: Record<string, string> = {
   "royal-gift-box": "gift-box.svg",
-  "pink-roses-bouquet": "flowers.svg",
+  "pink-roses-bouquet": "rose-bouquet.webp",
   "oud-perfume-50ml": "perfume.svg",
   "vanilla-perfume": "perfume.svg",
   "makeup-kit": "cosmetics.svg",
   "name-mug": "name-mug.webp",
-  "name-necklace": "watch.svg",
+  "name-necklace": "name-necklace.webp",
   "pearl-bracelet": "watch.svg",
   "crystal-earrings": "watch.svg",
   "leather-handbag": "gift-box.svg",

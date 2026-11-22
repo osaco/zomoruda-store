@@ -43,6 +43,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
         )}
         {line.giftBoxId && <p className="text-xs font-medium text-primary">داخل بوكس: {line.giftBoxName}</p>}
         {line.customName && <p className="text-xs text-muted">الاسم: {line.customName}</p>}
+        {line.itemNote && <p className="break-words text-xs text-muted">ملاحظة: {line.itemNote}</p>}
         {line.cardMessage && <p className="line-clamp-1 text-xs text-muted">الكرت: {line.cardMessage}</p>}
         {line.photoPath && <p className="text-xs text-success">✓ تم رفع الصورة</p>}
         <div className="mt-1 flex items-center justify-between">

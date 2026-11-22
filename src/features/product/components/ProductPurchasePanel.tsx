@@ -12,7 +12,7 @@ import { whatsappLink } from "@/lib/site";
 import { getProductStorefrontImage } from "@/lib/storefront-images";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/features/cart/store";
-import { CARD_MESSAGE_MAX } from "@/features/checkout/schemas";
+import { CARD_MESSAGE_MAX, ITEM_NOTE_MAX } from "@/features/checkout/schemas";
 import { productWhatsappMessage } from "@/features/orders/lib/whatsapp-message";
 import { PhotoUploadField } from "./PhotoUploadField";
 
@@ -22,6 +22,7 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
     Object.fromEntries(product.options.filter((o) => o.isRequired && o.values[0]).map((o) => [o.nameAr, o.values[0].valueAr])),
   );
   const [quantity, setQuantity] = useState(1);
+  const [itemNote, setItemNote] = useState("");
   const [customName, setCustomName] = useState("");
   const [cardMessage, setCardMessage] = useState("");
   const [photoPath, setPhotoPath] = useState<string | null>(null);
@@ -55,6 +56,7 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
     unitPrice: product.price,
     quantity,
     options: chosen,
+    itemNote: itemNote.trim() || null,
     customName: customName.trim() || null,
     cardMessage: cardMessage.trim() || null,
     photoPath,
@@ -127,6 +129,8 @@ export function ProductPurchasePanel({ product, ordersPaused }: { product: Produ
           </div>
         </fieldset>
       ))}
+
+      <label className="block space-y-1 text-sm">ملاحظات على هذه الهدية (اختياري)<textarea value={itemNote} onChange={event => setItemNote(event.target.value)} rows={2} maxLength={ITEM_NOTE_MAX} className="field" /></label>
 
       {(product.allowName || product.allowCardMessage || product.allowPhotoUpload) && (
         <div className="card space-y-4 p-4">

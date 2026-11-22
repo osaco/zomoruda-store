@@ -26,7 +26,7 @@ describe("placeOrder (demo adapter)", () => {
       address: "غزة، الرمال",
       paymentMethod: "cash_on_delivery",
       couponCode: "GIFT5",
-      items: [{ productId: product.id, quantity: 2, options: [{ nameAr: "اللون", valueAr: "روز جولد" }], customName: "نور" }],
+      items: [{ productId: product.id, quantity: 2, options: [{ nameAr: "اللون", valueAr: "روز جولد" }], customName: "نور", itemNote: "تغليف بسيط" }],
     };
     const res = await placeOrder(payload);
     const retry = await placeOrder(payload);
@@ -40,6 +40,8 @@ describe("placeOrder (demo adapter)", () => {
 
     const order = await findOrderForTracking(res.data.orderNumber, "+970597000111");
     expect(order?.items[0].customName).toBe("نور");
+    expect(order?.items[0].itemNote).toBe("تغليف بسيط");
+    expect(decodeURIComponent(res.data.whatsappUrl)).toContain("تغليف بسيط");
     expect((await repos.products.getById(product.id))!.stockQty).toBe(stockBefore - 2);
     expect((await repos.customers.getByPhone("0597000111"))!.ordersCount).toBe(1);
     expect((await repos.coupons.getByCode("GIFT5"))!.usedCount).toBe(1);

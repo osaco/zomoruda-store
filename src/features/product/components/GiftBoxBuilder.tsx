@@ -8,12 +8,13 @@ import { AVAILABILITY_LABELS_AR } from "@/types/enums";
 import { formatPrice } from "@/lib/format";
 import { getProductStorefrontImage } from "@/lib/storefront-images";
 import { useCart, type CartLine, type CartOption } from "@/features/cart/store";
-import { CARD_MESSAGE_MAX } from "@/features/checkout/schemas";
+import { CARD_MESSAGE_MAX, ITEM_NOTE_MAX } from "@/features/checkout/schemas";
 import { PhotoUploadField } from "./PhotoUploadField";
 
 type ProductChoice = {
   quantity: number;
   options: Record<string, string>;
+  itemNote: string;
   customName: string;
   cardMessage: string;
   photoPath: string | null;
@@ -23,6 +24,7 @@ function initialChoice(product: Product): ProductChoice {
   return {
     quantity: 1,
     options: Object.fromEntries(product.options.filter((option) => option.isRequired && option.values[0]).map((option) => [option.nameAr, option.values[0].valueAr])),
+    itemNote: "",
     customName: "",
     cardMessage: "",
     photoPath: null,
@@ -56,6 +58,7 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
   const [boxOptions, setBoxOptions] = useState<Record<string, string>>(() =>
     Object.fromEntries(box.options.filter((option) => option.isRequired && option.values[0]).map((option) => [option.nameAr, option.values[0].valueAr])),
   );
+  const [boxNote, setBoxNote] = useState("");
   const [boxName, setBoxName] = useState("");
   const [boxMessage, setBoxMessage] = useState("");
   const [boxPhoto, setBoxPhoto] = useState<string | null>(null);
@@ -86,6 +89,7 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
     quantity: 1,
     giftBoxCapacity: capacity,
     options: boxSelectedOptions,
+    itemNote: boxNote.trim() || null,
     customName: box.allowName ? boxName.trim() || null : null,
     nameFee: box.allowName && boxName.trim() ? box.namePrice : 0,
     cardMessage: box.allowCardMessage ? boxMessage.trim() || null : null,
@@ -106,6 +110,7 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
         quantity: choice.quantity,
         giftBoxCapacity: null,
         options: optionsFor(product, choice.options),
+        itemNote: choice.itemNote.trim() || null,
         customName: product.allowName ? choice.customName.trim() || null : null,
         nameFee: product.allowName && choice.customName.trim() ? product.namePrice : 0,
         cardMessage: product.allowCardMessage ? choice.cardMessage.trim() || null : null,
@@ -149,11 +154,14 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
         </section>
       )}
 
+      <label className="block space-y-1 text-sm">ملاحظات على البوكس (اختياري)<textarea value={boxNote} onChange={event => setBoxNote(event.target.value)} rows={2} maxLength={ITEM_NOTE_MAX} className="field" /></label>
+
       <section className="space-y-3" aria-labelledby="gift-box-products-heading">
         <div className="flex items-end justify-between gap-3">
           <div><h2 id="gift-box-products-heading" className="font-heading text-lg font-bold">اختاري محتويات البوكس</h2><p className="text-xs text-muted">يمكنك إضافة حتى {capacity} قطع</p></div>
           <span className="shrink-0 rounded-full bg-primary-light px-3 py-1 text-sm font-bold text-primary">{selectedUnits} / {capacity}</span>
         </div>
+        {products.length === 0 && <p className="text-muted">الإضافات لهذا البوكس غير متاحة حالياً.</p>}
         {products.map((product) => {
           const choice = choices[product.id];
           const selected = Boolean(choice);
@@ -189,6 +197,7 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
                   {product.options.map((option) => (
                     <label key={option.id} className="block space-y-1 text-sm"><span className="font-medium">{option.nameAr}{option.isRequired ? " *" : ""}</span><select value={choice.options[option.nameAr] ?? ""} onChange={(event) => setProductChoice(product, { options: { ...choice.options, [option.nameAr]: event.target.value } })} className="field">{!option.isRequired && <option value="">اختياري</option>}{option.values.map((value) => <option key={value.valueAr} value={value.valueAr}>{value.valueAr}{value.priceDelta ? ` (+${formatPrice(value.priceDelta)})` : ""}</option>)}</select></label>
                   ))}
+                  <label className="block space-y-1 text-sm">ملاحظات على القطعة (اختياري)<textarea value={choice.itemNote} onChange={event => setProductChoice(product, { itemNote: event.target.value })} rows={2} maxLength={ITEM_NOTE_MAX} className="field" /></label>
                   {product.allowName && <label className="block space-y-1 text-sm">الاسم على المنتج{product.nameRequired ? " (مطلوب)" : " (اختياري)"}<input value={choice.customName} onChange={(event) => setProductChoice(product, { customName: event.target.value })} maxLength={40} className="field" /></label>}
                   {product.allowCardMessage && <label className="block space-y-1 text-sm">رسالة الكرت{product.cardMessageRequired ? " (مطلوبة)" : " (اختيارية)"}<textarea value={choice.cardMessage} onChange={(event) => setProductChoice(product, { cardMessage: event.target.value })} maxLength={CARD_MESSAGE_MAX} rows={2} className="field" /></label>}
                   {product.allowPhotoUpload && <PhotoUploadField label={`صورة الطباعة${product.photoRequired ? " (مطلوبة)" : " (اختيارية)"}`} kind="photo" value={choice.photoPath} onChange={(photoPath) => setProductChoice(product, { photoPath })} />}

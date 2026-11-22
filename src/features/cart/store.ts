@@ -18,6 +18,7 @@ export type CartLine = {
   options: CartOption[];
   customName: string | null;
   cardMessage: string | null;
+  itemNote?: string | null;
   photoPath: string | null;
   nameFee: number;
   cardMessageFee: number;
@@ -53,6 +54,7 @@ function normalizePersistedLine(value: unknown): CartLine | null {
     unitPrice: finiteOr(line.unitPrice),
     quantity: Math.max(1, Math.min(50, Math.trunc(finiteOr(line.quantity, 1)))),
     options,
+    itemNote: typeof line.itemNote === "string" ? line.itemNote.trim().slice(0, 250) : null,
     customName: typeof line.customName === "string" ? line.customName : null,
     cardMessage: typeof line.cardMessage === "string" ? line.cardMessage : null,
     photoPath: typeof line.photoPath === "string" ? line.photoPath : null,
@@ -81,7 +83,7 @@ type CartState = {
 
 /** Same product + same options + same customization = same cart line. */
 export function lineKey(line: Omit<CartLine, "key" | "quantity" | "unitPrice">): string {
-  return JSON.stringify([line.productId, line.giftBoxKey, line.options.map((o) => `${o.nameAr}=${o.valueAr}`), line.customName, line.cardMessage, line.photoPath]);
+  return JSON.stringify([line.productId, line.giftBoxKey, line.options.map((o) => `${o.nameAr}=${o.valueAr}`), line.customName, line.cardMessage, line.photoPath, line.itemNote ?? null]);
 }
 
 export const useCart = create<CartState>()(

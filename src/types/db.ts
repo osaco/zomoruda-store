@@ -146,6 +146,7 @@ export type OrderItem = {
   nameFee?: number;
   cardMessage: string | null;
   cardMessageFee?: number;
+  itemNote?: string | null;
   photoPath: string | null;
   photoFee?: number;
   /** Links contents to one specific gift box in this order snapshot. */

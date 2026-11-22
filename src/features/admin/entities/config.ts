@@ -32,7 +32,6 @@ export const ENTITIES = {
     repo: "categories",
     fields: [
       { name: "nameAr", label: "الاسم", type: "text", required: true, inTable: true },
-      { name: "slug", label: "الرابط (slug)", type: "text", hint: "فارغ = تلقائي", inTable: true },
       { name: "descriptionAr", label: "الوصف", type: "textarea" },
       { name: "imageUrl", label: "صورة القسم", type: "url" },
       { name: "sortOrder", label: "الترتيب", type: "number", inTable: true },
@@ -46,7 +45,6 @@ export const ENTITIES = {
     repo: "occasions",
     fields: [
       { name: "nameAr", label: "الاسم", type: "text", required: true, inTable: true },
-      { name: "slug", label: "الرابط (slug)", type: "text", inTable: true },
       { name: "icon", label: "الأيقونة", type: "select", options: ["cake", "graduation-cap", "heart", "flower", "baby"].map((v) => ({ value: v, label: v })) },
       { name: "sortOrder", label: "الترتيب", type: "number", inTable: true },
       { name: "isActive", label: "ظاهر", type: "checkbox", inTable: true },
@@ -55,7 +53,7 @@ export const ENTITIES = {
       .transform((v) => ({ ...v, slug: slugify(v.slug || v.nameAr) })),
   },
   banners: {
-    title: "البانرات",
+    title: "معرض الرئيسية",
     repo: "banners",
     fields: [
       { name: "titleAr", label: "العنوان", type: "text", required: true, inTable: true },

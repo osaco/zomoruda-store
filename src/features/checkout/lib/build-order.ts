@@ -113,6 +113,7 @@ export function buildOrder(args: {
       customName,
       nameFee,
       cardMessage,
+      itemNote: line.itemNote || null,
       cardMessageFee,
       photoPath,
       photoFee,

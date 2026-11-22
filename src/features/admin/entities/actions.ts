@@ -29,7 +29,11 @@ export async function saveEntity(_: EntityFormState, form: FormData): Promise<En
   const id = String(form.get("_id") ?? "");
   try {
     const repo = repoFor(entity);
-    if (id) await repo.update(id, parsed.data);
+    if (id) {
+      const existing = await repo.getById(id);
+      const data = existing && "slug" in existing ? { ...parsed.data, slug: existing.slug } : parsed.data;
+      await repo.update(id, data);
+    }
     else await repo.create(parsed.data as never);
   } catch (e) {
     return { error: e instanceof Error ? e.message : "تعذّر الحفظ" };
