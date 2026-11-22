@@ -77,6 +77,8 @@ export function orderWhatsappMessage(order: Order, siteUrl: string): string {
     `الإجمالي: ${formatPrice(order.total)}`,
     `الدفع: ${PAYMENT_METHOD_LABELS_AR[order.paymentMethod]}`,
     fulfillment,
+    ...order.items.flatMap(item => item.itemNote ? [`ملاحظة «${item.nameAr}»: ${item.itemNote}`] : []),
+    ...(order.notes ? [`ملاحظة الطلب: ${order.notes}`] : []),
     `تتبّع الطلب: ${trackLink}`,
   ].join("\n");
 }
