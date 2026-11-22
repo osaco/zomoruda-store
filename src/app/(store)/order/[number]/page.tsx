@@ -5,6 +5,7 @@ import { CheckCircle2, MessageCircle, RotateCcw } from "lucide-react";
 import { getRepos } from "@/lib/data";
 import { env } from "@/lib/env";
 import { formatPrice } from "@/lib/format";
+import { getStoreSettings } from "@/features/settings/server/queries";
 import { whatsappLink } from "@/lib/site";
 import { verifyOrderAccessToken } from "@/lib/signing";
 import { orderWhatsappMessage } from "@/features/orders/lib/whatsapp-message";
@@ -24,7 +25,8 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
   const order = await getRepos().orders.getByNumber(number);
   if (!order) notFound();
 
-  const waUrl = whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL));
+  const { orderWhatsappNumber } = await getStoreSettings();
+  const waUrl = whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL), orderWhatsappNumber);
 
   return (
     <div className="container-page max-w-xl space-y-6 py-10">

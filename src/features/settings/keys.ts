@@ -4,6 +4,7 @@ export const SETTING_KEYS = {
   ordersPausedMessage: "orders_paused_message",
   bankDetails: "bank_details",
   announcement: "announcement",
+  orderWhatsappNumber: "order_whatsapp_number",
 } as const;
 
 export type StoreSettings = {
@@ -11,4 +12,5 @@ export type StoreSettings = {
   ordersPausedMessage: string;
   bankDetails: string;
   announcement: string;
+  orderWhatsappNumber: string;
 };

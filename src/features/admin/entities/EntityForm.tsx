@@ -6,15 +6,15 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { Checkbox, Field, inputCls } from "../components/ui";
 import { saveEntity, type EntityFormState } from "./actions";
 import type { EntityField } from "./config";
+import { storeDateInput } from "@/lib/dates";
 import { uploadAdminImage } from "@/features/uploads/client";
 
 type Value = string | number | boolean | null | undefined;
 
 const toLocalInput = (iso: Value) => (typeof iso === "string" && iso ? iso.slice(0, 16) : "");
 
-function EntityImageField({ entity, field, value }: { entity: string; field: EntityField; value: Value }) {
+function EntityImageField({ entity, field, value, uploading, setUploading }: { entity: string; field: EntityField; value: Value; uploading: boolean; setUploading: (value: boolean) => void }) {
   const [url, setUrl] = useState(String(value ?? ""));
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const kind = entity === "banners" ? "banner" : "category";
 
@@ -57,17 +57,18 @@ function EntityImageField({ entity, field, value }: { entity: string; field: Ent
 }
 
 export function EntityForm({ entity, fields, item }: { entity: string; fields: EntityField[]; item?: Record<string, Value> & { id: string } }) {
+  const [uploading, setUploading] = useState(false);
   const [state, action, pending] = useActionState<EntityFormState, FormData>(saveEntity, {});
   return (
-    <form action={action} className="card grid gap-4 p-5 sm:grid-cols-2">
+    <form action={action} onSubmit={event => { if (uploading) event.preventDefault(); }} className="card grid gap-4 p-5 sm:grid-cols-2">
       <input type="hidden" name="_entity" value={entity} />
       {item && <input type="hidden" name="_id" value={item.id} />}
       {fields.map((f) => {
-        const value = item?.[f.name];
+        const value = entity === "coupons" && f.name === "value" && item?.type === "fixed" ? undefined : item?.[f.name];
         if (f.type === "checkbox")
           return <div key={f.name} className="flex items-end"><Checkbox name={f.name} label={f.label} defaultChecked={item ? Boolean(value) : true} /></div>;
         if (f.name === "imageUrl" && (entity === "categories" || entity === "banners"))
-          return <EntityImageField key={f.name} entity={entity} field={f} value={value} />;
+          return <EntityImageField key={f.name} entity={entity} field={f} value={value} uploading={uploading} setUploading={setUploading} />;
         return (
           <Field key={f.name} label={f.label} hint={f.hint}>
             {f.type === "textarea" ? (
@@ -80,10 +81,10 @@ export function EntityForm({ entity, fields, item }: { entity: string; fields: E
               <input
                 name={f.name}
                 required={f.required}
-                type={f.type === "datetime" ? "datetime-local" : f.type === "number" ? "number" : f.type === "url" ? "url" : "text"}
+                type={f.type === "datetime" ? "datetime-local" : f.type === "date" ? "date" : f.type === "number" ? "number" : f.type === "url" ? "url" : "text"}
                 step={f.type === "number" ? "any" : undefined}
                 dir={f.type === "url" || f.name === "slug" || f.name === "code" ? "ltr" : undefined}
-                defaultValue={f.type === "datetime" ? toLocalInput(value) : String(value ?? "")}
+                defaultValue={f.type === "datetime" ? toLocalInput(value) : f.type === "date" && typeof value === "string" ? storeDateInput(value) : String(value ?? "")}
                 className={inputCls}
               />
             )}
@@ -92,7 +93,7 @@ export function EntityForm({ entity, fields, item }: { entity: string; fields: E
       })}
       {state.error && <p role="alert" className="text-sm text-danger sm:col-span-2">{state.error}</p>}
       <div className="sm:col-span-2">
-        <button disabled={pending} className="btn-primary !py-2">{pending && <Loader2 className="h-4 w-4 animate-spin" />} {item ? "حفظ التعديلات" : "إضافة"}</button>
+        <button disabled={pending || uploading} className="btn-primary !py-2">{pending && <Loader2 className="h-4 w-4 animate-spin" />} {item ? "حفظ التعديلات" : "إضافة"}</button>
       </div>
     </form>
   );

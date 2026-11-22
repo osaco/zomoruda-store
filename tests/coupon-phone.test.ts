@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { ENTITIES } from "@/features/admin/entities/config";
+import { storeDateInput } from "@/lib/dates";
 import { checkCoupon } from "@/features/checkout/lib/coupon";
 import { normalizePsPhone, toInternational } from "@/lib/phone";
 import type { Coupon } from "@/types/db";
@@ -21,6 +23,24 @@ describe("checkCoupon", () => {
   it("rejects when usage limit reached or under min order", () => {
     expect(checkCoupon({ ...base, usedCount: 2 }, 50).ok).toBe(false);
     expect(checkCoupon(base, 30).ok).toBe(false);
+  });
+});
+
+describe("coupon admin dates", () => {
+  it("uses the full store day and keeps the usage counter out of updates", () => {
+    const form = { code: "ten", value: "15", usageLimit: "10", startsAt: "2026-11-22", endsAt: "2026-11-22", isActive: "on", usedCount: "0" };
+    const parsed = ENTITIES.coupons.schema.parse(form);
+    expect(parsed.startsAt).toBe("2026-11-21T22:00:00.000Z");
+    expect(parsed.endsAt).toBe("2026-11-22T21:59:59.999Z");
+    expect(storeDateInput(parsed.startsAt!)).toBe("2026-11-22");
+    expect(parsed).not.toHaveProperty("usedCount");
+    const coupon = { ...parsed, id: "ten", usedCount: 9 };
+    expect(checkCoupon(coupon, 100, new Date(parsed.startsAt!))).toMatchObject({ ok: true, discount: 15 });
+    expect(checkCoupon(coupon, 100, new Date(parsed.endsAt!)).ok).toBe(true);
+    expect(checkCoupon({ ...coupon, usedCount: 10 }, 100, new Date(parsed.endsAt!)).ok).toBe(false);
+    expect(checkCoupon(coupon, 100, new Date("2026-11-22T22:00:00Z")).ok).toBe(false);
+    expect(ENTITIES.coupons.schema.safeParse({ ...form, endsAt: "2026-11-21" }).success).toBe(false);
+    expect(ENTITIES.coupons.schema.safeParse({ ...form, usageLimit: "2.5" }).success).toBe(false);
   });
 });
 

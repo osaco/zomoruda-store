@@ -4,11 +4,11 @@
  * validation and persistence — no copy-pasted CRUD pages.
  */
 import { z } from "zod";
-import { COUPON_TYPE_LABELS_AR, COUPON_TYPE_VALUES } from "@/types/enums";
+import { storeDateBoundary } from "@/lib/dates";
 import type { Repositories } from "@/lib/data/repositories";
 import { slugify } from "@/features/products-admin/lib/parse";
 
-export type FieldType = "text" | "textarea" | "number" | "checkbox" | "url" | "datetime" | "select";
+export type FieldType = "text" | "textarea" | "number" | "checkbox" | "url" | "datetime" | "date" | "select";
 
 export type EntityField = {
   name: string;
@@ -23,7 +23,11 @@ export type EntityField = {
 const bool = z.preprocess((v) => v === "on" || v === true, z.boolean());
 const optText = z.preprocess((v) => (v === "" || v === undefined ? null : v), z.string().trim().nullable());
 const optNum = z.preprocess((v) => (v === "" || v === undefined || v === null ? null : v), z.coerce.number().min(0).nullable());
-const optDate = z.preprocess((v) => (v === "" || v === undefined ? null : new Date(String(v)).toISOString()), z.string().nullable());
+const blank = (value: unknown) => value === "" || value === undefined ? null : value;
+const optDate = z.preprocess(blank, z.iso.datetime({ local: true }).nullable())
+  .transform(value => value ? new Date(value.endsWith("Z") ? value : value + "Z").toISOString() : null);
+const couponDate = (end = false) => z.preprocess(blank, z.iso.date().nullable())
+  .transform(value => value ? storeDateBoundary(value, end) : null);
 const sort = z.coerce.number().int().default(0);
 
 export const ENTITIES = {
@@ -59,13 +63,12 @@ export const ENTITIES = {
       { name: "titleAr", label: "العنوان", type: "text", required: true, inTable: true },
       { name: "subtitleAr", label: "النص الفرعي", type: "text" },
       { name: "imageUrl", label: "صورة البانر", type: "url", required: true },
-      { name: "linkUrl", label: "الرابط عند الضغط", type: "text", hint: "مثال: /categories/flowers", inTable: true },
       { name: "startsAt", label: "يبدأ", type: "datetime" },
       { name: "endsAt", label: "ينتهي", type: "datetime" },
       { name: "sortOrder", label: "الترتيب", type: "number", inTable: true },
       { name: "isActive", label: "فعّال", type: "checkbox", inTable: true },
     ],
-    schema: z.object({ titleAr: z.string().trim().min(2), subtitleAr: optText, imageUrl: z.string().url(), linkUrl: optText, startsAt: optDate, endsAt: optDate, sortOrder: sort, isActive: bool }),
+    schema: z.object({ titleAr: z.string().trim().min(2), subtitleAr: optText, imageUrl: z.string().url(), startsAt: optDate, endsAt: optDate, sortOrder: sort, isActive: bool }),
   },
   zones: {
     title: "مناطق التوصيل",
@@ -84,25 +87,23 @@ export const ENTITIES = {
     title: "الكوبونات",
     repo: "coupons",
     fields: [
-      { name: "code", label: "الكود", type: "text", required: true, inTable: true },
-      { name: "type", label: "النوع", type: "select", options: COUPON_TYPE_VALUES.map((v) => ({ value: v, label: COUPON_TYPE_LABELS_AR[v] })), inTable: true },
-      { name: "value", label: "القيمة", type: "number", required: true, inTable: true },
-      { name: "minOrder", label: "أقل طلب ₪", type: "number" },
-      { name: "maxDiscount", label: "أقصى خصم ₪", type: "number" },
-      { name: "usageLimit", label: "عدد مرات الاستخدام", type: "number" },
-      { name: "usedCount", label: "استُخدم", type: "number", inTable: true },
-      { name: "startsAt", label: "يبدأ", type: "datetime" },
-      { name: "endsAt", label: "ينتهي", type: "datetime", inTable: true },
-      { name: "isActive", label: "فعّال", type: "checkbox", inTable: true },
+      { name: "code", label: "كود الخصم", type: "text", required: true, inTable: true },
+      { name: "value", label: "نسبة الخصم %", type: "number", required: true, inTable: true },
+      { name: "usageLimit", label: "حد الاستخدام", type: "number", hint: "مثلاً 10 طلبات. اتركيه فارغاً إذا كان بلا حد.", inTable: true },
+      { name: "startsAt", label: "من تاريخ", type: "date", inTable: true },
+      { name: "endsAt", label: "إلى تاريخ", type: "date", hint: "الكوبون فعّال حتى نهاية هذا اليوم بتوقيت غزة.", inTable: true },
+      { name: "isActive", label: "مفعّل", type: "checkbox", inTable: true },
     ],
     schema: z.object({
-      code: z.string().trim().min(3).transform((v) => v.toUpperCase()),
-      type: z.enum(COUPON_TYPE_VALUES),
-      value: z.coerce.number().positive(),
-      minOrder: optNum, maxDiscount: optNum, usageLimit: optNum,
-      usedCount: z.coerce.number().int().min(0).default(0),
-      startsAt: optDate, endsAt: optDate, isActive: bool,
-    }).refine((v) => v.type !== "percent" || v.value <= 100, { message: "النسبة لا تتجاوز 100%" }),
+      code: z.string().trim().min(3).max(30).transform(value => value.toUpperCase()),
+      value: z.preprocess(blank, z.coerce.number().positive().max(100)),
+      usageLimit: z.preprocess(blank, z.coerce.number().int().min(1).max(2147483647).nullable()),
+      startsAt: couponDate(),
+      endsAt: couponDate(true),
+      isActive: bool,
+    }).refine(value => !value.startsAt || !value.endsAt || value.startsAt <= value.endsAt, {
+      path: ["endsAt"], message: "تاريخ النهاية لازم يساوي تاريخ البداية أو يكون بعده.",
+    }).transform(value => ({ ...value, type: "percent" as const, minOrder: null, maxDiscount: null })),
   },
 } satisfies Record<string, { title: string; repo: keyof Repositories; fields: EntityField[]; schema: z.ZodType }>;
 

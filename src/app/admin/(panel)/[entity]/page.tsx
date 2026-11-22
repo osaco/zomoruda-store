@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRepos } from "@/lib/data";
 import type { CrudRepository } from "@/lib/data/repositories";
+import { storeDateInput } from "@/lib/dates";
 import { formatDate } from "@/lib/format";
 import { requireAdmin } from "@/features/auth/session";
 import { AdminPageTitle, Table, Td } from "@/features/admin/components/ui";
@@ -35,14 +36,18 @@ export default async function EntityPage({ params, searchParams }: { params: Pro
       <AdminPageTitle title={config.title} />
       {error && <p className="mb-4 rounded-input bg-danger/10 p-3 text-sm text-danger">تعذّر الحذف — قد يكون العنصر مرتبطاً بمنتجات أو طلبات. يمكنك إخفاؤه بدلاً من حذفه.</p>}
       <section className="mb-8">
+        {entity === "coupons" && editing?.type === "fixed" && <p className="mb-2 text-sm text-muted">هذا كوبون قديم بخصم ثابت. حدّدي نسبة الخصم لتحويله عند الحفظ.</p>}
         <h2 className="mb-3 font-heading font-bold">{editing ? "تعديل" : "إضافة جديد"}</h2>
         <EntityForm key={editing?.id ?? "new"} entity={entity} fields={config.fields} item={editing} />
         {editing && <Link href={`/admin/${entity}`} className="mt-2 inline-block text-sm text-muted">إلغاء التعديل</Link>}
       </section>
-      <Table head={[...columns.map((c) => c.label), ""]} empty={items.length === 0}>
+      <Table head={[...columns.map((c) => c.label), ...(entity === "coupons" ? ["الاستخدام الفعلي"] : []), ""]} empty={items.length === 0}>
         {items.map((item) => (
           <tr key={item.id} className="hover:bg-primary-light/30">
-            {columns.map((c) => <Td key={c.name}>{cell(item, c.name, c.type)}</Td>)}
+            {columns.map((c) => <Td key={c.name}>{entity === "coupons" && c.name === "value"
+              ? `${item.value}${item.type === "fixed" ? " ₪" : "%"}`
+              : c.type === "date" && typeof item[c.name] === "string" ? storeDateInput(String(item[c.name])) : cell(item, c.name, c.type)}</Td>)}
+            {entity === "coupons" && <Td>{item.usedCount ?? 0}{item.usageLimit != null ? ` / ${item.usageLimit}` : ""}</Td>}
             <Td className="flex gap-3">
               <Link href={`/admin/${entity}?edit=${item.id}`} className="text-primary">تعديل</Link>
               <form action={deleteEntity}>

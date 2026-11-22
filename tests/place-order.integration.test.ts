@@ -136,4 +136,25 @@ describe("placeOrder (demo adapter)", () => {
     const customerAfter = await repos.customers.getByPhone(phone);
     expect(customerAfter?.name).toBe("فاطمة الأصلية");
   });
+  it("routes checkout to the configured number and rejects the eleventh redemption", async () => {
+    const repos = getRepos();
+    const product = (await repos.products.getBySlug("pearl-bracelet"))!;
+    await repos.coupons.create({
+      code: "TENONLY", type: "percent", value: 10, usageLimit: 10, usedCount: 0,
+      minOrder: null, maxDiscount: null, startsAt: null, endsAt: null, isActive: true,
+    });
+    await repos.settings.set("order_whatsapp_number", "15551234567");
+    for (let i = 0; i < 11; i++) {
+      const result = await placeOrder({
+        customerName: "زبونة",
+        customerPhone: `05973456${String(i).padStart(2, "0")}`,
+        fulfillment: "pickup", paymentMethod: "cash_on_delivery", couponCode: "TENONLY",
+        items: [{ productId: product.id, quantity: 1, options: [] }],
+      });
+      if (i < 10) expect(result).toMatchObject({ ok: true, data: { whatsappUrl: expect.stringContaining("wa.me/15551234567") } });
+      else expect(result).toMatchObject({ ok: false, error: "تم استخدام الكود بالكامل" });
+    }
+    expect((await repos.coupons.getByCode("TENONLY"))?.usedCount).toBe(10);
+  });
+
 });

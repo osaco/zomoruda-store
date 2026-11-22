@@ -29,11 +29,11 @@ const couponPreviewSchema = z.object({
   })).min(1).max(50),
 });
 
-function confirmation(order: Order) {
+function confirmation(order: Order, orderWhatsappNumber: string) {
     return ok({
       orderNumber: order.orderNumber,
       total: order.total,
-      whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL)),
+      whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL), orderWhatsappNumber),
       successUrl: `/order/${order.orderNumber}?t=${signOrderAccessToken(order.orderNumber)}`,
     });
 }
@@ -60,7 +60,7 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
     const ipLimited = await isRateLimited("checkout-ip", ip, 30, 10 * 60);
     if (!ipLimited && input.checkoutId) {
       const previous = await getRepos().orders.byCheckoutKey(sign("checkout:" + JSON.stringify(input)));
-      if (previous) return confirmation(previous);
+      if (previous) return confirmation(previous, (await getStoreSettings()).orderWhatsappNumber);
     }
     const phoneLimited = await isRateLimited("checkout-phone", phoneForLimit, 2, 10 * 60);
     if (ipLimited || phoneLimited) {
@@ -99,7 +99,7 @@ export async function placeOrder(raw: unknown): Promise<Result<PlacedOrder>> {
     if (!order) return fail("تغيّر المخزون أو انتهت صلاحية الكوبون أثناء إتمام الطلب. راجعي السلة وحاولي مرة أخرى.");
 
     revalidatePath("/admin", "layout");
-    return confirmation(order);
+    return confirmation(order, settings.orderWhatsappNumber);
   } catch (error) {
     if (error instanceof Error && error.message === "ATTACHMENT_EXPIRED") return fail("انتهت صلاحية المرفق. ارفعيه من جديد.");
     console.error("[checkout] Failed to place order");

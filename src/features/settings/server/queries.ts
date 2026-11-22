@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { site } from "@/lib/site";
 import { getRepos } from "@/lib/data";
 import { SETTING_KEYS, type StoreSettings } from "../keys";
 
@@ -9,6 +10,7 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings> => {
     ordersPaused: all.get(SETTING_KEYS.ordersPaused) === "true",
     ordersPausedMessage: all.get(SETTING_KEYS.ordersPausedMessage) ?? "استقبال الطلبات متوقف مؤقتاً.",
     bankDetails: all.get(SETTING_KEYS.bankDetails) ?? "",
+    orderWhatsappNumber: all.get(SETTING_KEYS.orderWhatsappNumber) || site.whatsapp,
     announcement: all.get(SETTING_KEYS.announcement) ?? "",
   };
 });

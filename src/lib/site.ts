@@ -14,8 +14,8 @@ export const site = {
   mapUrl: "https://maps.google.com/?q=Al+Rimal+Gaza",
 } as const;
 
-export function whatsappLink(message?: string) {
-  const base = `https://wa.me/${site.whatsapp}`;
+export function whatsappLink(message?: string, number = site.whatsapp) {
+  const base = `https://wa.me/${number}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
 
