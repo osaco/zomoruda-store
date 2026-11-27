@@ -63,11 +63,11 @@ export function orderWhatsappFullMessage(order: Order, siteUrl: string): string 
 }
 
 /** Short WhatsApp handoff: the order is already stored, so the number identifies it. */
-export function orderWhatsappMessage(order: Order, siteUrl: string): string {
+export function orderWhatsappMessage(order: Order, siteUrl: string, trackingToken?: string): string {
   const fulfillment = order.fulfillment === "pickup"
     ? `استلام من المتجر (${site.addressAr})`
     : `توصيل${order.zoneNameAr ? ` — ${order.zoneNameAr}` : ""}`;
-  const trackLink = `${siteUrl}/track?order=${encodeURIComponent(order.orderNumber)}`;
+  const trackLink = `${siteUrl}/track?order=${encodeURIComponent(order.orderNumber)}${trackingToken ? `&t=${encodeURIComponent(trackingToken)}` : ""}`;
   return [
     `تأكيد طلب زُمُرّدة`,
     `رقم الطلب: #${order.orderNumber}`,

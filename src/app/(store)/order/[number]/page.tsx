@@ -27,7 +27,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
 
   const { orderWhatsappNumber } = await getStoreSettings();
   const trackingUrl = `/track?order=${encodeURIComponent(number)}&t=${encodeURIComponent(t ?? "")}`;
-  const waUrl = whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL), orderWhatsappNumber);
+  const waUrl = whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL, t), orderWhatsappNumber);
 
   return (
     <div className="container-page max-w-xl space-y-6 py-10">

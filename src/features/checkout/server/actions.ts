@@ -42,7 +42,7 @@ async function confirmation(order: Order, orderWhatsappNumber: string) {
     return ok({
       orderNumber: order.orderNumber,
       total: order.total,
-      whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL), orderWhatsappNumber),
+      whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL, token), orderWhatsappNumber),
       successUrl: `/order/${order.orderNumber}?t=${token}`,
     });
 }

@@ -45,6 +45,7 @@ describe("placeOrder (demo adapter)", () => {
 
     const order = await findOrderForTracking(res.data.orderNumber, "+970597000111");
     const token = new URL(res.data.successUrl, "https://fixture.invalid").searchParams.get("t")!;
+    expect(new URL(res.data.whatsappUrl).searchParams.get("text")).toContain(`&t=${token}`);
     const confirmation = new FormData();
     confirmation.set("orderNumber", res.data.orderNumber);
     confirmation.set("intent", "confirm");
