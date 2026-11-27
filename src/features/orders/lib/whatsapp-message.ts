@@ -64,23 +64,23 @@ export function orderWhatsappFullMessage(order: Order, siteUrl: string): string 
 
 /** Short WhatsApp handoff: the order is already stored, so the number identifies it. */
 export function orderWhatsappMessage(order: Order, siteUrl: string, trackingToken?: string): string {
+  const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
   const fulfillment = order.fulfillment === "pickup"
     ? `استلام من المتجر (${site.addressAr})`
     : `توصيل${order.zoneNameAr ? ` — ${order.zoneNameAr}` : ""}`;
   const trackLink = `${siteUrl}/track?order=${encodeURIComponent(order.orderNumber)}${trackingToken ? `&t=${encodeURIComponent(trackingToken)}` : ""}`;
   return [
-    `تأكيد طلب زُمُرّدة`,
     `رقم الطلب: #${order.orderNumber}`,
     `الاسم: ${order.customerName}`,
     `الإجمالي: ${formatPrice(order.total)}`,
     `الدفع: ${PAYMENT_METHOD_LABELS_AR[order.paymentMethod]}`,
     fulfillment,
-    "الأصناف:",
+    `عدد القطع: ${itemCount}`,
     ...order.items.flatMap(item => {
       const box = item.giftBoxId && item.giftBoxName ? ` داخل «${item.giftBoxName}»` : "";
       const options = item.options.map(option => `${option.nameAr}: ${option.valueAr}`).join("، ");
       return [
-        `• ${item.nameAr} × ${item.quantity}${box}${options ? ` (${options})` : ""}`,
+        `${item.nameAr} × ${item.quantity}${box}${options ? ` (${options})` : ""}`,
         ...(item.customName ? [`  الاسم: ${item.customName}`] : []),
         ...(item.cardMessage ? [`  نص الكرت: ${item.cardMessage}`] : []),
         ...(item.itemNote ? [`  ملاحظة: ${item.itemNote}`] : []),
