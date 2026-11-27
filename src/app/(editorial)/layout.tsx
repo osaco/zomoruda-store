@@ -1,3 +1,4 @@
+import { AppIntro } from "@/features/home/components/AppIntro";
 import { Suspense } from "react";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { DeferredCartDrawer } from "@/features/cart/components/DeferredCartDrawer";
@@ -15,6 +16,7 @@ export default function EditorialHomeLayout({ children }: { children: React.Reac
 
   return (
     <>
+      <AppIntro />
       <SiteHeader />
       <main id="main" className={`flex-1 pb-20 pt-[68px] md:pb-0 ${styles.shell}`}>
         <Suspense fallback={null}><PauseNotice /></Suspense>

@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, ShoppingBag, Store, Truck } from "lucide-react";
 import type { DeliveryZone } from "@/types/db";
-import { PAYMENT_METHOD_LABELS_AR, PAYMENT_METHOD_VALUES, TIME_SLOTS, type FulfillmentType, type PaymentMethod } from "@/types/enums";
+import { PAYMENT_METHOD_LABELS_AR, PAYMENT_METHOD_VALUES, type FulfillmentType, type PaymentMethod } from "@/types/enums";
 import { Input } from "@/components/ui/Input";
 import { formatPrice } from "@/lib/format";
 import { roundMoney } from "@/lib/pricing";
@@ -18,7 +18,6 @@ import { useHydrated } from "@/features/cart/useHydrated";
 import { PhotoUploadField } from "@/features/product/components/PhotoUploadField";
 import { placeOrder, previewCoupon } from "../server/actions";
 
-const today = () => new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10);
 
 export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; bankDetails: string }) {
   const router = useRouter();
@@ -313,26 +312,6 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
-                <Input name="deliveryDate" label="التاريخ المطلوب" type="date" min={today()} error={errors.deliveryDate} />
-                <div className="space-y-1.5">
-                  <label htmlFor="timeSlot" className="text-sm font-medium">
-                    الوقت
-                  </label>
-                  <select
-                    id="timeSlot"
-                    name="timeSlot"
-                    className="field px-3"
-                  >
-                    <option value="">أي وقت</option>
-                    {TIME_SLOTS.map((slot) => (
-                      <option key={slot} value={slot}>
-                        {slot}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
             </section>
 
             {/* طريقة الدفع */}
@@ -467,7 +446,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
           </p>
         )}
 
-        <button type="submit" disabled={pending || checkingCoupon} className="btn-primary hidden w-full gap-2 lg:flex">
+        <button type="submit" disabled={pending || checkingCoupon} className="btn-primary flex w-full gap-2">
           {pending ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
