@@ -10,6 +10,10 @@ export const getStoreSettings = cache(async (): Promise<StoreSettings> => {
     ordersPaused: all.get(SETTING_KEYS.ordersPaused) === "true",
     ordersPausedMessage: all.get(SETTING_KEYS.ordersPausedMessage) ?? "استقبال الطلبات متوقف مؤقتاً.",
     bankDetails: all.get(SETTING_KEYS.bankDetails) ?? "",
+    contactInstagram: all.get(SETTING_KEYS.contactInstagram) || site.instagram,
+    contactAddress: all.get(SETTING_KEYS.contactAddress) || site.addressAr,
+    contactHours: all.get(SETTING_KEYS.contactHours) || site.hoursAr,
+    contactMapUrl: all.get(SETTING_KEYS.contactMapUrl) || site.mapUrl,
     orderWhatsappNumber: all.get(SETTING_KEYS.orderWhatsappNumber) || site.whatsapp,
     announcement: all.get(SETTING_KEYS.announcement) ?? "",
   };

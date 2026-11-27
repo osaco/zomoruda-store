@@ -77,7 +77,17 @@ export function orderWhatsappMessage(order: Order, siteUrl: string): string {
     `الإجمالي: ${formatPrice(order.total)}`,
     `الدفع: ${PAYMENT_METHOD_LABELS_AR[order.paymentMethod]}`,
     fulfillment,
-    ...order.items.flatMap(item => item.itemNote ? [`ملاحظة «${item.nameAr}»: ${item.itemNote}`] : []),
+    "الأصناف المطلوبة:",
+    ...order.items.flatMap(item => {
+      const box = item.giftBoxId && item.giftBoxName ? ` داخل «${item.giftBoxName}»` : "";
+      const options = item.options.map(option => `${option.nameAr}: ${option.valueAr}`).join("، ");
+      return [
+        `• ${item.nameAr} × ${item.quantity}${box}${options ? ` (${options})` : ""}`,
+        ...(item.customName ? [`  الاسم: ${item.customName}`] : []),
+        ...(item.cardMessage ? [`  نص الكرت: ${item.cardMessage}`] : []),
+        ...(item.itemNote ? [`  ملاحظة: ${item.itemNote}`] : []),
+      ];
+    }),
     ...(order.notes ? [`ملاحظة الطلب: ${order.notes}`] : []),
     `تتبّع الطلب: ${trackLink}`,
   ].join("\n");

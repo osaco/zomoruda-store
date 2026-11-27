@@ -57,7 +57,7 @@ export function FeaturedPieces({ products, banners }: { products: Product[]; ban
           <div aria-live={playing ? "off" : "polite"} aria-atomic="true">
             <h3>{slide.title}</h3>
             {slide.detail && <p>{slide.detail}</p>}
-            {slide.href && <Link href={slide.href} className={styles.galleryLink}>
+            {slide.href && <Link href={slide.href} prefetch={false} className={styles.galleryLink}>
               تفاصيل الهدية <ArrowUpLeft size={17} aria-hidden />
             </Link>}
           </div>

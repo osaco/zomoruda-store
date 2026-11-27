@@ -14,7 +14,9 @@ export function verify(value: string, signature: string | undefined | null): boo
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
-const ORDER_ACCESS_TOKEN_TTL = 30 * 24 * 60 * 60 * 1000;
+export const ORDER_ACCESS_TOKEN_TTL = 30 * 24 * 60 * 60 * 1000;
+
+export const trackingCookieName = (number: string) => `zm-order-${number}`;
 
 /** Short-lived access token for the post-checkout confirmation page. */
 export function signOrderAccessToken(orderNumber: string, now = Date.now()): string {

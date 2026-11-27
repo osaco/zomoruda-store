@@ -360,6 +360,13 @@ export function createDemoRepositories(): Repositories {
         );
         return clone(batch ? records.slice(batch.offset, batch.offset + batch.size) : records);
       },
+      async confirmNewOrder(id) {
+        const order = state().orders.find(item => item.id === id);
+        if (!order) return null;
+        return order.status === "new"
+          ? this.updateStatus(id, "confirmed", "أكّده صاحب الطلب", "customer")
+          : clone(order);
+      },
       async updateStatus(id, status, note = null, by = null) {
         const order = state().orders.find((o) => o.id === id);
         if (!order) return null;

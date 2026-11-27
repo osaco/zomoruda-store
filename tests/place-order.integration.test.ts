@@ -5,7 +5,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers(),
+  cookies: async () => ({ set: vi.fn(), get: vi.fn() }),
+}));
 
+const { trackOrderAction } = await import("@/features/orders/server/tracking-action");
 const { placeOrder } = await import("@/features/checkout/server/actions");
 const { getRepos } = await import("@/lib/data");
 const { findOrderForTracking } = await import("@/features/orders/server/queries");
@@ -39,9 +44,21 @@ describe("placeOrder (demo adapter)", () => {
     expect(res.data.successUrl).toMatch(/^\/order\/ZM-\d{4}\?t=/);
 
     const order = await findOrderForTracking(res.data.orderNumber, "+970597000111");
+    const token = new URL(res.data.successUrl, "https://fixture.invalid").searchParams.get("t")!;
+    const confirmation = new FormData();
+    confirmation.set("orderNumber", res.data.orderNumber);
+    confirmation.set("intent", "confirm");
+    const denied = await trackOrderAction({}, confirmation);
+    expect(denied.order).toEqual({ orderNumber: res.data.orderNumber, status: "new", canConfirm: false });
+    expect(denied.error).toBeDefined();
+    confirmation.set("token", token);
+    expect((await trackOrderAction({}, confirmation)).order?.status).toBe("confirmed");
+    expect((await trackOrderAction({}, confirmation)).order?.status).toBe("confirmed");
+
     expect(order?.items[0].customName).toBe("نور");
     expect(order?.items[0].itemNote).toBe("تغليف بسيط");
     expect(decodeURIComponent(res.data.whatsappUrl)).toContain("تغليف بسيط");
+    expect(decodeURIComponent(res.data.whatsappUrl)).toContain("سلسال بالاسم × 2");
     expect((await repos.products.getById(product.id))!.stockQty).toBe(stockBefore - 2);
     expect((await repos.customers.getByPhone("0597000111"))!.ordersCount).toBe(1);
     expect((await repos.coupons.getByCode("GIFT5"))!.usedCount).toBe(1);
@@ -53,6 +70,7 @@ describe("placeOrder (demo adapter)", () => {
 
     // Cancellation: restores stock, decrements CRM stats and coupon
     await repos.orders.updateStatus(placed!.id, "cancelled");
+    expect((await trackOrderAction({}, confirmation)).order?.status).toBe("cancelled");
     expect((await repos.products.getById(product.id))!.stockQty).toBe(stockBefore);
     expect((await repos.products.getById(product.id))!.soldCount).toBe(soldAfterOrder - 2);
     expect((await repos.customers.getByPhone("0597000111"))!.ordersCount).toBe(0);

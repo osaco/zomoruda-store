@@ -43,8 +43,3 @@ export const checkoutSchema = z
     }
   });
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
-
-export const trackSchema = z.object({
-  orderNumber: z.string().trim().min(4, "رقم الطلب مطلوب").max(30),
-  phone: z.string().trim().max(24).refine(isValidPsPhone, "رقم الجوال غير صحيح"),
-});

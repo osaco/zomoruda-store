@@ -3,7 +3,6 @@ import { DeferredCartDrawer } from "@/features/cart/components/DeferredCartDrawe
 import { SiteFooter } from "@/features/home/components/SiteFooter";
 import { SiteHeader } from "@/features/home/components/SiteHeader";
 import { getStoreSettings } from "@/features/settings/server/queries";
-import { site } from "@/lib/site";
 
 import styles from "@/features/home/components/HomeDesign.module.css";
 
@@ -24,7 +23,7 @@ export default async function EditorialHomeLayout({ children }: { children: Reac
         )}
         {children}
       </main>
-      <SiteFooter addressAr={site.addressAr} />
+      <SiteFooter addressAr={settings.contactAddress} whatsappNumber={settings.orderWhatsappNumber} />
       <BottomNav />
       <DeferredCartDrawer />
     </>

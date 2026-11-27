@@ -1,5 +1,5 @@
 // Zomoruda service worker: offline fallback + cache-first for static assets.
-const CACHE = "zomoruda-v1";
+const CACHE = "zomoruda-v2";
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {
@@ -8,8 +8,10 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))));
-  self.clients.claim();
+  event.waitUntil(Promise.all([
+    self.registration.navigationPreload?.enable(),
+    caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith("zomoruda-") && key !== CACHE).map((key) => caches.delete(key)))),
+  ]).then(() => self.clients.claim()));
 });
 
 self.addEventListener("fetch", (event) => {
@@ -28,7 +30,7 @@ self.addEventListener("fetch", (event) => {
   ) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_URL)));
+    event.respondWith(event.preloadResponse.then(response => response ?? fetch(request)).catch(() => caches.match(OFFLINE_URL)));
     return;
   }
   if (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/_next/image") || url.pathname.startsWith("/icons")) {
@@ -38,7 +40,7 @@ self.addEventListener("fetch", (event) => {
           hit ||
           fetch(request).then((res) => {
             const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(request, copy));
+            if (res.ok) event.waitUntil(caches.open(CACHE).then((c) => c.put(request, copy)));
             return res;
           }),
       ),

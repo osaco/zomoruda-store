@@ -58,6 +58,7 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
   const [boxOptions, setBoxOptions] = useState<Record<string, string>>(() =>
     Object.fromEntries(box.options.filter((option) => option.isRequired && option.values[0]).map((option) => [option.nameAr, option.values[0].valueAr])),
   );
+  const [editingText, setEditingText] = useState(false);
   const [boxNote, setBoxNote] = useState("");
   const [boxName, setBoxName] = useState("");
   const [boxMessage, setBoxMessage] = useState("");
@@ -123,7 +124,10 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
   };
 
   return (
-    <div className="space-y-5 pb-24 lg:pb-0">
+    <div className="space-y-5 pb-24 lg:pb-0"
+      onFocusCapture={event => { if (event.target instanceof HTMLElement && event.target.matches("input:not([type=file]), textarea, select")) setEditingText(true); }}
+      onBlurCapture={event => { if (!(event.relatedTarget instanceof HTMLElement) || !event.currentTarget.contains(event.relatedTarget) || !event.relatedTarget.matches("input:not([type=file]), textarea, select")) setEditingText(false); }}
+    >
       <header>
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">بوكس على ذوقك</p>
         <h1 className="font-heading text-2xl font-bold text-ink">{box.nameAr}</h1>
@@ -210,7 +214,7 @@ export function GiftBoxBuilder({ box, products, ordersPaused }: { box: Product; 
         {products.length === 0 && <p className="card p-5 text-sm text-muted">لا توجد منتجات مفعّلة لإضافتها إلى البوكس حالياً.</p>}
       </section>
 
-      <div className="sticky bottom-0 z-20 flex items-center gap-3 border-t border-primary/10 bg-surface/95 p-3 shadow-soft backdrop-blur lg:static lg:rounded-card lg:border lg:p-4">
+      <div className={`${editingText ? "hidden lg:flex" : "flex"} fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 items-center gap-3 border-t border-primary/10 bg-surface/95 p-3 shadow-soft backdrop-blur lg:static lg:rounded-card lg:border lg:p-4`}>
         <div className="min-w-0 flex-1"><p className="text-xs text-muted">إجمالي البوكس ومحتوياته</p><p className="font-bold text-primary">{formatPrice(total)}</p></div>
         <button type="button" disabled={!canAdd} onClick={addToCart} className="btn-primary min-h-11 flex-1 !py-2 disabled:opacity-50">
           <ShoppingBag className="h-4 w-4" /> {soldOut ? "نفد البوكس" : ordersPaused ? "الطلبات متوقفة" : selectedUnits === 0 ? "اختاري محتويات البوكس" : missingBoxFields || selectedProducts.some((product) => customizationMissing(product, choices[product.id])) ? "أكملي بيانات المنتجات" : <><Check className="h-4 w-4" /> أضيفي البوكس للسلة</>}

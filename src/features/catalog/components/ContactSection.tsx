@@ -5,9 +5,11 @@ import {
   MapPin,
   MessageCircle,
 } from "lucide-react";
-import { site, whatsappLink } from "@/lib/site";
+import { getStoreSettings } from "@/features/settings/server/queries";
+import { whatsappLink } from "@/lib/site";
 
-export function ContactSection() {
+export async function ContactSection() {
+  const { contactInstagram, contactMapUrl, contactAddress, contactHours, orderWhatsappNumber } = await getStoreSettings();
   return (
     <section className="bg-surface py-12 md:py-16">
       <div className="container-page grid gap-8 md:grid-cols-2 md:items-center">
@@ -23,41 +25,41 @@ export function ContactSection() {
             <li className="flex items-center gap-3">
               <MessageCircle className="h-5 w-5 text-emerald" strokeWidth={1.75} aria-hidden="true" />
               <a
-                href={whatsappLink()}
+                href={whatsappLink(undefined, orderWhatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tap inline-flex min-h-11 items-center font-medium text-ink transition hover:text-primary"
                 dir="ltr"
               >
-                +{site.whatsapp}
+                +{orderWhatsappNumber}
               </a>
             </li>
             <li className="flex items-center gap-3">
               <Instagram className="h-5 w-5 text-accent" strokeWidth={1.75} aria-hidden="true" />
               <a
-                href={`https://instagram.com/${site.instagram}`}
+                href={`https://instagram.com/${contactInstagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tap inline-flex min-h-11 items-center font-medium text-ink transition hover:text-primary"
                 dir="ltr"
               >
-                @{site.instagram}
+                @{contactInstagram}
               </a>
             </li>
             <li className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" strokeWidth={1.75} aria-hidden="true" />
               <a
-                href={site.mapUrl}
+                href={contactMapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tap inline-flex min-h-11 items-center font-medium text-ink transition hover:text-primary"
               >
-                {site.addressAr}
+                {contactAddress}
               </a>
             </li>
             <li className="flex items-center gap-3">
               <Clock className="h-5 w-5 text-primary" strokeWidth={1.75} aria-hidden="true" />
-              <span className="font-medium text-ink">{site.hoursAr}</span>
+              <span className="font-medium text-ink">{contactHours}</span>
             </li>
           </ul>
         </div>
@@ -71,7 +73,7 @@ export function ContactSection() {
             الدفع عند الاستلام أو تحويل بنكي/محفظة مع صورة الإشعار — والتأكيد عبر واتساب.
           </p>
           <a
-            href={whatsappLink()}
+            href={whatsappLink(undefined, orderWhatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary w-full"

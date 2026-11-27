@@ -12,7 +12,7 @@ import { orderWhatsappMessage } from "@/features/orders/lib/whatsapp-message";
 import { StatusTimeline } from "@/features/orders/components/StatusTimeline";
 import { FULFILLMENT_LABELS_AR, PAYMENT_METHOD_LABELS_AR } from "@/types/enums";
 
-export const metadata: Metadata = { title: "تم استلام طلبك", robots: { index: false } };
+export const metadata: Metadata = { title: "تم استلام طلبك", robots: { index: false }, referrer: "no-referrer" };
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ number: string }>; searchParams: Promise<{ t?: string }> };
@@ -26,6 +26,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
   if (!order) notFound();
 
   const { orderWhatsappNumber } = await getStoreSettings();
+  const trackingUrl = `/track?order=${encodeURIComponent(number)}&t=${encodeURIComponent(t ?? "")}`;
   const waUrl = whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL), orderWhatsappNumber);
 
   return (
@@ -34,7 +35,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
       <div className="space-y-3 text-center">
         <CheckCircle2 className="mx-auto h-16 w-16 text-success" aria-hidden="true" />
         <h1 className="font-heading text-3xl font-bold">شكراً {order.customerName.split(" ")[0]}! 💜</h1>
-        <p className="text-muted">تم حفظ طلبك بنجاح. أرسلي رسالة الواتساب أدناه لتأكيده مع المتجر.</p>
+        <p className="text-muted">تم حفظ طلبك. أكّديه من صفحة التتبّع، وأرسلي تفاصيله إلى المتجر على واتساب.</p>
       </div>
 
       {/* تنبيه باللون الأصفر */}
@@ -44,7 +45,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           <span>تنبيه هام لتأكيد طلبك:</span>
         </p>
         <p className="text-xs leading-5 text-ink/85">
-          تم تسجيل طلبك بنجاح، ولكن <strong>لن يبدأ التجهيز</strong> إلا بعد إرسال رسالة الواتساب الجاهزة إلى المتجر بالضغط على زر «تأكيد الطلب على واتساب» أدناه.
+          افتحي صفحة التتبّع واضغطي «موافق، تأكيد الطلب».
         </p>
       </div>
 
@@ -106,6 +107,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
         </dl>
       </div>
 
+      {order.status === "new" && <Link href={trackingUrl} className="btn-primary w-full">تأكيد الطلب وتتبع حالته</Link>}
       {/* زر واتساب الرئيسي */}
       <div className="space-y-2">
         <a
@@ -115,10 +117,10 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           className="btn w-full justify-center gap-2 bg-emerald py-4 text-base text-white"
         >
           <MessageCircle className="h-5 w-5" />
-          تأكيد الطلب على واتساب
+          إرسال الطلب على واتساب
         </a>
         <p className="text-center text-xs text-muted">
-          سيفتح واتساب برسالة جاهزة — اضغطي «إرسال» لإتمام التأكيد.
+          سيفتح واتساب برسالة جاهزة فيها الأصناف والكميات. اضغطي «إرسال» لمشاركتها مع المتجر.
           {" "}
           إذا لم يفتح تلقائياً،{" "}
           <a href={waUrl} className="text-primary underline underline-offset-2">
@@ -146,7 +148,7 @@ export default async function OrderSuccessPage({ params, searchParams }: Props) 
           <RotateCcw className="h-4 w-4" />
           إعادة فتح واتساب
         </a>
-        <Link href="/track" className="btn-secondary">تتبّع الطلب</Link>
+        {order.status !== "new" && <Link href={trackingUrl} className="btn-secondary">تتبّع الطلب</Link>}
         <Link href="/" className="btn-ghost">العودة للمتجر</Link>
       </div>
     </div>

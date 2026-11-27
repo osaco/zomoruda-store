@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Clock, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
 import { site, defaultWhatsappMessage, whatsappLink } from "@/lib/site";
+import { getStoreSettings } from "@/features/settings/server/queries";
 import { navLinks } from "@/lib/nav";
 import { Logo } from "./Logo";
 
-export function Footer() {
+export async function Footer() {
+  const { orderWhatsappNumber, contactInstagram, contactMapUrl, contactAddress, contactHours } = await getStoreSettings();
   return (
     <footer className="mt-16 border-t border-primary/5 bg-surface pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <div className="container-page grid grid-cols-1 gap-8 py-12 md:grid-cols-3">
@@ -39,19 +41,19 @@ export function Footer() {
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-primary" strokeWidth={1.75} />
               <a
-                href={whatsappLink(defaultWhatsappMessage)}
+                href={whatsappLink(defaultWhatsappMessage, orderWhatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tap transition hover:text-primary"
                 dir="ltr"
               >
-                +{site.whatsapp}
+                +{orderWhatsappNumber}
               </a>
             </li>
             <li className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4 text-emerald" strokeWidth={1.75} />
               <a
-                href={whatsappLink(defaultWhatsappMessage)}
+                href={whatsappLink(defaultWhatsappMessage, orderWhatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tap transition hover:text-primary"
@@ -62,29 +64,29 @@ export function Footer() {
             <li className="flex items-center gap-2">
               <Instagram className="h-4 w-4 text-accent" strokeWidth={1.75} />
               <a
-                href={`https://instagram.com/${site.instagram}`}
+                href={`https://instagram.com/${contactInstagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tap transition hover:text-primary"
                 dir="ltr"
               >
-                @{site.instagram}
+                @{contactInstagram}
               </a>
             </li>
             <li className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary" strokeWidth={1.75} />
               <a
-                href={site.mapUrl}
+                href={contactMapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tap transition hover:text-primary"
               >
-                {site.addressAr}
+                {contactAddress}
               </a>
             </li>
             <li className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" strokeWidth={1.75} />
-              <span>{site.hoursAr}</span>
+              <span>{contactHours}</span>
             </li>
           </ul>
         </div>

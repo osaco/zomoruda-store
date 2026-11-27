@@ -327,6 +327,10 @@ export function createSupabaseRepositories(): Repositories {
         }
         return rows.map(toOrder);
       },
+      async confirmNewOrder(id) {
+        const confirmed = check(await db().rpc("confirm_new_customer_order", { p_id: id }));
+        return confirmed ? this.getById(id) : null;
+      },
       async updateStatus(id, status, note = null, by = null) {
         const result = await db().rpc("transition_order_status", {
           p_id: id,

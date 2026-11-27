@@ -9,7 +9,7 @@ import { homeCopy } from "../constants";
  * Always deep-plum, like the hero. Decorative — `aria-hidden` — because the
  * accessible name already appears in the contact row above it.
  */
-export function SiteFooter({ addressAr }: { addressAr: string }) {
+export function SiteFooter({ addressAr, whatsappNumber }: { addressAr: string; whatsappNumber: string }) {
   return (
     <footer className="mt-16 overflow-hidden bg-deep pb-[env(safe-area-inset-bottom)] text-on-deep">
       <div className="wrap pt-16 sm:pt-20">
@@ -17,7 +17,7 @@ export function SiteFooter({ addressAr }: { addressAr: string }) {
           <span>{addressAr}</span>
           <span>{homeCopy.footer.payments}</span>
           <a
-            href={whatsappLink(defaultWhatsappMessage)}
+            href={whatsappLink(defaultWhatsappMessage, whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
             className="focus-gold inline-flex min-h-11 items-center rounded-sm underline-offset-4 transition-colors hover:text-gold hover:underline"

@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getRepos } from "@/lib/data";
@@ -14,7 +15,7 @@ import { buildOrder } from "../lib/build-order";
 import { checkoutSchema } from "../schemas";
 import { calculateSubtotal } from "@/lib/pricing";
 import type { Order } from "@/types/db";
-import { sign, signOrderAccessToken } from "@/lib/signing";
+import { ORDER_ACCESS_TOKEN_TTL, sign, signOrderAccessToken, trackingCookieName } from "@/lib/signing";
 import { getRequestIp, isRateLimited } from "@/lib/rate-limit";
 import { canPlaceUnconfirmedOrder } from "../lib/unconfirmed-order-limit";
 
@@ -29,12 +30,20 @@ const couponPreviewSchema = z.object({
   })).min(1).max(50),
 });
 
-function confirmation(order: Order, orderWhatsappNumber: string) {
+async function confirmation(order: Order, orderWhatsappNumber: string) {
+    const token = signOrderAccessToken(order.orderNumber);
+    (await cookies()).set(trackingCookieName(order.orderNumber), token, {
+      path: "/track",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: ORDER_ACCESS_TOKEN_TTL / 1000,
+    });
     return ok({
       orderNumber: order.orderNumber,
       total: order.total,
       whatsappUrl: whatsappLink(orderWhatsappMessage(order, env.NEXT_PUBLIC_SITE_URL), orderWhatsappNumber),
-      successUrl: `/order/${order.orderNumber}?t=${signOrderAccessToken(order.orderNumber)}`,
+      successUrl: `/order/${order.orderNumber}?t=${token}`,
     });
 }
 
