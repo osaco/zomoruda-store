@@ -64,7 +64,6 @@ export function orderWhatsappFullMessage(order: Order, siteUrl: string): string 
 
 /** Short WhatsApp handoff: the order is already stored, so the number identifies it. */
 export function orderWhatsappMessage(order: Order, siteUrl: string): string {
-  const itemCount = order.items.reduce((total, item) => total + item.quantity, 0);
   const fulfillment = order.fulfillment === "pickup"
     ? `استلام من المتجر (${site.addressAr})`
     : `توصيل${order.zoneNameAr ? ` — ${order.zoneNameAr}` : ""}`;
@@ -73,11 +72,10 @@ export function orderWhatsappMessage(order: Order, siteUrl: string): string {
     `تأكيد طلب زُمُرّدة`,
     `رقم الطلب: #${order.orderNumber}`,
     `الاسم: ${order.customerName}`,
-    `عدد القطع: ${itemCount}`,
     `الإجمالي: ${formatPrice(order.total)}`,
     `الدفع: ${PAYMENT_METHOD_LABELS_AR[order.paymentMethod]}`,
     fulfillment,
-    "الأصناف المطلوبة:",
+    "الأصناف:",
     ...order.items.flatMap(item => {
       const box = item.giftBoxId && item.giftBoxName ? ` داخل «${item.giftBoxName}»` : "";
       const options = item.options.map(option => `${option.nameAr}: ${option.valueAr}`).join("، ");

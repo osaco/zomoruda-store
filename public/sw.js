@@ -30,7 +30,7 @@ self.addEventListener("fetch", (event) => {
   ) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(event.preloadResponse.then(response => response ?? fetch(request)).catch(() => caches.match(OFFLINE_URL)));
+    event.respondWith(event.preloadResponse.catch(() => undefined).then(response => response ?? fetch(request)).catch(() => caches.match(OFFLINE_URL)));
     return;
   }
   if (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/_next/image") || url.pathname.startsWith("/icons")) {

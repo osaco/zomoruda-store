@@ -50,6 +50,7 @@ describe("compact order WhatsApp message", () => {
     const url = whatsappLink(message);
     expect(url.length).toBeLessThan(1200);
     expect(message).toContain(order.orderNumber);
+    for (const item of order.items) expect(message).toContain(`${item.nameAr} × ${item.quantity}`);
     expect(message).toContain("https://zomoruda-store.vercel.app/track?order=ZM-1234");
   });
 });
