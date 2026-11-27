@@ -24,8 +24,6 @@ const bool = z.preprocess((v) => v === "on" || v === true, z.boolean());
 const optText = z.preprocess((v) => (v === "" || v === undefined ? null : v), z.string().trim().nullable());
 const optNum = z.preprocess((v) => (v === "" || v === undefined || v === null ? null : v), z.coerce.number().min(0).nullable());
 const blank = (value: unknown) => value === "" || value === undefined ? null : value;
-const optDate = z.preprocess(blank, z.iso.datetime({ local: true }).nullable())
-  .transform(value => value ? new Date(value.endsWith("Z") ? value : value + "Z").toISOString() : null);
 const couponDate = (end = false) => z.preprocess(blank, z.iso.date().nullable())
   .transform(value => value ? storeDateBoundary(value, end) : null);
 const sort = z.coerce.number().int().default(0);
@@ -63,12 +61,10 @@ export const ENTITIES = {
       { name: "titleAr", label: "العنوان", type: "text", required: true, inTable: true },
       { name: "subtitleAr", label: "النص الفرعي", type: "text" },
       { name: "imageUrl", label: "صورة البانر", type: "url", required: true },
-      { name: "startsAt", label: "يبدأ", type: "datetime" },
-      { name: "endsAt", label: "ينتهي", type: "datetime" },
       { name: "sortOrder", label: "الترتيب", type: "number", inTable: true },
       { name: "isActive", label: "فعّال", type: "checkbox", inTable: true },
     ],
-    schema: z.object({ titleAr: z.string().trim().min(2), subtitleAr: optText, imageUrl: z.union([z.string().url(), z.enum(["/showcase/name-mug.webp", "/showcase/name-necklace.webp", "/showcase/rose-bouquet.webp"])]), startsAt: optDate, endsAt: optDate, sortOrder: sort, isActive: bool }),
+    schema: z.object({ titleAr: z.string().trim().min(2), subtitleAr: optText, imageUrl: z.union([z.string().url(), z.enum(["/showcase/name-mug.webp", "/showcase/name-necklace.webp", "/showcase/rose-bouquet.webp"])]), sortOrder: sort, isActive: bool }),
   },
   zones: {
     title: "مناطق التوصيل",

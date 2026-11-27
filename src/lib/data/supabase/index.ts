@@ -331,8 +331,9 @@ export function createSupabaseRepositories(): Repositories {
         const confirmed = check(await db().rpc("confirm_new_customer_order", { p_id: id }));
         return confirmed ? this.getById(id) : null;
       },
-      async updateStatus(id, status, note = null, by = null) {
-        const result = await db().rpc("transition_order_status", {
+      async updateStatus(id, status, note = null, by = null, expected) {
+        const result = await db().rpc(expected ? "advance_order_status" : "transition_order_status", {
+          ...(expected ? { p_expected: expected } : {}),
           p_id: id,
           p_status: status as OrderStatus,
           p_note: note,

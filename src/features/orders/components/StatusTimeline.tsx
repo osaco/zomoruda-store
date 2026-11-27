@@ -23,7 +23,7 @@ export function StatusTimeline({ order }: { order: Pick<Order, "status" | "statu
     );
   }
 
-  const flow = order.fulfillment === "pickup" ? FLOW.filter((s) => s !== "out_for_delivery") : FLOW;
+  const flow = FLOW;
   const currentIndex = flow.indexOf(order.status);
 
   return (
@@ -65,7 +65,7 @@ export function StatusTimeline({ order }: { order: Pick<Order, "status" | "statu
               >
                 {status === "delivered" && order.fulfillment === "pickup"
                   ? "تم الاستلام"
-                  : ORDER_STATUS_LABELS_AR[status]}
+                  : status === "out_for_delivery" && order.fulfillment === "pickup" ? "جاهز للاستلام" : ORDER_STATUS_LABELS_AR[status]}
                 {isCurrent && <span className="ms-2 text-xs font-normal text-primary">(الحالية)</span>}
               </p>
               {at && <p className="text-xs text-muted">{formatDate(at, true)}</p>}

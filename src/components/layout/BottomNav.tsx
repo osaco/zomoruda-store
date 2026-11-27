@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, LayoutGrid, Search, ShoppingBag, MessageCircle } from "lucide-react";
+import { Home, LayoutGrid, Search, ShoppingBag, PackageCheck, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { defaultWhatsappMessage, whatsappLink } from "@/lib/site";
 import { CartBadge } from "@/features/cart/components/CartBadge";
@@ -11,6 +11,7 @@ const items = [
   { href: "/", label: "الرئيسية", icon: Home },
   { href: "/categories", label: "الأقسام", icon: LayoutGrid },
   { href: "/search", label: "بحث", icon: Search },
+  { href: "/track", label: "تتبّع", icon: PackageCheck },
   { href: "/cart", label: "السلة", icon: ShoppingBag, badge: true },
 ] as const;
 

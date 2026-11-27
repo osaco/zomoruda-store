@@ -23,9 +23,7 @@ function safelyDecodeSlug(value: string) {
   }
 }
 export const getActiveBanners = cache(async () => {
-  const now = new Date().toISOString();
-  const banners = await getRepos().banners.list();
-  return banners.filter((b) => (!b.startsAt || b.startsAt <= now) && (!b.endsAt || b.endsAt >= now));
+  return getRepos().banners.list();
 });
 
 type CatalogParam = "sort" | "page" | "min" | "max" | "q" | "avail";

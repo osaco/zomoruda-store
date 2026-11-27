@@ -149,7 +149,7 @@ export interface OrderRepository {
   list(query?: OrderQuery): Promise<Paginated<Order>>;
   all(query?: Pick<OrderQuery, "from" | "to" | "status">, batch?: { offset: number; size: number }): Promise<Order[]>;
   confirmNewOrder(id: Id): Promise<Order | null>;
-  updateStatus(id: Id, status: OrderStatus, note?: string | null, by?: string | null): Promise<Order | null>;
+  updateStatus(id: Id, status: OrderStatus, note?: string | null, by?: string | null, expected?: OrderStatus): Promise<Order | null>;
 }
 
 export interface SettingsRepository {

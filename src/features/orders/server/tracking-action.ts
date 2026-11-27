@@ -10,7 +10,7 @@ import type { OrderStatus } from "@/types/enums";
 
 export type TrackingState = {
   error?: string;
-  order?: { orderNumber: string; status: OrderStatus; canConfirm: boolean };
+  order?: { orderNumber: string; status: OrderStatus; fulfillment: "delivery" | "pickup"; canConfirm: boolean };
 };
 
 const orderNumberSchema = z.string().trim().max(30)
@@ -44,7 +44,7 @@ export async function trackOrderAction(_: TrackingState, form: FormData): Promis
 
     return {
       ...(wantsConfirmation && !canAccess ? { error: "لتأكيد الطلب، افتحي رابط طلبك الخاص أو استخدمي نفس المتصفح اللي طلبتِ منه." } : {}),
-      order: { orderNumber: order.orderNumber, status: order.status, canConfirm: canAccess && order.status === "new" },
+      order: { orderNumber: order.orderNumber, status: order.status, fulfillment: order.fulfillment, canConfirm: canAccess && order.status === "new" },
     };
   } catch {
     return { error: "تعذّر التحقق من حالة الطلب حالياً. حاولي بعد قليل." };

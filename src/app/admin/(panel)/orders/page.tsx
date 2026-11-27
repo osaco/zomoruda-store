@@ -1,3 +1,4 @@
+import { AdvanceOrder } from "@/features/orders/components/AdvanceOrder";
 import Link from "next/link";
 import { getRepos } from "@/lib/data";
 import { formatDate, formatPrice } from "@/lib/format";
@@ -58,7 +59,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
             <Td><OrderStatusBadge status={o.status} />{o.status === "new" && (() => {
               const ageLabel = unconfirmedOrderAgeLabel(o.createdAt);
               return ageLabel ? <p className="mt-1 text-xs font-semibold text-warning">{ageLabel}</p> : null;
-            })()}</Td>
+            })()}<AdvanceOrder order={o} /></Td>
             <Td className="text-muted">{formatDate(o.createdAt, true)}</Td>
             <Td><a href={`https://wa.me/${toInternational(o.customerPhone)}?text=${encodeURIComponent(`مرحباً ${o.customerName}، بخصوص طلبك رقم ${o.orderNumber} بقيمة ${formatPrice(o.total)}. هل تؤكدين الطلب؟`)}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-xs font-bold text-emerald hover:bg-emerald/10"><MessageCircle className="h-4 w-4" aria-hidden="true" /> مراسلة الزبون</a></Td>
           </tr>

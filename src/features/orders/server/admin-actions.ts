@@ -9,15 +9,15 @@ import { requireAdmin } from "@/features/auth/session";
 const schema = z.object({
   id: z.string().min(1),
   status: z.enum(ORDER_STATUS_VALUES),
+  expected: z.enum(ORDER_STATUS_VALUES).optional(),
   note: z.string().trim().max(300).optional(),
 });
 
 export async function updateOrderStatus(form: FormData) {
   const session = await requireAdmin();
-  const parsed = schema.safeParse({ id: form.get("id"), status: form.get("status"), note: form.get("note") || undefined });
+  const parsed = schema.safeParse({ expected: form.get("expected") || undefined, id: form.get("id"), status: form.get("status"), note: form.get("note") || undefined });
   if (!parsed.success) return;
   const repos = getRepos();
-  const updated = await repos.orders.updateStatus(parsed.data.id, parsed.data.status, parsed.data.note ?? null, session.email);
-  if (!updated) return;
+  await repos.orders.updateStatus(parsed.data.id, parsed.data.status, parsed.data.note ?? null, session.email, parsed.data.expected);
   revalidatePath("/admin", "layout");
 }

@@ -110,6 +110,7 @@ export function CheckoutForm({ zones, bankDetails }: { zones: DeliveryZone[]; ba
       localStorage.removeItem("zm.cart.draft");
       clear();
         // صفحة النجاح تعرض رابط واتساب مباشراً، ولا نعتمد على نافذة منبثقة قد يحجبها المتصفح.
+      try { localStorage.setItem("zomoruda-last-order", res.data.orderNumber); } catch { /* Storage is optional. */ }
       router.push(res.data.successUrl);
     });
   };

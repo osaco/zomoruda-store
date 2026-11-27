@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { AdvanceOrder } from "@/features/orders/components/AdvanceOrder";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle } from "lucide-react";
@@ -84,6 +85,7 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
         <aside className="space-y-6">
           <section className="card space-y-4 p-5">
             <div className="flex items-center justify-between"><h2 className="font-heading font-bold">الحالة</h2><OrderStatusBadge status={order.status} /></div>
+            <AdvanceOrder order={order} />
             <form action={updateOrderStatus} className="space-y-2">
               <input type="hidden" name="id" value={order.id} />
               <select name="status" defaultValue={order.status} className={inputCls} aria-label="الحالة الجديدة">

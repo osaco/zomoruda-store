@@ -367,9 +367,10 @@ export function createDemoRepositories(): Repositories {
           ? this.updateStatus(id, "confirmed", "أكّده صاحب الطلب", "customer")
           : clone(order);
       },
-      async updateStatus(id, status, note = null, by = null) {
+      async updateStatus(id, status, note = null, by = null, expected) {
         const order = state().orders.find((o) => o.id === id);
         if (!order) return null;
+        if (expected && order.status !== expected) return null;
         if (order.status === status) return clone(order);
 
         const quantities = new Map<string, number>();
