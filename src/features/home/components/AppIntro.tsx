@@ -9,11 +9,17 @@ export function AppIntro() {
     if (!matchMedia("(display-mode: standalone) and (prefers-reduced-motion: no-preference)").matches) return;
     try {
       if (sessionStorage.getItem("zomoruda-intro")) return;
-      sessionStorage.setItem("zomoruda-intro", "1");
+
     } catch { /* The intro also works when session storage is unavailable. */ }
-    setVisible(true);
+    const frame = requestAnimationFrame(() => {
+      try { sessionStorage.setItem("zomoruda-intro", "1"); } catch { /* Storage is optional. */ }
+      setVisible(true);
+    });
     const timer = window.setTimeout(() => setVisible(false), 2700);
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
   }, []);
 
   if (!visible) return null;
