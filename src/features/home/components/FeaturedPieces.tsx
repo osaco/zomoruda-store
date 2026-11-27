@@ -4,23 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpLeft } from "lucide-react";
-import type { Banner, Product } from "@/types/db";
-import { formatPrice } from "@/lib/format";
-import { getProductStorefrontImage } from "@/lib/storefront-images";
-import { isPieceAvailable } from "../lib/select-featured";
+import type { Banner } from "@/types/db";
 import styles from "./HomeDesign.module.css";
 
-export function FeaturedPieces({ products, banners }: { products: Product[]; banners: Banner[] }) {
-  const slides = banners.length ? banners.map(banner => ({
+export function FeaturedPieces({ banners }: { banners: Banner[] }) {
+  const slides = banners.map(banner => ({
     title: banner.titleAr,
     detail: banner.subtitleAr,
     image: { src: banner.imageUrl, alt: banner.titleAr },
     href: banner.linkUrl?.startsWith("/") && !banner.linkUrl.startsWith("//") && !banner.linkUrl.includes("\\") ? banner.linkUrl : null,
-  })) : products.map(product => ({
-    title: product.nameAr,
-    detail: isPieceAvailable(product) ? formatPrice(product.price) : "غير متوفر حالياً",
-    image: getProductStorefrontImage(product),
-    href: `/product/${product.slug}`,
   }));
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);

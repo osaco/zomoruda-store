@@ -57,7 +57,7 @@ export const ENTITIES = {
       .transform((v) => ({ ...v, slug: slugify(v.slug || v.nameAr) })),
   },
   banners: {
-    title: "معرض الرئيسية",
+    title: "معرض زمردة",
     repo: "banners",
     fields: [
       { name: "titleAr", label: "العنوان", type: "text", required: true, inTable: true },
@@ -68,7 +68,7 @@ export const ENTITIES = {
       { name: "sortOrder", label: "الترتيب", type: "number", inTable: true },
       { name: "isActive", label: "فعّال", type: "checkbox", inTable: true },
     ],
-    schema: z.object({ titleAr: z.string().trim().min(2), subtitleAr: optText, imageUrl: z.string().url(), startsAt: optDate, endsAt: optDate, sortOrder: sort, isActive: bool }),
+    schema: z.object({ titleAr: z.string().trim().min(2), subtitleAr: optText, imageUrl: z.union([z.string().url(), z.enum(["/showcase/name-mug.webp", "/showcase/name-necklace.webp", "/showcase/rose-bouquet.webp"])]), startsAt: optDate, endsAt: optDate, sortOrder: sort, isActive: bool }),
   },
   zones: {
     title: "مناطق التوصيل",

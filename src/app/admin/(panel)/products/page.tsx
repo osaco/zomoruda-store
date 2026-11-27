@@ -1,3 +1,5 @@
+import { deleteProduct } from "@/features/products-admin/server/actions";
+import { getSession } from "@/features/auth/session";
 import Image from "next/image";
 import Link from "next/link";
 import { getRepos } from "@/lib/data";
@@ -12,9 +14,10 @@ export const metadata = { title: "المنتجات" };
 export default async function AdminProducts({ searchParams }: { searchParams: Promise<{ q?: string; page?: string; saved?: string }> }) {
   const sp = await searchParams;
   const repos = getRepos();
-  const [result, categories] = await Promise.all([
+  const [result, categories, session] = await Promise.all([
     repos.products.list({ search: sp.q, page: Number(sp.page) || 1, perPage: 20, includeInactive: true }),
     repos.categories.list({ includeInactive: true }),
+    getSession(),
   ]);
   const categoryName = new Map(categories.map((c) => [c.id, c.nameAr]));
   return (
@@ -33,7 +36,12 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
             <Td className="text-xs">{AVAILABILITY_LABELS_AR[p.availability]}</Td>
             <Td>{p.isActive ? <Badge variant="success">ظاهر</Badge> : <Badge variant="danger">مخفي</Badge>}</Td>
             <Td>{p.soldCount}</Td>
-            <Td><Link href={`/admin/products/${p.id}`} className="btn-secondary !py-1.5" aria-label={`تعديل ${p.nameAr}`}>تعديل</Link></Td>
+            <Td><div className="flex items-center gap-2"><Link href={`/admin/products/${p.id}`} className="btn-secondary !py-1.5" aria-label={`تعديل ${p.nameAr}`}>تعديل</Link>
+              {session?.role === "admin" && <details><summary className="cursor-pointer text-danger">حذف</summary>
+                <form action={deleteProduct}><input type="hidden" name="id" value={p.id} />
+                  <button className="btn-ghost text-danger">تأكيد حذف {p.nameAr}</button>
+                </form></details>}
+            </div></Td>
           </tr>
         ))}
       </Table>

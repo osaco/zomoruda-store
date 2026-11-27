@@ -13,7 +13,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
   const imageUrl = getStorefrontImageUrl(line.slug, line.imageUrl);
 
   return (
-    <li className="flex gap-3 py-4">
+    <li className={`flex gap-3 py-4 ${line.isGiftBox || line.giftBoxId ? "border-s-4 border-primary bg-primary-light/60 px-3" : "my-2"}`}>
       <Link href={`/product/${line.slug}`} className="shrink-0">
         <Image
           src={imageUrl}

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import Loading from "../(store)/loading";
 import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { serializeJsonLd } from "@/lib/json-ld";
@@ -9,7 +11,7 @@ import { HowItWorks } from "@/features/home/components/HowItWorks";
 import { OccasionsIndex } from "@/features/home/components/OccasionsIndex";
 import { BotanicalDivider } from "@/features/home/components/BotanicalDivider";
 import { getActiveBanners } from "@/features/catalog/server/queries";
-import { getFeaturedPieces, getHomeGiftBox, getHomeOccasions } from "@/features/home/server/queries";
+import { getHomeGiftBox, getHomeOccasions } from "@/features/home/server/queries";
 
 export const revalidate = 60;
 
@@ -47,13 +49,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function HomePage() {
-  const [occasions, pieces, giftBox, banners] = await Promise.all([getHomeOccasions(), getFeaturedPieces(), getHomeGiftBox(), getActiveBanners()]);
+export default function HomePage() {
+  return <><Hero addressAr={site.addressAr} /><Suspense fallback={<Loading />}><HomeSections /></Suspense></>;
+}
+
+async function HomeSections() {
+  const [occasions, giftBox, banners] = await Promise.all([getHomeOccasions(), getHomeGiftBox(), getActiveBanners()]);
 
   return (
     <>
-      <Hero addressAr={site.addressAr} />
-      <FeaturedPieces products={pieces} banners={banners} />
+      <FeaturedPieces banners={banners} />
       <GiftBoxSpotlight box={giftBox} />
       <BotanicalDivider />
       <OccasionsIndex occasions={occasions} />
