@@ -12,6 +12,14 @@ import { EntityForm } from "@/features/admin/entities/EntityForm";
 
 type Item = Record<string, string | number | boolean | null> & { id: string };
 
+function couponStatus(item: Item, now = Date.now()) {
+  if (!item.isActive) return "معطّل";
+  if (item.endsAt && Date.parse(String(item.endsAt)) < now) return "منتهي الصلاحية";
+  if (item.usageLimit != null && Number(item.usedCount) >= Number(item.usageLimit)) return "اكتمل حد الاستخدام";
+  if (item.startsAt && Date.parse(String(item.startsAt)) > now) return "مجدول";
+  return "فعّال";
+}
+
 /** Generic manager for categories, occasions, banners, zones and coupons. */
 export default async function EntityPage({ params, searchParams }: { params: Promise<{ entity: string }>; searchParams: Promise<{ edit?: string; error?: string }> }) {
   const { entity } = await params;
@@ -26,14 +34,7 @@ export default async function EntityPage({ params, searchParams }: { params: Pro
 
   const cell = (item: Item, name: string, type: string) => {
     const v = item[name];
-    if (entity === "coupons" && name === "isActive") {
-      if (!v) return "معطّل";
-      const now = Date.now();
-      if (item.endsAt && Date.parse(String(item.endsAt)) < now) return "منتهي الصلاحية";
-      if (item.usageLimit != null && Number(item.usedCount) >= Number(item.usageLimit)) return "اكتمل حد الاستخدام";
-      if (item.startsAt && Date.parse(String(item.startsAt)) > now) return "مجدول";
-      return "فعّال";
-    }
+    if (entity === "coupons" && name === "isActive") return couponStatus(item);
     if (type === "checkbox") return v ? "✓" : "—";
     if (type === "datetime") return typeof v === "string" ? formatDate(v) : "—";
     return v === null || v === "" ? "—" : String(v);
