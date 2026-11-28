@@ -50,7 +50,7 @@ describe("placeOrder (demo adapter)", () => {
     confirmation.set("orderNumber", res.data.orderNumber);
     confirmation.set("intent", "confirm");
     const denied = await trackOrderAction({}, confirmation);
-    expect(denied.order).toEqual({ orderNumber: res.data.orderNumber, status: "new", canConfirm: false });
+    expect(denied.order).toEqual({ orderNumber: res.data.orderNumber, status: "new", fulfillment: "delivery", canConfirm: false });
     expect(denied.error).toBeDefined();
     confirmation.set("token", token);
     expect((await trackOrderAction({}, confirmation)).order?.status).toBe("confirmed");
