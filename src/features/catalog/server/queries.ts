@@ -1,3 +1,4 @@
+import { publicCatalogRead } from "@/lib/data/public-catalog";
 import "server-only";
 import { cache } from "react";
 import { getRepos } from "@/lib/data";
@@ -5,14 +6,14 @@ import type { ProductQuery, ProductSort } from "@/lib/data/repositories";
 import { PER_PAGE, SORT_OPTIONS } from "../constants";
 
 /** Request-scoped memoized reads (React cache dedupes calls within one render). */
-export const getCategories = cache(() => getRepos().categories.list());
-export const getOccasions = cache(() => getRepos().occasions.list());
-export const getCategoryBySlug = cache((slug: string) => getRepos().categories.getBySlug(slug));
-export const getOccasionBySlug = cache((slug: string) => getRepos().occasions.getBySlug(slug));
+export const getCategories = cache(() => publicCatalogRead("categories", () => getRepos().categories.list()));
+export const getOccasions = cache(() => publicCatalogRead("occasions", () => getRepos().occasions.list()));
+export const getCategoryBySlug = cache((slug: string) => publicCatalogRead("category/" + slug, () => getRepos().categories.getBySlug(slug)));
+export const getOccasionBySlug = cache((slug: string) => publicCatalogRead("occasion/" + slug, () => getRepos().occasions.getBySlug(slug)));
 export const getProductBySlug = cache(async (slug: string) => {
   // Some adapters pass percent-encoded dynamic segments to the page.
   const decoded = /%[a-f0-9]{2}/i.test(slug) ? safelyDecodeSlug(slug) : slug;
-  return getRepos().products.getBySlug(decoded);
+  return publicCatalogRead("product/" + decoded, () => getRepos().products.getBySlug(decoded));
 });
 
 function safelyDecodeSlug(value: string) {
@@ -23,7 +24,7 @@ function safelyDecodeSlug(value: string) {
   }
 }
 export const getActiveBanners = cache(async () => {
-  return getRepos().banners.list();
+  return publicCatalogRead("banners", () => getRepos().banners.list());
 });
 
 type CatalogParam = "sort" | "page" | "min" | "max" | "q" | "avail";
@@ -55,5 +56,5 @@ export function parseCatalogParams(params: CatalogSearchParams): ProductQuery {
 }
 
 export function listProducts(query: ProductQuery) {
-  return getRepos().products.list(query);
+  return publicCatalogRead("list/" + JSON.stringify(query), () => getRepos().products.list(query));
 }

@@ -1,7 +1,13 @@
+import { publicCatalogRead } from "@/lib/data/public-catalog";
 import "server-only";
 import { getRepos } from "@/lib/data";
 
 export async function giftBoxProducts(includeInactive = false, allowed?: string[] | null) {
+  if (includeInactive) return readProducts(true, allowed);
+  return publicCatalogRead("fillings/" + JSON.stringify(allowed ?? null), () => readProducts(false, allowed));
+}
+
+async function readProducts(includeInactive: boolean, allowed?: string[] | null) {
   const products = getRepos().products;
   if (allowed) {
     const selected = [];
