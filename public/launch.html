@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#1e1229"><title>زمردة</title>
+<style>
+:root,body{margin:0;height:100%;background:#1e1229}a{display:grid;height:100%;place-items:center}img{display:block;width:100%;height:100%;object-fit:contain;mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 82%,transparent)}@media(prefers-reduced-motion:reduce){img{visibility:hidden}}
+</style></head><body><a href="/" aria-label="الدخول إلى زمردة"><img src="/home/butterfly-intro.webp" alt="" width="320" height="512" fetchpriority="high"></a>
+<script>
+const art=document.querySelector("img");
+function enter(){try{sessionStorage.setItem("zomoruda-intro","1")}catch{}location.replace("/")}
+document.querySelector("a").onclick=event=>{event.preventDefault();enter()};
+if(matchMedia("(prefers-reduced-motion: reduce)").matches)enter();
+else art.decode().then(()=>setTimeout(enter,3000),enter);
+</script></body></html>

@@ -1,9 +1,9 @@
 // Zomoruda service worker: offline fallback + cache-first for static assets.
-const CACHE = "zomoruda-v2";
+const CACHE = "zomoruda-v3";
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll([OFFLINE_URL, "/icons/icon-192.png", "/placeholder.png"])));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(["/launch", "/home/butterfly-intro.webp", OFFLINE_URL, "/icons/icon-192.png", "/placeholder.png"])));
   self.skipWaiting();
 });
 
@@ -29,6 +29,10 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/order/")
   ) return;
 
+  if (url.pathname === "/launch" || url.pathname === "/home/butterfly-intro.webp") {
+    event.respondWith(caches.open(CACHE).then(async cache => (await cache.match(url.pathname)) || fetch(request)));
+    return;
+  }
   if (request.mode === "navigate") {
     event.respondWith(Promise.resolve(event.preloadResponse).catch(() => undefined).then(response => response ?? fetch(request)).catch(() => caches.match(OFFLINE_URL)));
     return;
